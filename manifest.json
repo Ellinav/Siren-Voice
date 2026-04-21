@@ -1,0 +1,16 @@
+{
+    "display_name": "Siren Voice",
+    "loading_order": 1,
+    "requires": [],
+    "optional": [],
+    "dependencies": [],
+    "js": "index.js",
+    "generate_interceptor": "sirenVoicePromptInterceptor",
+    "css": "style.css",
+    "author": "ron",
+    "version": "1.0.0",
+    "homePage": "",
+    "auto_update": false,
+    "minimum_client_version": "1.11.0",
+    "i18n": {}
+}
