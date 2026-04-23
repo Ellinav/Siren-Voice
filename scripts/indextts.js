@@ -53,7 +53,7 @@ export function getIndexTtsHtml() {
 
             <div style="margin-bottom: 20px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                    <h4 style="margin: 0; color: #38bdf8; font-size: 1.1em;"><i class="fa-solid fa-users" style="margin-right: 5px;"></i>角色列表 (Speaker Ref)</h4>
+                    <h4 style="margin: 0; color: #38bdf8; font-size: 1.1em;"><i class="fa-solid fa-users" style="margin-right: 5px;"></i>角色列表</h4>
                     <button id="siren-idx-char-add" class="siren-ext-btn siren-ext-btn-secondary" style="padding: 2px 8px; font-size: 0.85em;"><i class="fa-solid fa-plus"></i> 添加</button>
                 </div>
                 
@@ -65,7 +65,7 @@ export function getIndexTtsHtml() {
 
             <div style="margin-bottom: 20px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                    <h4 style="margin: 0; color: #fb7185; font-size: 1.1em;"><i class="fa-solid fa-masks-theater" style="margin-right: 5px;"></i>情绪列表 (Emotion Control)</h4>
+                    <h4 style="margin: 0; color: #fb7185; font-size: 1.1em;"><i class="fa-solid fa-masks-theater" style="margin-right: 5px;"></i>情绪列表</h4>
                     <button id="siren-idx-emo-add" class="siren-ext-btn siren-ext-btn-secondary" style="padding: 2px 8px; font-size: 0.85em;"><i class="fa-solid fa-plus"></i> 添加</button>
                 </div>
                 
@@ -73,7 +73,7 @@ export function getIndexTtsHtml() {
                 </div>
                 <div class="siren-ext-setting-row siren-ext-flex-between" style="border: none; padding: 0;">
                     <div class="siren-ext-setting-label">
-                        <label style="font-size: 1.1em; color: #cbd5e1;">全局情绪权重 (emo_weight)</label>
+                        <label style="font-size: 1.1em; color: #cbd5e1;">全局情绪权重</label>
                     </div>
                     <div style="display: flex; align-items: center; gap: 10px; width: 50%;">
                         <input type="range" id="siren-idx-emo-weight" class="siren-ext-progress-bar" min="0" max="1.6" step="0.05" value="0.65" style="flex: 1; --progress: 40.625%;">
@@ -241,7 +241,7 @@ const emoRowHtml = `
   
     <div class="siren-idx-audio-mode-ui" style="position: relative; flex: 3; display: flex; gap: 4px; min-width: 0;">
         <input type="text" class="siren-ext-input siren-idx-audio-input siren-idx-align-fix" placeholder="关键字搜索" style="flex: 2; min-width: 0;">
-        <input type="number" class="siren-ext-input siren-idx-emo-weight-input siren-idx-align-fix" placeholder="默认:0.65" min="0" max="1.6" step="0.05" style="width: 95px; flex-shrink: 0; text-align: center;" title="独立情绪权重 (0-1.6)">
+        <input type="number" class="siren-ext-input siren-idx-emo-weight-input siren-idx-align-fix" placeholder="情绪权重" min="0" max="1.6" step="0.05" style="width: 95px; flex-shrink: 0; text-align: center;" title="独立情绪权重 (0-1.6)">
         <div class="siren-idx-search-results" style="display: none; position: absolute; top: calc(100% + 4px); left: 0; width: 100%; max-height: 150px; overflow-y: auto; background: #1e293b; border: 1px solid #06b6d4; border-radius: 6px; z-index: 100;"></div>
     </div>
     
@@ -482,7 +482,7 @@ export function bindIndexTtsEvents() {
 
     // 保持固定选项
     $moodSelect.empty().append(`
-            <option value="0">使用参考音频情绪 (默认)</option>
+            <option value="0">使用音色音频情绪 (默认)</option>
             <option value="3">自然语言描述 (Text)</option>
         `);
 

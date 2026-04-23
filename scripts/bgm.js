@@ -65,7 +65,7 @@ export function initBgmSettings() {
         
         <div class="siren-ext-settings-container">
             <h3 style="display: flex; align-items: center; justify-content: space-between;">
-                <span><i class="fa-solid fa-wand-magic-sparkles fa-fw" style="color:#3b82f6; margin-right:8px;"></i>幻境氛围 (BGM)</span>
+                <span><i class="fa-solid fa-wand-magic-sparkles fa-fw" style="color:#3b82f6; margin-right:8px;"></i>幻境氛围</span>
                 <i id="siren-bgm-save-btn" class="fa-solid fa-floppy-disk interactable" style="color: #10b981; font-size: 1.2em; transition: transform 0.2s; cursor: pointer;" title="保存全局配置"></i>
             </h3>
             
@@ -239,7 +239,7 @@ export function initBgmSettings() {
 
                 <div style="background: rgba(15, 23, 42, 0.6); padding: 12px; border-radius: 8px; border: 1px solid #334155;">
                     <div style="display: flex; gap: 12px; margin-bottom: 15px; align-items: center;">
-                        <span style="color: #e2e8f0; font-weight: bold; font-size: 14px; white-space: nowrap;">当前BGM</span>
+                        <span style="color: #e2e8f0; font-weight: bold; font-size: 14px; white-space: nowrap;">BGM 库</span>
                         <select id="siren-bgm-list-select" style="flex: 1; background: #1e293b; color: white; border: 1px solid #475569; border-radius: 4px; padding: 6px; outline: none;"></select>
                         <div style="display: flex; gap: 8px;">
                             <button class="siren-icon-btn" id="siren-bgm-btn-import-list" title="导入背景库"><i class="fa-solid fa-file-import"></i></button>
@@ -263,7 +263,7 @@ export function initBgmSettings() {
 
                 <div style="background: rgba(15, 23, 42, 0.6); padding: 12px; border-radius: 8px; border: 1px solid #334155;">
                     <div style="display: flex; gap: 12px; margin-bottom: 15px; align-items: center;">
-                        <span style="color: #e2e8f0; font-weight: bold; font-size: 14px; white-space: nowrap;">当前SFX</span>
+                        <span style="color: #e2e8f0; font-weight: bold; font-size: 14px; white-space: nowrap;">SFX 库</span>
                         <select id="siren-sfx-list-select" style="flex: 1; background: #1e293b; color: white; border: 1px solid #475569; border-radius: 4px; padding: 6px; outline: none;"></select>
                         <div style="display: flex; gap: 8px;">
                             <button class="siren-icon-btn" id="siren-sfx-btn-import-list" title="导入效果音库"><i class="fa-solid fa-file-import"></i></button>

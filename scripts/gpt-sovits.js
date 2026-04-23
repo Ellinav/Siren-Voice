@@ -48,7 +48,7 @@ export function getGptSovitsHtml() {
 
                 <div class="siren-ext-setting-row siren-ext-flex-between">
                     <div class="siren-ext-setting-label">
-                        <label>参考音频上传 (批量)</label>
+                        <label>参考音频上传</label>
                         <small style="display:block; color: #64748b;">上传参考音频到custom_refs</small>
                     </div>
                     <div>
@@ -64,9 +64,7 @@ export function getGptSovitsHtml() {
                         </div>
                     <div style="display: flex; justify-content: flex-end; gap: 8px;">
                         <button id="siren-gsv-upload-cancel" class="siren-ext-btn siren-ext-btn-secondary" style="color: #ef4444; border-color: rgba(239,68,68,0.3);">取消</button>
-                        <button id="siren-gsv-upload-confirm" class="siren-ext-btn siren-ext-btn-secondary" style="color: #10b981; border-color: rgba(16,185,129,0.3);">
-                            <i class="fa-solid fa-cloud-arrow-up" style="margin-right: 5px;"></i>确认
-                        </button>
+                        <button id="siren-gsv-upload-confirm" class="siren-ext-btn siren-ext-btn-secondary" style="color: #10b981; border-color: rgba(16,185,129,0.3);">确认</button>
                     </div>
                 </div>
             </div>
@@ -77,57 +75,57 @@ export function getGptSovitsHtml() {
                 </h4>
                 
                 <div style="display: flex; gap: 15px; align-items: flex-end; margin-bottom: 15px;">
-                    <div style="flex: 1.5;">
-                        <div class="siren-ext-setting-label" style="font-size: 0.85em; margin-bottom: 4px;">文本切分策略</div>
-                        <select id="siren-gsv-global-split" class="siren-ext-select" style="${rowInputStyle} width: 100%;">
-                            <option value="按标点符号切">按标点符号切 (推荐)</option>
-                            <option value="凑四句一切">凑四句一切</option>
-                            <option value="凑50字一切">凑50字一切</option>
-                            <option value="按中文句号。切">按中文句号。切</option>
-                            <option value="按英文句号.切">按英文句号.切</option>
-                            <option value="不切">不切</option>
-                        </select>
-                    </div>
-                    <div style="flex: 1;">
-                        <div style="display:flex; justify-content:space-between; font-size: 0.85em; color: #94a3b8; margin-bottom: 4px;">
-                            <span>句间停顿</span><span id="siren-gsv-interval-val" style="color: #fbbf24;">0.3s</span>
-                        </div>
-                        <input type="range" id="siren-gsv-global-interval" class="siren-ext-slider-input" min="0.1" max="0.5" step="0.05" value="0.3" style="--theme-color: #fbbf24;">
-                    </div>
-                    <div style="flex: 1; padding-bottom: 8px;">
-                        <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
-                            <input type="checkbox" id="siren-gsv-global-parallel" checked>
-                            <span style="font-size: 0.85em; color: #cbd5e1;">并行推理</span>
-                        </label>
-                    </div>
-                </div>
-                
-                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; padding-top: 15px; border-top: 1px dashed rgba(51, 65, 85, 0.6);">
-                    <div>
-                        <div style="display:flex; justify-content:space-between; font-size:0.8em; color:#94a3b8;"><span>语速</span><span id="siren-gsv-global-speed-val" style="color:#fbbf24;">1.0</span></div>
-                        <input type="range" id="siren-gsv-global-speed" class="siren-ext-slider-input" min="0.6" max="1.65" step="0.05" value="1.0" style="--theme-color: #fbbf24;">
-                    </div>
-                    <div>
-                        <div style="display:flex; justify-content:space-between; font-size:0.8em; color:#94a3b8;"><span>温度</span><span id="siren-gsv-global-temp-val" style="color:#fbbf24;">1.0</span></div>
-                        <input type="range" id="siren-gsv-global-temp" class="siren-ext-slider-input" min="0" max="1" step="0.05" value="1.0" style="--theme-color: #fbbf24;">
-                    </div>
-                    <div>
-                        <div style="display:flex; justify-content:space-between; font-size:0.8em; color:#94a3b8;"><span>Top P</span><span id="siren-gsv-global-topp-val" style="color:#fbbf24;">1.0</span></div>
-                        <input type="range" id="siren-gsv-global-topp" class="siren-ext-slider-input" min="0" max="1" step="0.05" value="1.0" style="--theme-color: #fbbf24;">
-                    </div>
-                    <div>
-                        <div style="display:flex; justify-content:space-between; font-size:0.8em; color:#94a3b8;"><span>Top K</span><span id="siren-gsv-global-topk-val" style="color:#fbbf24;">15</span></div>
-                        <input type="range" id="siren-gsv-global-topk" class="siren-ext-slider-input" min="1" max="100" step="1" value="15" style="--theme-color: #fbbf24;">
-                    </div>
-                    <div>
-                        <div style="display:flex; justify-content:space-between; font-size:0.8em; color:#94a3b8;"><span>重复惩罚</span><span id="siren-gsv-global-rep-val" style="color:#fbbf24;">1.35</span></div>
-                        <input type="range" id="siren-gsv-global-rep" class="siren-ext-slider-input" min="1" max="2" step="0.05" value="1.35" style="--theme-color: #fbbf24;">
-                    </div>
-                    <div>
-                        <div style="font-size:0.8em; color:#94a3b8; margin-bottom:5px;">种子</div>
-                        <input type="number" id="siren-gsv-global-seed" class="siren-ext-input siren-no-spin" value="-1" style="${rowInputStyle} width: 100%;">
-                    </div>
-                </div>
+    <div style="flex: 1.5;">
+        <div class="siren-ext-setting-label" style="font-size: 0.85em; margin-bottom: 4px;">文本切分策略</div>
+        <select id="siren-gsv-global-split" class="siren-ext-select" style="${rowInputStyle} width: 100%;">
+            <option value="按标点符号切">按标点符号切 (推荐)</option>
+            <option value="凑四句一切">凑四句一切</option>
+            <option value="凑50字一切">凑50字一切</option>
+            <option value="按中文句号。切">按中文句号。切</option>
+            <option value="按英文句号.切">按英文句号.切</option>
+            <option value="不切">不切</option>
+        </select>
+    </div>
+    <div style="flex: 1;">
+        <div style="display:flex; justify-content:space-between; font-size: 0.85em; color: #94a3b8; margin-bottom: 4px;">
+            <span>句间停顿</span><span id="siren-gsv-interval-val" style="color: #facc15;">0.3s</span>
+        </div>
+        <input type="range" id="siren-gsv-global-interval" class="siren-ext-slider-input" min="0.1" max="0.5" step="0.05" value="0.3" style="--theme-color: #facc15;">
+    </div>
+    <div style="flex: 1; padding-bottom: 8px;">
+        <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+            <input type="checkbox" id="siren-gsv-global-parallel" checked>
+            <span style="font-size: 0.85em; color: #cbd5e1;">并行推理</span>
+        </label>
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; padding-top: 15px; border-top: 1px dashed rgba(51, 65, 85, 0.6);">
+    <div>
+        <div style="display:flex; justify-content:space-between; font-size:0.8em; color:#94a3b8;"><span>语速</span><span id="siren-gsv-global-speed-val" style="color:#facc15;">1.0</span></div>
+        <input type="range" id="siren-gsv-global-speed" class="siren-ext-slider-input" min="0.6" max="1.65" step="0.05" value="1.0" style="--theme-color: #facc15;">
+    </div>
+    <div>
+        <div style="display:flex; justify-content:space-between; font-size:0.8em; color:#94a3b8;"><span>温度</span><span id="siren-gsv-global-temp-val" style="color:#facc15;">1.0</span></div>
+        <input type="range" id="siren-gsv-global-temp" class="siren-ext-slider-input" min="0" max="1" step="0.05" value="1.0" style="--theme-color: #facc15;">
+    </div>
+    <div>
+        <div style="display:flex; justify-content:space-between; font-size:0.8em; color:#94a3b8;"><span>Top P</span><span id="siren-gsv-global-topp-val" style="color:#facc15;">1.0</span></div>
+        <input type="range" id="siren-gsv-global-topp" class="siren-ext-slider-input" min="0" max="1" step="0.05" value="1.0" style="--theme-color: #facc15;">
+    </div>
+    <div>
+        <div style="display:flex; justify-content:space-between; font-size:0.8em; color:#94a3b8;"><span>Top K</span><span id="siren-gsv-global-topk-val" style="color:#facc15;">15</span></div>
+        <input type="range" id="siren-gsv-global-topk" class="siren-ext-slider-input" min="1" max="100" step="1" value="15" style="--theme-color: #facc15;">
+    </div>
+    <div>
+        <div style="display:flex; justify-content:space-between; font-size:0.8em; color:#94a3b8;"><span>重复惩罚</span><span id="siren-gsv-global-rep-val" style="color:#facc15;">1.35</span></div>
+        <input type="range" id="siren-gsv-global-rep" class="siren-ext-slider-input" min="1" max="2" step="0.05" value="1.35" style="--theme-color: #facc15;">
+    </div>
+    <div>
+        <div style="font-size:0.8em; color:#94a3b8; margin-bottom:5px;">种子</div>
+        <input type="number" id="siren-gsv-global-seed" class="siren-ext-input siren-no-spin" value="-1" style="${rowInputStyle} width: 100%;">
+    </div>
+</div>
             </div>
 
             <div style="background: rgba(15, 23, 42, 0.4); border: 1px solid #334155; border-radius: 6px; padding: 15px;">
@@ -208,48 +206,48 @@ export function getGptSovitsHtml() {
                     </h3>
                     
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px;">
-                        <div>
-                            <div style="display:flex; justify-content:space-between; font-size:0.85em; color:#9ca3af;"><span>语速</span><span id="siren-gsv-mod-speed-val" style="color:#fcd34d;">1.0</span></div>
-                            <input type="range" id="siren-gsv-mod-speed" class="siren-ext-slider-input" min="0.6" max="1.65" step="0.05" value="1.0">
-                        </div>
-                        <div>
-                            <div style="display:flex; justify-content:space-between; font-size:0.85em; color:#9ca3af;"><span>温度</span><span id="siren-gsv-mod-temp-val" style="color:#fcd34d;">1.0</span></div>
-                            <input type="range" id="siren-gsv-mod-temp" class="siren-ext-slider-input" min="0" max="1" step="0.05" value="1.0">
-                        </div>
-                        <div>
-                            <div style="display:flex; justify-content:space-between; font-size:0.85em; color:#9ca3af;"><span>Top P</span><span id="siren-gsv-mod-topp-val" style="color:#fcd34d;">1.0</span></div>
-                            <input type="range" id="siren-gsv-mod-topp" class="siren-ext-slider-input" min="0" max="1" step="0.05" value="1.0">
-                        </div>
-                        <div>
-                            <div style="display:flex; justify-content:space-between; font-size:0.85em; color:#9ca3af;"><span>Top K</span><span id="siren-gsv-mod-topk-val" style="color:#fcd34d;">15</span></div>
-                            <input type="range" id="siren-gsv-mod-topk" class="siren-ext-slider-input" min="1" max="100" step="1" value="15">
-                        </div>
-                        <div>
-                            <div style="display:flex; justify-content:space-between; font-size:0.85em; color:#9ca3af;"><span>重复惩罚</span><span id="siren-gsv-mod-rep-val" style="color:#fcd34d;">1.35</span></div>
-                            <input type="range" id="siren-gsv-mod-rep" class="siren-ext-slider-input" min="1" max="2" step="0.05" value="1.35">
-                        </div>
-                        <div></div>
-                        <div>
-                            <div style="font-size:0.85em; color:#9ca3af; margin-bottom: 8px;">种子</div>
-                            <input type="number" id="siren-gsv-mod-seed" class="siren-ext-input siren-no-spin" value="-1" style="${rowInputStyle} width: 100%;">
-                        </div>
-                        <div>
-                            <div style="font-size:0.85em; color:#9ca3af; margin-bottom: 8px;">输出语言</div>
-                            <select id="siren-gsv-mod-textlang" class="siren-ext-select" style="${rowInputStyle} width: 100%;">
-                                <option value="中文">中文</option>
-                                <option value="英语">英语</option>
-                                <option value="日语">日语</option>
-                                <option value="粤语">粤语</option>
-                                <option value="韩语">韩语</option>
-                                <option value="中英混合">中英混合</option>
-                                <option value="日英混合">日英混合</option>
-                                <option value="粤英混合">粤英混合</option>
-                                <option value="韩英混合">韩英混合</option>
-                                <option value="多语种混合">多语种混合</option>
-                                <option value="多语种混合(粤语)">多语种混合(粤语)</option>
-                            </select>
-                        </div>
-                    </div>
+    <div>
+        <div style="display:flex; justify-content:space-between; font-size:0.85em; color:#9ca3af;"><span>语速</span><span id="siren-gsv-mod-speed-val" style="color:#facc15;">1.0</span></div>
+        <input type="range" id="siren-gsv-mod-speed" class="siren-ext-slider-input" min="0.6" max="1.65" step="0.05" value="1.0" style="--theme-color: #facc15;">
+    </div>
+    <div>
+        <div style="display:flex; justify-content:space-between; font-size:0.85em; color:#9ca3af;"><span>温度</span><span id="siren-gsv-mod-temp-val" style="color:#facc15;">1.0</span></div>
+        <input type="range" id="siren-gsv-mod-temp" class="siren-ext-slider-input" min="0" max="1" step="0.05" value="1.0" style="--theme-color: #facc15;">
+    </div>
+    <div>
+        <div style="display:flex; justify-content:space-between; font-size:0.85em; color:#9ca3af;"><span>Top P</span><span id="siren-gsv-mod-topp-val" style="color:#facc15;">1.0</span></div>
+        <input type="range" id="siren-gsv-mod-topp" class="siren-ext-slider-input" min="0" max="1" step="0.05" value="1.0" style="--theme-color: #facc15;">
+    </div>
+    <div>
+        <div style="display:flex; justify-content:space-between; font-size:0.85em; color:#9ca3af;"><span>Top K</span><span id="siren-gsv-mod-topk-val" style="color:#facc15;">15</span></div>
+        <input type="range" id="siren-gsv-mod-topk" class="siren-ext-slider-input" min="1" max="100" step="1" value="15" style="--theme-color: #facc15;">
+    </div>
+    <div>
+        <div style="display:flex; justify-content:space-between; font-size:0.85em; color:#9ca3af;"><span>重复惩罚</span><span id="siren-gsv-mod-rep-val" style="color:#facc15;">1.35</span></div>
+        <input type="range" id="siren-gsv-mod-rep" class="siren-ext-slider-input" min="1" max="2" step="0.05" value="1.35" style="--theme-color: #facc15;">
+    </div>
+    <div></div>
+    <div>
+        <div style="font-size:0.85em; color:#9ca3af; margin-bottom: 8px;">种子</div>
+        <input type="number" id="siren-gsv-mod-seed" class="siren-ext-input siren-no-spin" value="-1" style="${rowInputStyle} width: 100%;">
+    </div>
+    <div>
+        <div style="font-size:0.85em; color:#9ca3af; margin-bottom: 8px;">输出语言</div>
+        <select id="siren-gsv-mod-textlang" class="siren-ext-select" style="${rowInputStyle} width: 100%;">
+            <option value="中文">中文</option>
+            <option value="英语">英语</option>
+            <option value="日语">日语</option>
+            <option value="粤语">粤语</option>
+            <option value="韩语">韩语</option>
+            <option value="中英混合">中英混合</option>
+            <option value="日英混合">日英混合</option>
+            <option value="粤英混合">粤英混合</option>
+            <option value="韩英混合">韩英混合</option>
+            <option value="多语种混合">多语种混合</option>
+            <option value="多语种混合(粤语)">多语种混合(粤语)</option>
+        </select>
+    </div>
+</div>
 
                     <div style="display: flex; justify-content: flex-end; gap: 12px;">
                         <button id="siren-gsv-mod-cancel" class="siren-ext-btn siren-ext-btn-secondary">取消</button>
