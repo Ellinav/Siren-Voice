@@ -1606,18 +1606,21 @@ export async function playSceneBgm(bgmName, floorId = null, forcePlay = false) {
       `[Siren Voice] 📥 BGM 缓存未命中，开始兜底下载: ${actualBgmName}`,
     );
     try {
-      // 阻塞式请求，确保拿到完整音频 Blob
       const response = await fetch(targetUrl);
       if (response.ok) {
         const blob = await response.blob();
-        await saveBgmRecord(targetUrl, blob); // 存入 DB
-        finalSrc = URL.createObjectURL(blob); // 转化为本地高优链接
+        await saveBgmRecord(targetUrl, blob);
+        finalSrc = URL.createObjectURL(blob);
         console.log(`[Siren Voice] ✅ 兜底下载完成并缓存入库！`);
       } else {
-        console.warn(`[Siren Voice] ⚠️ BGM 兜底下载失败，退回流式播放`);
+        console.warn(`[Siren Voice] ⚠️ BGM 下载失败 (HTTP ${response.status})`);
+        if (window.toastr) window.toastr.error("背景音加载失败，请检查链接");
+        return "error"; // 🌟 修复：明确返回 error，阻止下游生成错误的 Audio
       }
     } catch (e) {
-      console.error(`[Siren Voice] ❌ BGM 下载报错，退回流式播放:`, e);
+      console.error(`[Siren Voice] ❌ BGM 下载报错:`, e);
+      if (window.toastr) window.toastr.error("背景音网络请求失败");
+      return "error"; // 🌟 修复：阻断播放，让界面的转圈能够停止
     }
   }
 
@@ -1739,9 +1742,15 @@ export async function playSceneSfx(
         const blob = await response.blob();
         await saveBgmRecord(targetUrl, blob);
         finalSrc = URL.createObjectURL(blob);
+      } else {
+        console.warn(`[Siren Voice] ⚠️ SFX 下载失败 (HTTP ${response.status})`);
+        if (window.toastr) window.toastr.error("效果音加载失败，请检查链接");
+        return "error"; // 🌟 修复：阻断执行
       }
     } catch (e) {
       console.error(`[Siren Voice] ❌ SFX 下载报错:`, e);
+      if (window.toastr) window.toastr.error("效果音网络请求失败");
+      return "error"; // 🌟 修复：阻断执行
     }
   }
 
@@ -1831,9 +1840,15 @@ function playSceneSfxSync(sfxName, floorId = null, dir = "center") {
           const blob = await response.blob();
           await saveBgmRecord(targetUrl, blob);
           finalSrc = URL.createObjectURL(blob);
+        } else {
+          console.warn(
+            `[Siren Voice] ⚠️ SFX 下载失败 (HTTP ${response.status})`,
+          );
+          return resolve(); // 🌟 核心修复：必须调用 resolve，否则会卡死整个剧本进度！
         }
       } catch (e) {
-        console.warn(`[Siren Voice] SFX 兜底下载失败:`, e);
+        console.warn(`[Siren Voice] ❌ SFX 下载报错:`, e);
+        return resolve(); // 🌟 核心修复：遇到网络错误也必须放行
       }
     }
 
