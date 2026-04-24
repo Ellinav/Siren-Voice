@@ -371,15 +371,10 @@ function startKaraokeAnimation(
     let lastWrittenCursor = -1;
 
     function step(now) {
-      // 1. 监控：动画是否被意外终止
-      if (!activeSceneState.isPlaying) {
-        console.log(`[Siren Debug] 🛑 动画循环死亡: isPlaying 变成了 false`);
-        return resolve();
-      }
-      if (expectedFloorId && activeSceneState.floorId !== expectedFloorId) {
-        console.log(
-          `[Siren Debug] 🛑 动画循环死亡: 楼层被切 (当前: ${activeSceneState.floorId}, 期望: ${expectedFloorId})`,
-        );
+      if (
+        !activeSceneState.isPlaying ||
+        (expectedFloorId && activeSceneState.floorId !== expectedFloorId)
+      ) {
         return resolve();
       }
 
@@ -388,59 +383,16 @@ function startKaraokeAnimation(
         node.domElements.length === 0 ||
         !document.body.contains(node.domElements[0]);
 
-      // 2. 监控：DOM 自愈引擎是否触发
       if (isDetached) {
-        console.log(
-          `[Siren Debug] 🚨 察觉到 DOM 丢失！开始自愈 (Floor: ${expectedFloorId})`,
-        );
-        mapTimelineToDom(expectedFloorId, activeSceneState.timeline);
-
-        if (
-          node.domElements &&
-          node.domElements.length > 0 &&
-          document.body.contains(node.domElements[0])
-        ) {
-          console.log(
-            `[Siren Debug] 🩹 自愈成功！重新映射了 ${node.domElements.length} 个字符元素`,
-          );
-
-          for (let i = 0; i < activeSceneState.currentStepIndex; i++) {
-            const pastNode = activeSceneState.timeline[i];
-            if (pastNode.domElements) {
-              pastNode.domElements.forEach((el) => {
-                el.className = "siren-karaoke-target siren-karaoke-done";
-              });
-            }
-          }
-
-          let currentTotal = 0;
-          node.domElements.forEach((el) => {
-            el.className =
-              "siren-karaoke-target " +
-              (activeSceneState.isPaused
-                ? "siren-karaoke-paused-playing"
-                : "siren-karaoke-playing");
-            const len = el.textContent.length;
-            el.style.setProperty("--c-off", currentTotal);
-            el.style.setProperty("--c-len", len);
-            currentTotal += len;
-          });
-        } else {
-          console.log(
-            `[Siren Debug] ❌ 自愈失败！mapTimelineToDom 结束后，DOM 依然没找到`,
-          );
+        // 🛑 DOM 正在被 Anima 刷新，不要在 60FPS 的循环里疯狂查 DOM 报错。
+        // 保持动画时间流逝，安心等待 500ms 后的 handleMessageEditRevert 统一修复。
+        if (!start) {
+          start = now;
+          lastNow = now;
         }
-      }
-
-      // 3. 监控：控制全局变量的根类名是否被 ST 抹除
-      const mesNode = document.querySelector(
-        `.mes[mesid="${expectedFloorId}"]`,
-      );
-      if (mesNode && !mesNode.classList.contains("siren-scene-active")) {
-        console.log(
-          `[Siren Debug] ⚠️ 警告: .siren-scene-active 根类名被抹除，这会导致动画卡死，正在强行补回！`,
-        );
-        mesNode.classList.add("siren-scene-active");
+        lastNow = now;
+        activeKaraokeRaf = requestAnimationFrame(step);
+        return; // 核心：跳过这一帧的 DOM 操作！
       }
 
       if (!start) {
@@ -1006,9 +958,9 @@ function parseMessageTimeline(floorId) {
   }
 
   const timeline = [];
-  // 🌟 修复 1：更具弹性的全局切分正则，允许 ambience/sfx 标签带任意属性
+  // 🚀 核心修复 3：全局剧本切分器加入防穿透引擎，完美切断幻觉标签造成的连体婴
   const combinedRegex =
-    /(<ambience\b[^>]*>[\s\S]*?<\/ambience>|<sfx\b[^>]*>[\s\S]*?<\/sfx>|<(?:speak|inner|phone)\b[^>]*>[\s\S]*?<\/(?:speak|inner|phone)>)/gi;
+    /(<ambience\b[^>]*>[\s\S]*?<\/ambience>|<sfx\b[^>]*>[\s\S]*?<\/sfx>|<(?:speak|inner|phone)\b[^>]*>(?:(?!<(?:speak|inner|phone)\b)[\s\S])*?<\/(?:speak|inner|phone|(?!(?:i|b|u|s|em|strong|span|a|p|br)\b)[a-zA-Z0-9_-]+)>)/gi;
   const parts = textToParse.split(combinedRegex);
 
   for (let i = 0; i < parts.length; i++) {
@@ -1043,9 +995,9 @@ function parseMessageTimeline(floorId) {
         });
       }
     } else if (/^<(speak|inner|phone)\b/i.test(trimmed)) {
-      // 🌟 修复 4：内置独立的 TTS 标签解析器，摆脱对 utils.js 的依赖，完美支持 inner/phone 切换
+      // 🚀 核心修复 4：内置 TTS 属性提取器同步兼容幻觉标签
       const ttsMatch =
-        /<(speak|inner|phone)\b([^>]*)>([\s\S]*?)<\/(?:speak|inner|phone)>/i.exec(
+        /<(speak|inner|phone)\b([^>]*)>([\s\S]*?)<\/(?:speak|inner|phone|(?!(?:i|b|u|s|em|strong|span|a|p|br)\b)[a-zA-Z0-9_-]+)>/i.exec(
           part,
         );
       if (ttsMatch) {
@@ -1238,6 +1190,9 @@ async function startScenePlayback(floorId, timeline, btnNode) {
   activeSceneState.isPlaying = true;
   activeSceneState.isPaused = false;
   activeSceneState.floorId = floorId;
+
+  // 👇 🐛 就是漏了这一行！导致自愈引擎和恢复引擎拿到的全是空数组！
+  activeSceneState.timeline = timeline;
 
   // 🌟 1. 扫描映射 DOM，瞬间切分全部 DOM 并穿好马甲
   mapTimelineToDom(floorId, timeline);

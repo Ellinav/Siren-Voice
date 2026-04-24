@@ -75,8 +75,8 @@ export function stripInlineMarkdown(text) {
 }
 
 /**
- * 剔除字符串首尾的冗余标点符号（如中英文引号、星号、反引号）
- * 🌟 修复：彻底清理由于回车换行而产生的开头/结尾的多余 <br> 和空白，防止语音条内出现不必要的空行
+ * 剔除字符串首尾的冗余成对标点符号（如中英文引号、星号、反引号）
+ * 修复：严格判断成对闭合，只有头尾匹配相同的符号对时才剥离，避免误伤内部引用
  */
 export function stripWrappingPunctuation(textOrHtml) {
   if (!textOrHtml || typeof textOrHtml !== "string") return "";
@@ -87,21 +87,41 @@ export function stripWrappingPunctuation(textOrHtml) {
   const trimEdges = (str) =>
     str.replace(/^(?:\s|<br\s*\/?>|&nbsp;)+|(?:\s|<br\s*\/?>|&nbsp;)+$/gi, "");
 
-  // 先清理外层包裹的空白和换行
-  trimmed = trimEdges(trimmed);
+  // 定义支持剥离的成对包裹符号（支持多次嵌套，如 *"文本"*）
+  const pairedPunctuation = [
+    ['"', '"'],
+    ["'", "'"],
+    ["“", "”"],
+    ["‘", "’"],
+    ["「", "」"],
+    ["『", "』"],
+    ["《", "》"],
+    ["〈", "〉"],
+    ["*", "*"],
+    ["`", "`"],
+  ];
 
-  // 匹配开头和结尾的标点
-  const startRegex = /^["'“”‘’*`]+/;
-  const endRegex = /["'“”‘’*`]+$/;
-
-  // 循环替换，直到首尾没有这些标点为止（应对多重包裹如 *"文本"*）
   let previous;
   do {
     previous = trimmed;
-    // 剥离标点
-    trimmed = trimmed.replace(startRegex, "").replace(endRegex, "");
-    // 剥离后可能又暴露出被包裹的换行符，继续清理
+
+    // 先清理外层包裹的空白和换行
     trimmed = trimEdges(trimmed);
+
+    // 检查头尾是否是成对的符号
+    for (const [open, close] of pairedPunctuation) {
+      // 确保文本长度足够，且头尾刚好匹配当前的符号对
+      if (
+        trimmed.startsWith(open) &&
+        trimmed.endsWith(close) &&
+        trimmed.length >= open.length + close.length
+      ) {
+        // 如果成对匹配，各裁掉头尾的一层符号
+        trimmed = trimmed.slice(open.length, -close.length);
+        // 跳出 for 循环，重新走一遍 do-while（因为剥离后可能暴露出新的换行符或下一层成对符号）
+        break;
+      }
+    }
   } while (trimmed !== previous);
 
   return trimmed.trim();

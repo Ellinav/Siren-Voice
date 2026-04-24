@@ -729,9 +729,9 @@ export function initEvents() {
                 }
 
                 if (originalMarkdown) {
-                  // 🌟 更新打捞正则，支持三种标签
+                  // 🚀 核心修复 2：底层打捞器同步升级，支持防穿透与幻觉标签
                   const regex =
-                    /<(speak|inner|phone)\b([^>]*)>([\s\S]*?)<\/\1>/gi;
+                    /<(speak|inner|phone)\b([^>]*)>((?:(?!<(?:speak|inner|phone)\b)[\s\S])*?)<\/(?:\1|(?!(?:i|b|u|s|em|strong|span|a|p|br)\b)[a-zA-Z0-9_-]+)>/gi;
                   let match;
                   while ((match = regex.exec(originalMarkdown)) !== null) {
                     // match[1] 是标签名, match[2] 是属性, match[3] 是文本
@@ -1155,18 +1155,13 @@ export function applyMusicBeautifyCss() {
 // ==========================================
 // 🌟 正则构建器：语音系统 (Speak)
 // ==========================================
-// ==========================================
-// 🌟 正则构建器：语音系统 (Speak / Inner / Phone)
-// ==========================================
 function buildSpeakRegexes() {
   const settings = getSirenSettings();
   const isBeautifyEnabled = settings?.tts?.beautify_enabled ?? true;
 
   if (!isBeautifyEnabled) return [];
 
-  // 💡 核心优化：提取公共生成逻辑，为不同标签定制不同的正则表达式和 HTML 骨架
   const createRegexConfig = (tag, iconHtml) => {
-    // 首字母大写，用于 ST 里的规范命名 (例如 Siren-Voice-Auto-Inner)
     const capitalizedTag = tag.charAt(0).toUpperCase() + tag.slice(1);
 
     return {
@@ -1175,8 +1170,9 @@ function buildSpeakRegexes() {
       enabled: true,
       run_on_edit: true,
       scope: "global",
-      // 🌟 拆分后的专属正则。$1 捕获属性 (attrs)，$2 捕获内部文本
-      find_regex: `/<${tag}\\b([^>]*)>([\\s\\S]*?)<\\/${tag}>/gi`,
+      // 🚀 核心修复 1：防穿透 (绝不越界吃掉下一个同类标签) + 幻觉兼容 (支持如 </japan>, </chub> 闭合)
+      // 过滤掉常见的 HTML 标签防止误伤 (如 </i>, </br>)
+      find_regex: `/<${tag}\\b([^>]*)>((?:(?!<(?:speak|inner|phone)\\b)[\\s\\S])*?)<\\/(?:${tag}|(?!(?:i|b|u|s|em|strong|span|a|p|br)\\b)[a-zA-Z0-9_-]+)>/gi`,
       replace_string:
         `<span class="siren-speak-card" data-siren-speak="1" data-tag="${tag}" data-raw-attrs='$1' tabindex="0">
     <span class="siren-btn-wrap siren-play-wrap" data-siren-action="play" title="播放">
@@ -1206,7 +1202,6 @@ function buildSpeakRegexes() {
     };
   };
 
-  // 🌟 终极护城河：抛弃 Class 幻想，直接使用 ST 无法触碰的 data-* 属性作为绝对锚点
   const getIndicatorHtml = (faClass) =>
     `<span class="siren-tag-icon" data-siren-icon="1" style="pointer-events: none; opacity: 0.85; margin-right: 6px;">
             <i class="${faClass}"></i>
