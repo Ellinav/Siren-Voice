@@ -169,19 +169,33 @@ async function handleInlineMusicPlay(
       if (window.toastr) window.toastr.warning("未能提取到正确的歌曲名。");
       return;
     }
-    if (element) {
-      const icon =
-        element.querySelector(".fa-play") ||
-        element.querySelector(".siren-play-icon");
-      if (icon) {
-        icon.classList.remove("fa-play");
-        icon.classList.add("fa-spinner", "fa-spin");
-        setTimeout(() => {
-          icon.classList.remove("fa-spinner", "fa-spin");
-          icon.classList.add("fa-play");
-        }, 1000);
+
+    // 🌟 修复点 1：定义安全的 UI 更新函数，直接替换父级 HTML 规避 FontAwesome 幽灵节点
+    const setCardState = (isLoading) => {
+      if (!element) return;
+      const wrap = element.querySelector(".siren-music-cover-wrap");
+      const iconHtml = isLoading
+        ? '<i class="fa-solid fa-spinner fa-spin siren-play-icon"></i>'
+        : '<i class="fa-solid fa-play siren-play-icon"></i>';
+
+      if (wrap) {
+        wrap.innerHTML = iconHtml;
+      } else {
+        // 兼容旧版或未加 wrap 的 DOM
+        const icon =
+          element.querySelector(".siren-play-icon") ||
+          element.querySelector("i");
+        if (icon) {
+          icon.className = isLoading
+            ? "fa-solid fa-spinner fa-spin siren-play-icon"
+            : "fa-solid fa-play siren-play-icon";
+        }
       }
-    }
+    };
+
+    // 🌟 修复点 2：点击瞬间切为加载动画
+    setCardState(true);
+
     const settings = getSirenSettings();
     const source = settings?.music?.source || "netease";
     if (settings?.music?.mode !== "smart") {
@@ -204,9 +218,20 @@ async function handleInlineMusicPlay(
     console.log(
       `[Siren Voice] 🚀 发起播放请求: ${title} - ${artist} via ${source}`,
     );
+
+    // 🌟 修复点 3：等待打捞逻辑完成（不用死板的 1 秒 setTimeout）
     await playTargetMusic(title, artist, source);
+
+    // 🌟 修复点 4：播放引擎启动完毕后，恢复为原播放按钮
+    setCardState(false);
   } catch (error) {
     console.error("[Siren Voice] ❌ handleInlineMusicPlay 崩溃:", error);
+    // 发生异常报错时，也要确保把转圈的图标恢复过来
+    if (element) {
+      const wrap = element.querySelector(".siren-music-cover-wrap");
+      if (wrap)
+        wrap.innerHTML = '<i class="fa-solid fa-play siren-play-icon"></i>';
+    }
   }
 }
 
@@ -503,6 +528,7 @@ export function initEvents() {
 
   eventSource.on(messageEditedEvent, handleEdit);
   eventSource.on(messageUpdatedEvent, handleEdit);
+  eventSource.on("character_message_rendered", handleEdit);
 
   const swipeEvent = event_types.MESSAGE_SWIPED || "message_swiped";
   eventSource.on(swipeEvent, async (...args) => {
@@ -728,27 +754,30 @@ export function initEvents() {
             console.log("【Siren Voice 调试 1】最终确定的原始文本:", rawText);
 
             const attrs = parseRawSpeakAttrs(rawAttrs);
-            let cleanText = rawText.replace(/\{\{[\s\S]*?\}\}/g, "").trim();
 
-            // 👇 🌟 可选新增：保证发给底层 TTS 引擎的文本也是剥离了双引号/星号的纯净版
-            cleanText = stripParentheticalAsides(cleanText);
+            // 1. 基础文本 (保留标点、引号和动作，供 IndexedDB 缓存精确匹配)
+            let baseText = rawText.replace(/\{\{[\s\S]*?\}\}/g, "").trim();
+
+            // 2. 剥离版本 (提取出来，但不覆盖 baseText)
+            let cleanText = stripParentheticalAsides(baseText);
             cleanText = stripWrappingPunctuation(cleanText);
 
             // 🌟 从 DOM 读取具体的标签类型，默认为 speak
             const tagType = speakTarget.getAttribute("data-tag") || "speak";
 
             console.log(
-              "【Siren Voice 调试 2】组装进 speakObj 的文本:",
-              cleanText,
+              "【Siren Voice 调试 2】组装进 speakObj 的文本 (缓存键):",
+              baseText,
             );
 
             const speakObj = {
-              tag: tagType, // 👈 新增标签类型向下传递
+              tag: tagType,
               char: attrs.char || "",
               mood: attrs.mood || "",
               detail: attrs.detail || "",
               dir: attrs.dir || "center",
-              text: cleanText,
+              text: baseText, // 👈 核心修复：恢复为未剥离的原始文本，保证能命中 DB 缓存
+              cleanText: cleanText, // 附带干净文本保持对象结构与 utils.js 一致
               raw: `<${tagType} ${rawAttrs}>${rawText}</${tagType}>`,
             };
 
@@ -927,10 +956,23 @@ async function handleNewMessage() {
   let musicName = innerText;
   let artistName = "";
 
-  if (innerText.includes("-")) {
-    const parts = innerText.split("-");
-    musicName = parts[0].trim();
-    artistName = parts.slice(1).join("-").trim();
+  const separatorRegex = /[-—–~]/;
+
+  if (separatorRegex.test(innerText)) {
+    // 按所有可能的连字符拆分
+    const parts = innerText.split(separatorRegex);
+
+    // 取最后一段作为歌手名，去除尾部多余的内容
+    artistName = parts.pop().trim();
+
+    // 剩下的所有部分重新用短横线连起来作为歌名，防止歌名自带连字符被切断
+    musicName = parts.join("-").trim();
+
+    // 极端容错：如果 LLM 写了 <music>-Artist</music>，导致歌名为空，退回全名盲搜
+    if (!musicName) {
+      musicName = artistName;
+      artistName = "";
+    }
   }
 
   if (!musicName) return;
@@ -1006,8 +1048,7 @@ function buildMusicRegexes(styles) {
   if (isEnabled) {
     // 🚀 核心修复：将所有的 div 降维打击为 span，彻底绕过 Showdown 的块级检测陷阱！
     // 加上 style="display: flex;" 防止破坏你原有的卡片 UI 布局
-    let displayReplace = `<br><br>
-<span class="siren-music-card" data-siren-music-card="1" data-siren-music-title="$1" data-siren-music-artist="$2" tabindex="0" style="display: flex;">
+    let displayReplace = `<span class="siren-music-card" data-siren-music-card="1" data-siren-music-title="$1" data-siren-music-artist="$2" tabindex="0" style="display: flex;">
     <span class="siren-music-cover-wrap">
         <i class="fa-solid fa-play siren-play-icon"></i>
     </span>
@@ -1015,7 +1056,7 @@ function buildMusicRegexes(styles) {
         <span class="siren-title">$1</span>
         <span class="siren-artist">$2</span>
     </span>
-</span><br>`;
+</span>`;
     displayReplace = displayReplace.replace(/\r?\n|\r/g, " ");
 
     regexes.push({
@@ -1024,8 +1065,9 @@ function buildMusicRegexes(styles) {
       enabled: true,
       run_on_edit: true,
       scope: "global",
+      // 🌟 已更新：支持全部类型破折号
       find_regex:
-        "/<music>\\s*([^-<]+?)(?:\\s*-\\s*([^<]+?))?\\s*<\\/music>/gi",
+        "/<music>\\s*([^-—–~<]+?)(?:\\s*[-—–~]\\s*([^<]+?))?\\s*<\\/music>/gi",
       replace_string: displayReplace,
       source: {
         user_input: true,
@@ -1038,16 +1080,17 @@ function buildMusicRegexes(styles) {
       max_depth: null,
     });
   } else {
-    // ... (保留你原有的 text-full 和 text-single 兜底正则不变)
+    // 文本全量兜底
     regexes.push({
       id: "siren-voice-music-display-text-full",
       script_name: "Siren-Voice-Auto-Music-Text-Full",
       enabled: true,
       run_on_edit: true,
       scope: "global",
-      find_regex: "/<music>\\s*(.+?)\\s*-\\s*(.+?)\\s*<\\/music>/gi",
+      // 🌟 已更新：支持全部类型破折号
+      find_regex: "/<music>\\s*(.+?)\\s*[-—–~]\\s*(.+?)\\s*<\\/music>/gi",
       replace_string:
-        "<br><br><span style='color: #10b981;'>[🎵 正在打捞: $1 - $2]</span><br>",
+        "<span style='color: #10b981;'>[🎵 正在打捞: $1 - $2]</span>",
       source: {
         user_input: true,
         ai_output: true,
@@ -1058,15 +1101,16 @@ function buildMusicRegexes(styles) {
       min_depth: null,
       max_depth: null,
     });
+    // 文本单名称兜底
     regexes.push({
       id: "siren-voice-music-display-text-single",
       script_name: "Siren-Voice-Auto-Music-Text-Single",
       enabled: true,
       run_on_edit: true,
       scope: "global",
-      find_regex: "/<music>\\s*([^-<]+?)\\s*<\\/music>/gi",
-      replace_string:
-        "<br><br><span style='color: #10b981;'>[🎵 正在打捞: $1]</span><br>",
+      // 🌟 已更新：排除全部类型破折号
+      find_regex: "/<music>\\s*([^-—–~<]+?)\\s*<\\/music>/gi",
+      replace_string: "<span style='color: #10b981;'>[🎵 正在打捞: $1]</span>",
       source: {
         user_input: true,
         ai_output: true,

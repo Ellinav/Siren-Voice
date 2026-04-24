@@ -333,66 +333,116 @@ function mapTimelineToDom(floorId, timeline) {
 }
 
 /**
- * 🌟 核心修复终极极简版：依赖内存预装载的游标引擎 (加入前置空转防跳帧)
+ * 🌟 终极版：内置超强自愈能力的游标引擎 (免疫一切副 API 与插件导致的 DOM 重绘)
  */
 function startKaraokeAnimation(
-  elements,
+  node, // 👈 核心：不再传入脱离上下文的 elements 数组，直接传入整个剧本节点
   durationMs,
   audioObj = null,
   expectedFloorId = null,
   onReady = null,
 ) {
   return new Promise((resolve) => {
-    if (!elements || elements.length === 0) {
+    if (!node || !node.domElements || node.domElements.length === 0) {
       if (onReady) onReady();
       return resolve();
     }
 
-    // 👇 🌟 修复点 1：在元素穿上马甲暴露给 CSSOM 之前，强行清零上一句残留的全局游标！
     if (stealthCssRule) {
       stealthCssRule.style.setProperty("--siren-cursor", "0");
     }
 
+    // 初始穿马甲
     let totalChars = 0;
-    const elementData = elements.map((el) => {
-      // 🌟 核心修复：正式轮到这块文字播放时，才挂上计算引擎的类名！
-      el.classList.add("siren-karaoke-playing");
-
+    node.domElements.forEach((el) => {
+      el.classList.add("siren-karaoke-target", "siren-karaoke-playing");
       const len = el.textContent.length;
-
-      // 🌟 在内存映射建立前，仅写入一次静态偏移坐标，永不再改
       el.style.setProperty("--c-off", totalChars);
       el.style.setProperty("--c-len", len);
-
-      const data = { el, len, startOffset: totalChars, lastProgress: 0 };
       totalChars += len;
-      return data;
     });
     if (totalChars === 0) totalChars = 1;
 
-    // 🌟 唤醒隐形渲染引擎
     initStealthKaraokeCss();
-
-    // 🌟 直接触发音频加载，让它去后台跑
     if (onReady) onReady();
 
     let start = null;
     let lastNow = null;
-    let activeIndex = 0; // O(1) 游标
     let lastWrittenCursor = -1;
 
-    // 👇 新增：前置空转帧计数器
-    let warmupFrames = 0;
-
     function step(now) {
-      if (
-        !activeSceneState.isPlaying ||
-        (expectedFloorId && activeSceneState.floorId !== expectedFloorId)
-      ) {
+      // 1. 监控：动画是否被意外终止
+      if (!activeSceneState.isPlaying) {
+        console.log(`[Siren Debug] 🛑 动画循环死亡: isPlaying 变成了 false`);
+        return resolve();
+      }
+      if (expectedFloorId && activeSceneState.floorId !== expectedFloorId) {
+        console.log(
+          `[Siren Debug] 🛑 动画循环死亡: 楼层被切 (当前: ${activeSceneState.floorId}, 期望: ${expectedFloorId})`,
+        );
         return resolve();
       }
 
-      // 空转结束后，此时的 now 才是极其精准的平稳时间戳
+      const isDetached =
+        !node.domElements ||
+        node.domElements.length === 0 ||
+        !document.body.contains(node.domElements[0]);
+
+      // 2. 监控：DOM 自愈引擎是否触发
+      if (isDetached) {
+        console.log(
+          `[Siren Debug] 🚨 察觉到 DOM 丢失！开始自愈 (Floor: ${expectedFloorId})`,
+        );
+        mapTimelineToDom(expectedFloorId, activeSceneState.timeline);
+
+        if (
+          node.domElements &&
+          node.domElements.length > 0 &&
+          document.body.contains(node.domElements[0])
+        ) {
+          console.log(
+            `[Siren Debug] 🩹 自愈成功！重新映射了 ${node.domElements.length} 个字符元素`,
+          );
+
+          for (let i = 0; i < activeSceneState.currentStepIndex; i++) {
+            const pastNode = activeSceneState.timeline[i];
+            if (pastNode.domElements) {
+              pastNode.domElements.forEach((el) => {
+                el.className = "siren-karaoke-target siren-karaoke-done";
+              });
+            }
+          }
+
+          let currentTotal = 0;
+          node.domElements.forEach((el) => {
+            el.className =
+              "siren-karaoke-target " +
+              (activeSceneState.isPaused
+                ? "siren-karaoke-paused-playing"
+                : "siren-karaoke-playing");
+            const len = el.textContent.length;
+            el.style.setProperty("--c-off", currentTotal);
+            el.style.setProperty("--c-len", len);
+            currentTotal += len;
+          });
+        } else {
+          console.log(
+            `[Siren Debug] ❌ 自愈失败！mapTimelineToDom 结束后，DOM 依然没找到`,
+          );
+        }
+      }
+
+      // 3. 监控：控制全局变量的根类名是否被 ST 抹除
+      const mesNode = document.querySelector(
+        `.mes[mesid="${expectedFloorId}"]`,
+      );
+      if (mesNode && !mesNode.classList.contains("siren-scene-active")) {
+        console.log(
+          `[Siren Debug] ⚠️ 警告: .siren-scene-active 根类名被抹除，这会导致动画卡死，正在强行补回！`,
+        );
+        mesNode.classList.add("siren-scene-active");
+      }
+
       if (!start) {
         start = now;
         lastNow = now;
@@ -411,23 +461,16 @@ function startKaraokeAnimation(
       if (audioObj) {
         if (!isNaN(audioObj.duration) && audioObj.duration > 0) {
           let actualTime = audioObj.currentTime;
-
           if (actualTime === 0) {
             start = now;
             globalProgress = 0;
           } else {
             let expectedTime = (now - start) / 1000;
             let drift = expectedTime - actualTime;
-
-            // 🚀 优化点 1：极致丝滑的“指数衰减追赶”算法
             if (Math.abs(drift) > 0.05) {
-              // 原先直接 start += drift * 100 可能会引起微小跳闪
-              // 现在改为：每帧只吸收 10% 的误差时间 (drift * 1000ms * 0.1)
-              // 像弹簧一样极其平滑地黏住音频时间，绝不卡顿！
-              start += drift * 100; // 等价于 drift * 1000 * 0.1
+              start += drift * 100;
               expectedTime = (now - start) / 1000;
             }
-
             globalProgress = Math.min(expectedTime / audioObj.duration, 1);
           }
         } else {
@@ -440,10 +483,6 @@ function startKaraokeAnimation(
       lastNow = now;
       const currentScannedChars = globalProgress * totalChars;
 
-      // ==========================================
-      // 🚀 终极解法：纯 CSSOM 内存锁写入
-      // 彻底消灭 el.style.setProperty，杜绝 MutationObserver 扫描风暴！
-      // ==========================================
       if (
         stealthCssRule &&
         Math.abs(currentScannedChars - lastWrittenCursor) > 0.01
@@ -452,15 +491,19 @@ function startKaraokeAnimation(
         lastWrittenCursor = currentScannedChars;
       }
 
-      // 循环出口
       if (globalProgress >= 1 || (audioObj && audioObj.ended)) {
-        // 播完后脱下马甲，变回静态文本，并清理坐标
-        elements.forEach((el) => {
-          el.className = "siren-karaoke-target siren-karaoke-done";
-          // 清理我们在前置初始化时写入的静态坐标
-          el.style.removeProperty("--c-off");
-          el.style.removeProperty("--c-len");
-        });
+        if (node.domElements) {
+          node.domElements.forEach((el) => {
+            // 🌟 动画结束时，安全的移除 playing 类名，添加 done 类名，坚决保护原生类名
+            el.classList.remove(
+              "siren-karaoke-playing",
+              "siren-karaoke-paused-playing",
+            );
+            el.classList.add("siren-karaoke-target", "siren-karaoke-done");
+            el.style.removeProperty("--c-off");
+            el.style.removeProperty("--c-len");
+          });
+        }
         resolve();
       } else {
         activeKaraokeRaf = requestAnimationFrame(step);
@@ -1238,10 +1281,10 @@ async function startScenePlayback(floorId, timeline, btnNode) {
         node.blob,
         node.speakObj,
       );
-      startKaraokeAnimation(node.domElements, 0, audio, floorId, startAudio);
+      // 👇 修改这里：只传 node，不传 node.domElements
+      startKaraokeAnimation(node, 0, audio, floorId, startAudio);
       await promise;
 
-      // 🚀 优化 3：同上，缩短播完后的死等时间
       await checkableSleep(50, floorId);
     } else if (node.type === "text") {
       const settings =
@@ -1249,7 +1292,8 @@ async function startScenePlayback(floorId, timeline, btnNode) {
       const speed = settings?.ambience?.karaoke_speed || 1.0;
       const waitTime = Math.max(1000, (node.text.length * 150) / speed);
 
-      await startKaraokeAnimation(node.domElements, waitTime, null, floorId);
+      // 👇 修改这里：只传 node
+      await startKaraokeAnimation(node, waitTime, null, floorId);
     }
   }
 
@@ -1977,33 +2021,119 @@ export function generateSignatureFromTimeline(timeline) {
     .join("||");
 }
 
-/**
- * 🌟 核心功能：响应楼层编辑，决定是否回退按钮
- */
+// ==========================================
+// 🌟 新增：重绘防抖锁池，拦截事件风暴
+// ==========================================
+const revertDebounceTimers = {};
+
 export async function handleMessageEditRevert(floorId) {
+  console.log(
+    `[Siren Debug] 🔔 触发 handleMessageEditRevert，楼层: ${floorId}`,
+  );
+  // 1. 清除上一次的计时器，防抖拦截 ST 密集的重绘事件
+  if (revertDebounceTimers[floorId]) {
+    clearTimeout(revertDebounceTimers[floorId]);
+  }
+
+  // 2. 开启 500ms 延迟锁，等 Anima 写完变量、ST 彻底重新渲染完 Markdown 之后再接管
+  revertDebounceTimers[floorId] = setTimeout(async () => {
+    delete revertDebounceTimers[floorId];
+
+    const mesNode = document.querySelector(`.mes[mesid="${floorId}"]`);
+    if (!mesNode) return;
+
+    let playBtn = mesNode.querySelector(".siren-scene-play-btn");
+    const regenBtn = mesNode.querySelector(".siren-scene-regen-btn");
+
+    if (!playBtn) {
+      await injectScenePlayButtons();
+      playBtn = mesNode.querySelector(".siren-scene-play-btn");
+    }
+
+    // 剔除宏变量干扰，比对核心签名
+    const timeline = parseMessageTimeline(floorId);
+    const newSignature = generateSignatureFromTimeline(timeline);
+    const oldSignature = playBtn?.dataset?.signature || newSignature;
+
+    // 新增签名对比日志
+    if (oldSignature !== newSignature) {
+      console.log(
+        `[Siren Debug] 💥 签名发生不一致！\n旧: ${oldSignature}\n新: ${newSignature}`,
+      );
+    } else {
+      console.log(`[Siren Debug] 🔍 签名一致，属于无害重绘。`);
+    }
+
+    if (oldSignature && newSignature !== oldSignature) {
+      console.log(`[Siren Debug] 🛑 执行 stopScenePlayback！`);
+      console.log(
+        `[Siren Voice] 🔄 检测到楼层 ${floorId} 核心内容变更，强行停止播放。`,
+      );
+      if (
+        activeSceneState.floorId === String(floorId) &&
+        activeSceneState.isPlaying
+      ) {
+        stopScenePlayback(playBtn);
+      }
+      if (playBtn) {
+        playBtn.dataset.state = "initial";
+        playBtn.dataset.signature = newSignature;
+        playBtn.innerHTML = `<i class="fa-solid fa-clapperboard" style="color: #3b82f6;"></i>`;
+      }
+      if (regenBtn) regenBtn.style.display = "none";
+    } else {
+      // === 实质内容没变 (仅仅是被 Anima 写入了宏，触发了 DOM 刷新) ===
+      const isActivePlaying =
+        activeSceneState.floorId === String(floorId) &&
+        (activeSceneState.isPlaying || activeSceneState.isPaused);
+
+      if (isActivePlaying) {
+        // A. 瞬间找回被 ST 重绘冲刷掉的按钮 UI 状态
+        if (playBtn) {
+          playBtn.dataset.state = activeSceneState.isPaused
+            ? "paused"
+            : "playing";
+          playBtn.innerHTML = activeSceneState.isPaused
+            ? `<i class="fa-solid fa-play" style="color: #10b981;"></i>`
+            : `<i class="fa-solid fa-pause" style="color: #3b82f6;"></i>`;
+        }
+
+        console.log(
+          `[Siren Voice] 🩹 DOM 风暴已平息，触发精准热重载(Hot Reload)，缝合断裂动画...`,
+        );
+
+        // B. 核心：调用作者原本写好但忘了引用的安全恢复函数
+        // 它会使用 classList.add 安全地重新映射游标，不洗掉原始属性
+        recoverActiveSceneDom(floorId);
+      }
+    }
+  }, 500);
+}
+
+/**
+ * 真正的处理逻辑 (避开了事件风暴的安全区)
+ */
+async function processMessageEditRevert(floorId) {
   const mesNode = document.querySelector(`.mes[mesid="${floorId}"]`);
   if (!mesNode) return;
 
-  const playBtn = mesNode.querySelector(".siren-scene-play-btn");
+  let playBtn = mesNode.querySelector(".siren-scene-play-btn");
   const regenBtn = mesNode.querySelector(".siren-scene-regen-btn");
 
-  // 如果该楼层本来就没有按钮，尝试注入一次
   if (!playBtn) {
     await injectScenePlayButtons();
-    return;
+    playBtn = mesNode.querySelector(".siren-scene-play-btn");
   }
 
   const timeline = parseMessageTimeline(floorId);
   const newSignature = generateSignatureFromTimeline(timeline);
-  const oldSignature = playBtn.dataset.signature || "";
+  const oldSignature = playBtn?.dataset?.signature || newSignature;
 
-  // 只有当实质性内容（签名）改变时，才执行回退
-  if (newSignature !== oldSignature) {
+  if (oldSignature && newSignature !== oldSignature) {
     console.log(
-      `[Siren Voice] 检测到楼层 ${floorId} 内容变更，回退至生成按钮。`,
+      `[Siren Voice] 🔄 检测到楼层 ${floorId} 核心内容变更，强行停止播放并回退按钮。`,
     );
 
-    // 如果正在播放该楼层，强制停止
     if (
       activeSceneState.floorId === String(floorId) &&
       activeSceneState.isPlaying
@@ -2011,16 +2141,91 @@ export async function handleMessageEditRevert(floorId) {
       stopScenePlayback(playBtn);
     }
 
-    // 回退 UI 状态
-    playBtn.dataset.state = "initial";
-    playBtn.dataset.signature = newSignature; // 更新签名
-    playBtn.innerHTML = `<i class="fa-solid fa-clapperboard" style="color: #3b82f6;"></i>`;
-
+    if (playBtn) {
+      playBtn.dataset.state = "initial";
+      playBtn.dataset.signature = newSignature;
+      playBtn.innerHTML = `<i class="fa-solid fa-clapperboard" style="color: #3b82f6;"></i>`;
+    }
     if (regenBtn) regenBtn.style.display = "none";
   } else {
-    console.log(
-      `[Siren Voice] 楼层 ${floorId} 仅修改了 dir 或无关内容，保持当前状态。`,
-    );
+    // === 实质内容没变 (被 Anima 塞了宏，且 DOM 已彻底稳定) ===
+    const isActivePlaying =
+      activeSceneState.floorId === String(floorId) &&
+      (activeSceneState.isPlaying || activeSceneState.isPaused);
+
+    if (isActivePlaying) {
+      // 找回被 ST 冲刷掉的按钮 UI 状态
+      if (playBtn) {
+        playBtn.dataset.state = activeSceneState.isPaused
+          ? "paused"
+          : "playing";
+        playBtn.innerHTML = activeSceneState.isPaused
+          ? `<i class="fa-solid fa-play" style="color: #10b981;"></i>`
+          : `<i class="fa-solid fa-pause" style="color: #3b82f6;"></i>`;
+      }
+
+      console.log(
+        `[Siren Voice] 🩹 DOM 风暴已平息，触发精准热重载(Hot Reload)，缝合断裂动画...`,
+      );
+      recoverActiveSceneDom(floorId);
+    } else {
+      // 非播放状态的单纯渲染，不打扰
+    }
+  }
+}
+
+function recoverActiveSceneDom(floorId) {
+  const mesNode = document.querySelector(`.mes[mesid="${floorId}"]`);
+  if (!mesNode) return;
+
+  mesNode.classList.add("siren-scene-active");
+  mapTimelineToDom(floorId, activeSceneState.timeline);
+
+  for (let i = 0; i < activeSceneState.timeline.length; i++) {
+    const node = activeSceneState.timeline[i];
+    if (!node.domElements) continue;
+
+    if (i < activeSceneState.currentStepIndex) {
+      // 历史节点
+      node.domElements.forEach((el) => {
+        el.classList.remove(
+          "siren-karaoke-playing",
+          "siren-karaoke-paused-playing",
+        );
+        el.classList.add("siren-karaoke-target", "siren-karaoke-done");
+      });
+    } else if (i === activeSceneState.currentStepIndex) {
+      // 🌟 当前节点：坚决不用 el.className = ... 防止洗掉 .siren-speak-text
+      let totalChars = 0;
+      node.domElements.forEach((el) => {
+        el.classList.remove(
+          "siren-karaoke-done",
+          "siren-karaoke-paused-playing",
+          "siren-karaoke-playing",
+        );
+        el.classList.add("siren-karaoke-target");
+        el.classList.add(
+          activeSceneState.isPaused
+            ? "siren-karaoke-paused-playing"
+            : "siren-karaoke-playing",
+        );
+
+        const len = el.textContent.length;
+        el.style.setProperty("--c-off", totalChars);
+        el.style.setProperty("--c-len", len);
+        totalChars += len;
+      });
+    } else {
+      // 未来节点
+      node.domElements.forEach((el) => {
+        el.classList.remove(
+          "siren-karaoke-playing",
+          "siren-karaoke-paused-playing",
+          "siren-karaoke-done",
+        );
+        el.classList.add("siren-karaoke-target");
+      });
+    }
   }
 }
 

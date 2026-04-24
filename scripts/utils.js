@@ -65,24 +65,43 @@ export function stripParentheticalAsides(text) {
 }
 
 /**
+ * 专门用于清理发送给 TTS 的纯文本，剥离 Markdown 符号
+ * ⚠️ 注意：这里特意保留了单波浪号 ~ ，因为在中文语境下它常用来表示尾音拉长（如 "啊~"），对 TTS 的停顿有正面作用。
+ */
+export function stripInlineMarkdown(text) {
+  if (!text || typeof text !== "string") return "";
+  // 全局移除 星号(*)、下划线(_)、反引号(`) 和成对的删除线(~~)
+  return text.replace(/[*_`]/g, "").replace(/~~/g, "").trim();
+}
+
+/**
  * 剔除字符串首尾的冗余标点符号（如中英文引号、星号、反引号）
- * 🌟 修复：兼容 HTML（保留首尾的 <br> 和空格，防止换行符被吞噬）
+ * 🌟 修复：彻底清理由于回车换行而产生的开头/结尾的多余 <br> 和空白，防止语音条内出现不必要的空行
  */
 export function stripWrappingPunctuation(textOrHtml) {
   if (!textOrHtml || typeof textOrHtml !== "string") return "";
 
   let trimmed = textOrHtml.trim();
 
-  // 匹配开头和结尾的标点。$1 捕获前置/后置的 <br> 或空格。
-  // 增加对多种可能出现的空白符号和 br 写法的兼容
-  const startRegex = /^((?:\s|<br\s*\/?>|&nbsp;)*)["'“”‘’*`]+/;
-  const endRegex = /["'“”‘’*`]+((?:\s|<br\s*\/?>|&nbsp;)*)$/;
+  // 辅助函数：匹配并移除开头和结尾的空白字符、<br> 标签、&nbsp;
+  const trimEdges = (str) =>
+    str.replace(/^(?:\s|<br\s*\/?>|&nbsp;)+|(?:\s|<br\s*\/?>|&nbsp;)+$/gi, "");
+
+  // 先清理外层包裹的空白和换行
+  trimmed = trimEdges(trimmed);
+
+  // 匹配开头和结尾的标点
+  const startRegex = /^["'“”‘’*`]+/;
+  const endRegex = /["'“”‘’*`]+$/;
 
   // 循环替换，直到首尾没有这些标点为止（应对多重包裹如 *"文本"*）
   let previous;
   do {
     previous = trimmed;
-    trimmed = trimmed.replace(startRegex, "$1").replace(endRegex, "$1");
+    // 剥离标点
+    trimmed = trimmed.replace(startRegex, "").replace(endRegex, "");
+    // 剥离后可能又暴露出被包裹的换行符，继续清理
+    trimmed = trimEdges(trimmed);
   } while (trimmed !== previous);
 
   return trimmed.trim();
