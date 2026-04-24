@@ -519,8 +519,6 @@ function bindMusicSettingsEvents() {
         updateSirenRegex(mSettings.styles);
       }
     } else if (window.toastr) {
-      // 如果只是换了个皮肤，给用户一个秒切成功的清爽反馈
-      window.toastr.success("音乐卡片涂装已无缝切换！");
     }
   });
 

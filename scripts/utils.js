@@ -65,6 +65,23 @@ export function stripParentheticalAsides(text) {
 }
 
 /**
+ * 剔除字符串首尾的冗余标点符号（如中英文引号、星号、反引号）
+ * 解决 LLM 输出 <speak>"内容"</speak> 导致替换后出现双重引号的问题
+ */
+export function stripWrappingPunctuation(text) {
+  if (!text || typeof text !== "string") return "";
+
+  // 1. 先去除常规空白符
+  let trimmed = text.trim();
+
+  // 2. 使用正则匹配开头 (^) 和结尾 ($) 的指定符号集
+  // 包含：半角单双引号 "'，全角单双引号 “”‘’，星号 *，反引号 `
+  const edgePunctuationRegex = /^["'“”‘’*`]+|["'“”‘’*`]+$/g;
+
+  return trimmed.replace(edgePunctuationRegex, "").trim();
+}
+
+/**
  * 解析 <speak>, <inner>, <phone> 标签
  */
 export function parseSpeakTags(text) {
@@ -84,7 +101,8 @@ export function parseSpeakTags(text) {
       .trim();
 
     // 调用核心清洗器，生成一份纯净文本
-    const cleanText = stripParentheticalAsides(innerText);
+    let cleanText = stripParentheticalAsides(innerText);
+    cleanText = stripWrappingPunctuation(cleanText);
 
     const attrs = {};
     // 兼容双引号、单引号，以及 ST 可能转义的 &quot;
