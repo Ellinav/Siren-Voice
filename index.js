@@ -1,17 +1,17 @@
 import { initMusicSettings } from "./scripts/music.js";
 import {
-    initFloatingPlayer,
-    setPlayerWarningState,
+  initFloatingPlayer,
+  setPlayerWarningState,
 } from "./scripts/music_player.js";
 import { initEvents } from "./scripts/events.js";
 import { initTtsSettings, applyTtsBeautifyCss } from "./scripts/tts.js";
-import { initBgmSettings } from "./scripts/bgm.js";
+import { initAmbienceSettings } from "./scripts/ambience.js";
 import { initMixerSettings } from "./scripts/mixer.js";
 import { initInterceptor } from "./scripts/interceptor.js";
 
 (function () {
-    // 1. 定义基础外壳 - 优化了标题和 ID，保持一致性
-    const shellHtml = `
+  // 1. 定义基础外壳 - 优化了标题和 ID，保持一致性
+  const shellHtml = `
       <div id="siren-ext-overlay" class="siren-ext-hidden">
           <div class="siren-ext-header-bar">
               <div class="siren-ext-brand" style="display: flex; align-items: center;">
@@ -35,7 +35,7 @@ import { initInterceptor } from "./scripts/interceptor.js";
                   <div class="siren-ext-nav-item active" data-tab="tab-tts">
                       <i class="fa-solid fa-microphone-lines fa-fw" style="color: #a855f7;"></i> <span>TTS 设置</span>
                   </div>
-                  <div class="siren-ext-nav-item" data-tab="tab-bgm">
+                  <div class="siren-ext-nav-item" data-tab="tab-ambience">
                       <i class="fa-solid fa-wand-magic-sparkles fa-fw" style="color: #3b82f6;"></i> <span>幻境氛围</span>
                   </div>
                   <div class="siren-ext-nav-item" data-tab="tab-music">
@@ -50,215 +50,211 @@ import { initInterceptor } from "./scripts/interceptor.js";
                   <div id="tab-tts" class="siren-ext-tab-content active"></div>
                   <div id="tab-music" class="siren-ext-tab-content"></div>
                   <div id="tab-audio-settings" class="siren-ext-tab-content"></div>
-                  <div id="tab-bgm" class="siren-ext-tab-content"></div>
+                  <div id="tab-ambience" class="siren-ext-tab-content"></div>
               </div>
           </div>
       </div>
       `;
 
-    // 2. 注入 HTML 并初始化各模块 (ID 进行了替换 siren-)
-    function initPlugin() {
-        if (document.getElementById("siren-ext-overlay")) return;
-        document.body.insertAdjacentHTML("beforeend", shellHtml);
+  // 2. 注入 HTML 并初始化各模块 (ID 进行了替换 siren-)
+  function initPlugin() {
+    if (document.getElementById("siren-ext-overlay")) return;
+    document.body.insertAdjacentHTML("beforeend", shellHtml);
 
-        bindGlobalEvents();
-        checkMobileState();
+    bindGlobalEvents();
+    checkMobileState();
 
-        initFloatingPlayer();
-        initMusicSettings();
+    initFloatingPlayer();
+    initMusicSettings();
 
-        // 初始化 TTS 界面和全局绑定事件
-        initTtsSettings();
+    // 初始化 TTS 界面和全局绑定事件
+    initTtsSettings();
 
-        // 👇 新增这一行：初始化时立马把深海霓虹 CSS 注入到页面里
-        applyTtsBeautifyCss();
-        initBgmSettings();
-        initMixerSettings();
+    // 👇 新增这一行：初始化时立马把深海霓虹 CSS 注入到页面里
+    applyTtsBeautifyCss();
+    initAmbienceSettings();
+    initMixerSettings();
 
-        // 【新增】初始化时绑定 ST 监听事件
-        bindSTEvents();
+    // 【新增】初始化时绑定 ST 监听事件
+    bindSTEvents();
 
-        // 【新增】保底检查：防止插件挂载时 APP_READY 已经发射过了
-        checkWorldbookStatus();
-        initInterceptor();
+    // 【新增】保底检查：防止插件挂载时 APP_READY 已经发射过了
+    checkWorldbookStatus();
+    initInterceptor();
 
-        console.log("[Siren Voice] Plugin UI initialized successfully.");
-    }
+    console.log("[Siren Voice] Plugin UI initialized successfully.");
+  }
 
-    // 3. 全局事件绑定 (ID 进行了替换 siren-)
-    // 3. 全局事件绑定 (ID 进行了替换 siren-)
-    function bindGlobalEvents() {
-        // 🌟 修复: 使用事件代理 (Event Delegation) 结合解绑机制，防止焦点丢失或重复绑定
+  // 3. 全局事件绑定 (ID 进行了替换 siren-)
+  // 3. 全局事件绑定 (ID 进行了替换 siren-)
+  function bindGlobalEvents() {
+    // 🌟 修复: 使用事件代理 (Event Delegation) 结合解绑机制，防止焦点丢失或重复绑定
 
-        // 关闭面板
-        $(document)
-            .off("click", "#siren-ext-close-btn")
-            .on("click", "#siren-ext-close-btn", function (e) {
-                e.stopPropagation(); // 阻止事件冒泡到 ST 底层
-                e.preventDefault();
-                $("#siren-ext-overlay").addClass("siren-ext-hidden");
-            });
+    // 关闭面板
+    $(document)
+      .off("click", "#siren-ext-close-btn")
+      .on("click", "#siren-ext-close-btn", function (e) {
+        e.stopPropagation(); // 阻止事件冒泡到 ST 底层
+        e.preventDefault();
+        $("#siren-ext-overlay").addClass("siren-ext-hidden");
+      });
 
-        // 折叠侧边栏
-        $(document)
-            .off("click", "#siren-ext-toggle-sidebar")
-            .on("click", "#siren-ext-toggle-sidebar", function (e) {
-                e.stopPropagation();
-                $("#siren-ext-sidebar").toggleClass("collapsed");
-            });
+    // 折叠侧边栏
+    $(document)
+      .off("click", "#siren-ext-toggle-sidebar")
+      .on("click", "#siren-ext-toggle-sidebar", function (e) {
+        e.stopPropagation();
+        $("#siren-ext-sidebar").toggleClass("collapsed");
+      });
 
-        // Tab 切换逻辑
-        $(document)
-            .off("click", ".siren-ext-nav-item")
-            .on("click", ".siren-ext-nav-item", function () {
-                $(".siren-ext-nav-item").removeClass("active");
-                $(".siren-ext-tab-content").removeClass("active");
+    // Tab 切换逻辑
+    $(document)
+      .off("click", ".siren-ext-nav-item")
+      .on("click", ".siren-ext-nav-item", function () {
+        $(".siren-ext-nav-item").removeClass("active");
+        $(".siren-ext-tab-content").removeClass("active");
 
-                $(this).addClass("active");
-                const tabId = $(this).data("tab");
-                $(`#${tabId}`).addClass("active");
+        $(this).addClass("active");
+        const tabId = $(this).data("tab");
+        $(`#${tabId}`).addClass("active");
 
-                // 移动端点击后自动收起侧边栏
-                if (window.innerWidth <= 768) {
-                    $("#siren-ext-sidebar").addClass("collapsed");
-                }
-            });
-    }
-
-    /**
-     * 检查全局世界书 Siren-Voice 及 Siren-Songs 条目是否存在
-     */
-    function checkWorldbookStatus() {
-        if (!window.TavernHelper) return;
-
-        let isMissing = true;
-        try {
-            const globalWbs = window.TavernHelper.getGlobalWorldbookNames();
-            if (globalWbs.includes("Siren-Voice")) {
-                isMissing = false;
-            }
-        } catch (error) {
-            console.warn("[Siren Voice] 读取全局世界书状态失败:", error);
-        }
-
-        const badge = document.getElementById("siren-wb-warning-badge");
-        if (badge) {
-            badge.style.display = isMissing ? "inline-block" : "none";
-        }
-
-        setPlayerWarningState(isMissing);
-    }
-
-    /**
-     * 绑定 SillyTavern 核心事件
-     */
-    function bindSTEvents() {
-        try {
-            const { eventSource, event_types } = SillyTavern.getContext();
-
-            if (event_types.APP_READY) {
-                eventSource.on(event_types.APP_READY, () => {
-                    console.log("[Siren Voice] ST 准备就绪，检查世界书...");
-                    checkWorldbookStatus();
-                });
-            }
-
-            // 1. 监听世界书变动
-            const worldInfoEvent =
-                event_types.WORLDINFO_SETTINGS_UPDATED ||
-                "worldinfo_settings_updated";
-            eventSource.on(worldInfoEvent, () => {
-                console.log(
-                    "[Siren Voice] 检测到 worldinfo 变动，延迟 300ms 后检查...",
-                );
-                // 【核心修复】：延迟执行，等待 ST 内部数据更新完毕
-                setTimeout(() => {
-                    checkWorldbookStatus();
-                }, 300);
-            });
-
-            // 2. 监听全局设置变动 (双保险)
-            const settingsEvent =
-                event_types.SETTINGS_UPDATED || "settings_updated";
-            eventSource.on(settingsEvent, () => {
-                console.log(
-                    "[Siren Voice] 检测到 settings 变动，延迟 300ms 后检查...",
-                );
-                setTimeout(() => {
-                    checkWorldbookStatus();
-                }, 300);
-            });
-            initEvents();
-        } catch (error) {
-            console.warn("[Siren Voice] 绑定 ST 事件源失败:", error);
-        }
-    }
-
-    // 4. 手机端状态检查
-    function checkMobileState() {
+        // 移动端点击后自动收起侧边栏
         if (window.innerWidth <= 768) {
-            $("#siren-ext-sidebar").addClass("collapsed");
+          $("#siren-ext-sidebar").addClass("collapsed");
         }
+      });
+  }
+
+  /**
+   * 检查全局世界书 Siren-Voice 及 Siren-Musics 条目是否存在
+   */
+  function checkWorldbookStatus() {
+    if (!window.TavernHelper) return;
+
+    let isMissing = true;
+    try {
+      const globalWbs = window.TavernHelper.getGlobalWorldbookNames();
+      if (globalWbs.includes("Siren-Voice")) {
+        isMissing = false;
+      }
+    } catch (error) {
+      console.warn("[Siren Voice] 读取全局世界书状态失败:", error);
     }
 
-    // 5. 添加入口按钮 - 图标改为高音谱号 (fa-clef)，颜色改为青绿色
-    function addExtensionButton() {
-        const menuId = "extensionsMenu";
-        const menu = document.getElementById(menuId);
+    const badge = document.getElementById("siren-wb-warning-badge");
+    if (badge) {
+      badge.style.display = isMissing ? "inline-block" : "none";
+    }
 
-        if (!menu) {
-            setTimeout(addExtensionButton, 500);
-            return;
-        }
-        if (document.getElementById("siren-ext-wand-btn")) return;
+    setPlayerWarningState(isMissing);
+  }
 
-        const container = document.createElement("div");
-        container.className = "extension_container interactable";
-        container.innerHTML = `
+  /**
+   * 绑定 SillyTavern 核心事件
+   */
+  function bindSTEvents() {
+    try {
+      const { eventSource, event_types } = SillyTavern.getContext();
+
+      if (event_types.APP_READY) {
+        eventSource.on(event_types.APP_READY, () => {
+          console.log("[Siren Voice] ST 准备就绪，检查世界书...");
+          checkWorldbookStatus();
+        });
+      }
+
+      // 1. 监听世界书变动
+      const worldInfoEvent =
+        event_types.WORLDINFO_SETTINGS_UPDATED || "worldinfo_settings_updated";
+      eventSource.on(worldInfoEvent, () => {
+        console.log(
+          "[Siren Voice] 检测到 worldinfo 变动，延迟 300ms 后检查...",
+        );
+        // 【核心修复】：延迟执行，等待 ST 内部数据更新完毕
+        setTimeout(() => {
+          checkWorldbookStatus();
+        }, 300);
+      });
+
+      // 2. 监听全局设置变动 (双保险)
+      const settingsEvent = event_types.SETTINGS_UPDATED || "settings_updated";
+      eventSource.on(settingsEvent, () => {
+        console.log("[Siren Voice] 检测到 settings 变动，延迟 300ms 后检查...");
+        setTimeout(() => {
+          checkWorldbookStatus();
+        }, 300);
+      });
+      initEvents();
+    } catch (error) {
+      console.warn("[Siren Voice] 绑定 ST 事件源失败:", error);
+    }
+  }
+
+  // 4. 手机端状态检查
+  function checkMobileState() {
+    if (window.innerWidth <= 768) {
+      $("#siren-ext-sidebar").addClass("collapsed");
+    }
+  }
+
+  // 5. 添加入口按钮 - 图标改为高音谱号 (fa-clef)，颜色改为青绿色
+  function addExtensionButton() {
+    const menuId = "extensionsMenu";
+    const menu = document.getElementById(menuId);
+
+    if (!menu) {
+      setTimeout(addExtensionButton, 500);
+      return;
+    }
+    if (document.getElementById("siren-ext-wand-btn")) return;
+
+    const container = document.createElement("div");
+    container.className = "extension_container interactable";
+    container.innerHTML = `
               <div id="siren-ext-wand-btn" class="list-group-item flex-container flexGap5 interactable" title="Siren Voice 音乐与语音系统">
                   <div class="fa-fw fa-solid fa-music extensionsMenuExtensionButton" style="color: #06b6d4;"></div>
                   <span>Siren Voice</span>
               </div>
           `;
 
-        // 🌟 修复: 加入 e 参数和阻止冒泡
-        container.addEventListener("click", (e) => {
-            // 1. 移除 e.stopPropagation()，让事件正常冒泡，ST 会自动收起菜单
+    // 🌟 修复: 加入 e 参数和阻止冒泡
+    container.addEventListener("click", (e) => {
+      // 1. 移除 e.stopPropagation()，让事件正常冒泡，ST 会自动收起菜单
 
-            // 2. 显式隐藏（可选保底）：如果你发现光靠冒泡还不够，可以直接用 ST 的逻辑隐藏菜单
-            const extensionsMenu = document.getElementById("extensionsMenu");
-            if (extensionsMenu) {
-                extensionsMenu.style.display = "none"; // 或者使用 ST 的 UI 切换逻辑
-            }
+      // 2. 显式隐藏（可选保底）：如果你发现光靠冒泡还不够，可以直接用 ST 的逻辑隐藏菜单
+      const extensionsMenu = document.getElementById("extensionsMenu");
+      if (extensionsMenu) {
+        extensionsMenu.style.display = "none"; // 或者使用 ST 的 UI 切换逻辑
+      }
 
-            $("#siren-ext-overlay").removeClass("siren-ext-hidden");
-            // 每次打开面板时，重新检测世界书状态
-            checkWorldbookStatus();
-        });
-
-        menu.appendChild(container);
-    }
-
-    /**
-     * 轮询检测 TavernHelper 是否就绪
-     */
-    function waitForTavernHelper(retryCount = 0) {
-        const MAX_RETRIES = 30;
-        if (typeof window.TavernHelper !== "undefined") {
-            console.log("[Siren Voice] TavernHelper 检测通过，启动插件。");
-            initPlugin();
-            addExtensionButton();
-        } else {
-            if (retryCount >= MAX_RETRIES) {
-                console.error("[Siren Voice] 启动失败：等待 酒馆助手 超时。");
-                return;
-            }
-            setTimeout(() => waitForTavernHelper(retryCount + 1), 500);
-        }
-    }
-
-    // 启动入口
-    $(document).ready(function () {
-        waitForTavernHelper();
+      $("#siren-ext-overlay").removeClass("siren-ext-hidden");
+      // 每次打开面板时，重新检测世界书状态
+      checkWorldbookStatus();
     });
+
+    menu.appendChild(container);
+  }
+
+  /**
+   * 轮询检测 TavernHelper 是否就绪
+   */
+  function waitForTavernHelper(retryCount = 0) {
+    const MAX_RETRIES = 30;
+    if (typeof window.TavernHelper !== "undefined") {
+      console.log("[Siren Voice] TavernHelper 检测通过，启动插件。");
+      initPlugin();
+      addExtensionButton();
+    } else {
+      if (retryCount >= MAX_RETRIES) {
+        console.error("[Siren Voice] 启动失败：等待 酒馆助手 超时。");
+        return;
+      }
+      setTimeout(() => waitForTavernHelper(retryCount + 1), 500);
+    }
+  }
+
+  // 启动入口
+  $(document).ready(function () {
+    waitForTavernHelper();
+  });
 })();

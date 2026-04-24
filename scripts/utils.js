@@ -66,19 +66,26 @@ export function stripParentheticalAsides(text) {
 
 /**
  * 剔除字符串首尾的冗余标点符号（如中英文引号、星号、反引号）
- * 解决 LLM 输出 <speak>"内容"</speak> 导致替换后出现双重引号的问题
+ * 🌟 修复：兼容 HTML（保留首尾的 <br> 和空格，防止换行符被吞噬）
  */
-export function stripWrappingPunctuation(text) {
-  if (!text || typeof text !== "string") return "";
+export function stripWrappingPunctuation(textOrHtml) {
+  if (!textOrHtml || typeof textOrHtml !== "string") return "";
 
-  // 1. 先去除常规空白符
-  let trimmed = text.trim();
+  let trimmed = textOrHtml.trim();
 
-  // 2. 使用正则匹配开头 (^) 和结尾 ($) 的指定符号集
-  // 包含：半角单双引号 "'，全角单双引号 “”‘’，星号 *，反引号 `
-  const edgePunctuationRegex = /^["'“”‘’*`]+|["'“”‘’*`]+$/g;
+  // 匹配开头和结尾的标点。$1 捕获前置/后置的 <br> 或空格。
+  // 增加对多种可能出现的空白符号和 br 写法的兼容
+  const startRegex = /^((?:\s|<br\s*\/?>|&nbsp;)*)["'“”‘’*`]+/;
+  const endRegex = /["'“”‘’*`]+((?:\s|<br\s*\/?>|&nbsp;)*)$/;
 
-  return trimmed.replace(edgePunctuationRegex, "").trim();
+  // 循环替换，直到首尾没有这些标点为止（应对多重包裹如 *"文本"*）
+  let previous;
+  do {
+    previous = trimmed;
+    trimmed = trimmed.replace(startRegex, "$1").replace(endRegex, "$1");
+  } while (trimmed !== previous);
+
+  return trimmed.trim();
 }
 
 /**
@@ -200,7 +207,7 @@ export async function syncTtsWorldbookEntries(selectedProvider, isTtsEnabled) {
   // 1. 获取要注入的音色和情绪数组
   const { voices, moods } = getTtsVoiceAndMoodLists(selectedProvider);
 
-  // 🌟 新增：复用 BGM 逻辑，提取基础名称以剥离变体后缀 (如 "愤怒_歇斯底里-1" -> "愤怒_歇斯底里")
+  // 🌟 新增：复用 AMBIENCE 逻辑，提取基础名称以剥离变体后缀 (如 "愤怒_歇斯底里-1" -> "愤怒_歇斯底里")
   const getBaseName = (name) => {
     return name.replace(/-\d+$/, "").trim();
   };
@@ -313,7 +320,7 @@ export async function syncSpatialWorldbookEntries(spatialMode) {
   }
 }
 
-export async function syncBgmWorldbookEntries(isBgmEnabled) {
+export async function syncAmbienceWorldbookEntries(isAmbienceEnabled) {
   if (
     !window.TavernHelper ||
     typeof window.TavernHelper.updateWorldbookWith !== "function"
@@ -322,9 +329,9 @@ export async function syncBgmWorldbookEntries(isBgmEnabled) {
     return;
   }
 
-  // 获取当前的 BGM 和 SFX 列表
+  // 获取当前的 AMBIENCE 和 SFX 列表
   const settings = getSirenSettings();
-  const bgmState = settings.bgm || {};
+  const ambienceState = settings.ambience || {};
 
   // 🌟 核心修改 1：定义一个辅助函数，正则匹配结尾的连字符或下划线加数字 (如 -1, _2) 并剔除
   const getBaseName = (name) => {
@@ -332,21 +339,25 @@ export async function syncBgmWorldbookEntries(isBgmEnabled) {
     return name.replace(/-\d+$/, "").trim();
   };
 
-  // 🌟 核心修改 2：提取 BGM 名称 -> 过滤空值 -> 提取基础名 -> 使用 Set 去重
-  const bgmLib = bgmState.libraries?.[bgmState.current_list] || [];
-  const uniqueBgmNames = [
+  // 🌟 核心修改 2：提取 AMBIENCE 名称 -> 过滤空值 -> 提取基础名 -> 使用 Set 去重
+  const ambienceLib =
+    ambienceState.libraries?.[ambienceState.current_list] || [];
+  const uniqueAmbienceNames = [
     ...new Set(
-      bgmLib
+      ambienceLib
         .map((item) => item.name)
         .filter((name) => name.trim() !== "")
         .map(getBaseName),
     ),
   ];
-  const bgmStr =
-    uniqueBgmNames.length > 0 ? `[${uniqueBgmNames.join(", ")}]` : "[]";
+  const ambienceStr =
+    uniqueAmbienceNames.length > 0
+      ? `[${uniqueAmbienceNames.join(", ")}]`
+      : "[]";
 
   // 🌟 核心修改 3：对 SFX 执行相同的提取和去重逻辑
-  const sfxLib = bgmState.sfx_libraries?.[bgmState.sfx_current_list] || [];
+  const sfxLib =
+    ambienceState.sfx_libraries?.[ambienceState.sfx_current_list] || [];
   const uniqueSfxNames = [
     ...new Set(
       sfxLib
@@ -363,9 +374,9 @@ export async function syncBgmWorldbookEntries(isBgmEnabled) {
       "Siren-Voice",
       (worldbook) => {
         worldbook.forEach((entry) => {
-          // 核心逻辑：精准匹配名称为 "BGM" 或 "SFX" 的条目
-          if (entry.name === "BGM" || entry.name === "SFX") {
-            entry.enabled = isBgmEnabled;
+          // 核心逻辑：精准匹配名称为 "AMBIENCE" 或 "SFX" 的条目
+          if (entry.name === "AMBIENCE" || entry.name === "SFX") {
+            entry.enabled = isAmbienceEnabled;
 
             // 宏替换逻辑
             if (entry.enabled) {
@@ -379,10 +390,10 @@ export async function syncBgmWorldbookEntries(isBgmEnabled) {
               // 永远基于备份的原始模板进行替换，保证操作幂等（不丢失宏）
               let updatedContent = entry.extra.siren_original_content;
 
-              if (entry.name === "BGM") {
+              if (entry.name === "AMBIENCE") {
                 updatedContent = updatedContent.replace(
-                  /\{\{BGM_LIST\}\}/g,
-                  bgmStr,
+                  /\{\{AMBIENCE_LIST\}\}/g,
+                  ambienceStr,
                 );
               } else if (entry.name === "SFX") {
                 updatedContent = updatedContent.replace(
@@ -401,10 +412,10 @@ export async function syncBgmWorldbookEntries(isBgmEnabled) {
     );
 
     console.log(
-      `[Siren Voice] BGM世界书同步完成。幻境总开关状态: ${isBgmEnabled}\n注入BGM: ${bgmStr}\n注入SFX: ${sfxStr}`,
+      `[Siren Voice] AMBIENCE世界书同步完成。幻境总开关状态: ${isAmbienceEnabled}\n注入AMBIENCE: ${ambienceStr}\n注入SFX: ${sfxStr}`,
     );
   } catch (error) {
-    console.error("[Siren Voice] 同步BGM世界书失败:", error);
+    console.error("[Siren Voice] 同步AMBIENCE世界书失败:", error);
   }
 }
 

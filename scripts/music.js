@@ -4,10 +4,10 @@ import {
   defaultSettings,
 } from "./settings.js";
 import {
-  searchSongList,
-  playExactSong,
+  searchMusicList,
+  playExactMusic,
   setPlaylistContext,
-  playTargetSong,
+  playTargetMusic,
 } from "./music_logic.js";
 import { updatePlayerCustomStyle } from "./music_player.js";
 import { updateSirenRegex, applyMusicBeautifyCss } from "./events.js";
@@ -111,7 +111,7 @@ export function initMusicSettings() {
                 <div class="siren-ext-setting-row siren-ext-flex-between">
                     <div class="siren-ext-setting-label">
                         <label>深海气泡拟态</label>
-                        <small style="display:block; margin-top:4px;">替换默认隐藏的 &lt;song&gt; 标签为精美卡片</small>
+                        <small style="display:block; margin-top:4px;">替换默认隐藏的 &lt;music&gt; 标签为精美卡片</small>
                     </div>
                     <label class="siren-ext-switch">
                         <input type="checkbox" id="siren-style-msg-enable">
@@ -144,8 +144,8 @@ export function initMusicSettings() {
                             <div class="siren-ext-player-basic">
                                 <div class="siren-ext-player-cover"><i class="fa-solid fa-music" style="color: #06b6d4;"></i></div>
                                 <div class="siren-ext-player-info">
-                                    <div class="siren-ext-song-title">深海回响 (Preview)</div>
-                                    <div class="siren-ext-song-artist">塞壬之声</div>
+                                    <div class="siren-ext-music-title">深海回响 (Preview)</div>
+                                    <div class="siren-ext-music-artist">塞壬之声</div>
                                 </div>
                                 <div class="siren-ext-player-controls">
                                     <i class="fa-solid fa-arrow-right-arrow-left siren-ext-ctrl-btn" title="顺序播放" style="font-size: 0.9em; margin-right: 2px;"></i>
@@ -201,7 +201,7 @@ export function initMusicSettings() {
                     </div>
                 </div>
                 
-                <div class="siren-ext-add-song-row" style="display: flex; gap: 10px; margin-bottom: 15px;">
+                <div class="siren-ext-add-music-row" style="display: flex; gap: 10px; margin-bottom: 15px;">
                     <input type="text" id="siren-music-search-title" class="siren-ext-input" placeholder="歌曲名 (必填)" style="flex: 2;">
                     <input type="text" id="siren-music-search-artist" class="siren-ext-input" placeholder="歌手 (选填)" style="flex: 1;">
                     <button id="siren-music-search-btn" class="siren-ext-btn siren-ext-btn-primary"><i class="fa-solid fa-magnifying-glass"></i> 搜索</button>
@@ -247,7 +247,7 @@ let currentEchoPage = 1;
 const ECHO_PAGE_SIZE = 15;
 
 /**
- * 参考 status_logic.js 里的 scanChatForStatus，逆序扫描包含 bgm 的楼层
+ * 参考 status_logic.js 里的 scanChatForStatus，逆序扫描包含 ambience 的楼层
  */
 export function getEchoHistory() {
   if (!window.TavernHelper) return [];
@@ -257,7 +257,7 @@ export function getEchoHistory() {
   });
 
   const history = [];
-  const seenSongs = new Set(); // 🚀 用于去重的 Set
+  const seenMusics = new Set(); // 🚀 用于去重的 Set
 
   for (let i = allMsgs.length - 1; i >= 0; i--) {
     const msg = allMsgs[i];
@@ -275,17 +275,17 @@ export function getEchoHistory() {
       message_id: msg.message_id,
     });
 
-    if (vars && vars["siren-voice"] && vars["siren-voice"].bgm) {
-      const bgm = vars["siren-voice"].bgm;
+    if (vars && vars["siren-voice"] && vars["siren-voice"].ambience) {
+      const ambience = vars["siren-voice"].ambience;
       // 2. 构造唯一标识符，防止历史记录里出现连续多首一样的歌
-      const uniqueKey = `${bgm.song}::${bgm.artist}`;
+      const uniqueKey = `${ambience.music}::${ambience.artist}`;
 
-      if (!seenSongs.has(uniqueKey)) {
-        seenSongs.add(uniqueKey);
+      if (!seenMusics.has(uniqueKey)) {
+        seenMusics.add(uniqueKey);
         history.push({
           floor: msg.message_id,
-          name: bgm.song,
-          artist: bgm.artist || "未知",
+          name: ambience.music,
+          artist: ambience.artist || "未知",
           source: "netease",
         });
       }
@@ -321,7 +321,7 @@ export function renderEchoPage() {
                     <span style="flex: 1; display: flex; align-items: center; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">
                         <i class="fa-solid fa-play siren-ext-play-echo" data-name="${item.name}" data-artist="${item.artist}" style="cursor: pointer; color: #10b981; margin-right: 12px; font-size: 1.1em;" title="再次共鸣 (盲搜播放)"></i>
                         <span style="display: inline-block; width: 45px; color: #64748b; font-family: monospace; font-size: 0.85em;">#${item.floor}</span>
-                        <span class="siren-ext-song-data" style="overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">
+                        <span class="siren-ext-music-data" style="overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">
                             <strong style="color: #f1f5f9;">${item.name}</strong> 
                             <small style="color: #64748b; margin-left: 5px;">${item.artist ? `- ${item.artist}` : ""}</small>
                         </span>
@@ -354,7 +354,7 @@ function renderPlaylistPage() {
   $("#siren-music-list").empty();
   if (playlist.length > 0) {
     $("#siren-music-empty-state").hide();
-    pageData.forEach((song) => appendSongToUI(song));
+    pageData.forEach((music) => appendMusicToUI(music));
   } else {
     $("#siren-music-empty-state").show();
   }
@@ -428,22 +428,22 @@ function loadSettingsToUI() {
 /**
  * 将完整的歌曲对象渲染到列表
  */
-function appendSongToUI(songObj) {
-  const artistText = songObj.artist ? `- ${songObj.artist}` : "";
+function appendMusicToUI(musicObj) {
+  const artistText = musicObj.artist ? `- ${musicObj.artist}` : "";
   // 将对象转成 base64 存入标签，方便回溯完整数据
-  const b64Data = btoa(encodeURIComponent(JSON.stringify(songObj)));
+  const b64Data = btoa(encodeURIComponent(JSON.stringify(musicObj)));
 
   const liHtml = `
         <li style="display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #1e293b; color: #cbd5e1;">
             <span style="flex: 1; display: flex; align-items: center; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">
-                <i class="fa-solid fa-play siren-ext-play-song" data-obj="${b64Data}" style="cursor: pointer; color: #10b981; margin-right: 12px; font-size: 1.1em;" title="精准播放"></i>
-                <span class="siren-ext-song-data" data-obj="${b64Data}">
-                    <strong style="color: #f1f5f9;">${songObj.name || songObj.title}</strong> 
+                <i class="fa-solid fa-play siren-ext-play-music" data-obj="${b64Data}" style="cursor: pointer; color: #10b981; margin-right: 12px; font-size: 1.1em;" title="精准播放"></i>
+                <span class="siren-ext-music-data" data-obj="${b64Data}">
+                    <strong style="color: #f1f5f9;">${musicObj.name || musicObj.title}</strong> 
                     <small style="color: #64748b; margin-left: 5px;">${artistText}</small>
-                    <span style="font-size: 0.7em; background: #1e293b; padding: 2px 6px; border-radius: 4px; margin-left: 8px;">${songObj.source}</span>
+                    <span style="font-size: 0.7em; background: #1e293b; padding: 2px 6px; border-radius: 4px; margin-left: 8px;">${musicObj.source}</span>
                 </span>
             </span>
-            <i class="fa-solid fa-trash siren-ext-del-song" style="cursor: pointer; color: #ef4444; padding: 5px;" title="删除"></i>
+            <i class="fa-solid fa-trash siren-ext-del-music" style="cursor: pointer; color: #ef4444; padding: 5px;" title="删除"></i>
         </li>
     `;
   $("#siren-music-list").append(liHtml);
@@ -542,24 +542,26 @@ function bindMusicSettingsEvents() {
   $(document)
     .off("click", ".siren-ext-echo-to-playlist")
     .on("click", ".siren-ext-echo-to-playlist", function () {
-      const songObj = JSON.parse(decodeURIComponent(atob($(this).data("obj"))));
+      const musicObj = JSON.parse(
+        decodeURIComponent(atob($(this).data("obj"))),
+      );
       const mSettings = getSirenSettings().music;
 
       // 因为回响里没有确切的 id (盲搜机制)，我们用 name + artist 做去重检测
       const isExist = mSettings.playlist.some(
-        (s) => s.name === songObj.name && s.artist === songObj.artist,
+        (s) => s.name === musicObj.name && s.artist === musicObj.artist,
       );
 
       if (!isExist) {
         // 给它生成一个伪 ID，防止歌单列表的 key 冲突
-        songObj.id = "echo_" + Date.now();
-        mSettings.playlist.push(songObj);
+        musicObj.id = "echo_" + Date.now();
+        mSettings.playlist.push(musicObj);
         saveSirenSettings(true);
 
         // 渲染下方的深海歌单
         renderPlaylistPage();
         if (window.toastr)
-          window.toastr.success(`已将《${songObj.name}》加入深海歌单！`);
+          window.toastr.success(`已将《${musicObj.name}》加入深海歌单！`);
       } else {
         if (window.toastr) window.toastr.warning("这首歌已经在歌单里啦！");
       }
@@ -599,7 +601,7 @@ function bindMusicSettingsEvents() {
       if (window.toastr) window.toastr.info(`正在重新打捞: ${name}...`);
 
       // 调用逻辑层的智能盲搜播放
-      playTargetSong(name, artist, source);
+      playTargetMusic(name, artist, source);
     });
 
   // ==========================================
@@ -639,11 +641,11 @@ function bindMusicSettingsEvents() {
         `<div style="text-align:center; padding: 40px; color:#06b6d4;"><i class="fa-solid fa-spinner fa-spin fa-2x"></i><div style="margin-top:10px;">声纳扫描中...</div></div>`,
       );
 
-      let results = await searchSongList(keyword, source);
+      let results = await searchMusicList(keyword, source);
 
       if ((!results || results.length === 0) && artist) {
         console.log(`[Siren] 组合搜索无结果，降级为仅搜索歌名: ${title}`);
-        results = await searchSongList(title, source);
+        results = await searchMusicList(title, source);
       }
 
       if (!results || results.length === 0) {
@@ -654,19 +656,19 @@ function bindMusicSettingsEvents() {
       }
 
       let resultHtml = '<ul style="list-style:none; padding:0; margin:0;">';
-      results.forEach((song) => {
-        const artistName = Array.isArray(song.artist)
-          ? song.artist.join("/")
-          : song.artist;
-        song.source = source;
-        const b64Data = btoa(encodeURIComponent(JSON.stringify(song)));
+      results.forEach((music) => {
+        const artistName = Array.isArray(music.artist)
+          ? music.artist.join("/")
+          : music.artist;
+        music.source = source;
+        const b64Data = btoa(encodeURIComponent(JSON.stringify(music)));
         resultHtml += `
                 <li style="display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #1e293b;">
                     <div style="flex:1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; padding-right: 15px;">
-                        <strong style="color: #f1f5f9; font-size: 1.05em;">${song.name}</strong>
+                        <strong style="color: #f1f5f9; font-size: 1.05em;">${music.name}</strong>
                         <div style="color: #64748b; font-size: 0.85em; margin-top: 4px;">
                             <i class="fa-solid fa-user"></i> ${artistName} &nbsp;|&nbsp; 
-                            <i class="fa-solid fa-compact-disc"></i> ${song.album || "未知专辑"}
+                            <i class="fa-solid fa-compact-disc"></i> ${music.album || "未知专辑"}
                         </div>
                     </div>
                     <button class="siren-ext-btn siren-ext-add-exact-btn" data-obj="${b64Data}" style="background: #1e293b; color: #06b6d4; border: 1px solid #06b6d4;">
@@ -683,12 +685,14 @@ function bindMusicSettingsEvents() {
   $(document)
     .off("click", ".siren-ext-add-exact-btn")
     .on("click", ".siren-ext-add-exact-btn", function () {
-      const songObj = JSON.parse(decodeURIComponent(atob($(this).data("obj"))));
+      const musicObj = JSON.parse(
+        decodeURIComponent(atob($(this).data("obj"))),
+      );
       const mSettings = getSirenSettings().music;
 
       // 数据去重：防止同一首歌被添加两次
-      if (!mSettings.playlist.some((s) => s.id === songObj.id)) {
-        mSettings.playlist.push(songObj);
+      if (!mSettings.playlist.some((s) => s.id === musicObj.id)) {
+        mSettings.playlist.push(musicObj);
         saveSirenSettings(); // 核心：操作完立刻存入本地
       }
 
@@ -701,18 +705,18 @@ function bindMusicSettingsEvents() {
 
   // 列表操作：删除
   $(document)
-    .off("click", ".siren-ext-del-song")
-    .on("click", ".siren-ext-del-song", function () {
+    .off("click", ".siren-ext-del-music")
+    .on("click", ".siren-ext-del-music", function () {
       const b64Data = $(this)
         .siblings("span")
-        .find(".siren-ext-song-data")
+        .find(".siren-ext-music-data")
         .data("obj");
       if (!b64Data) return;
-      const songObj = JSON.parse(decodeURIComponent(atob(b64Data)));
+      const musicObj = JSON.parse(decodeURIComponent(atob(b64Data)));
 
       const mSettings = getSirenSettings().music;
       mSettings.playlist = mSettings.playlist.filter(
-        (s) => s.id !== songObj.id,
+        (s) => s.id !== musicObj.id,
       );
       saveSirenSettings();
 
@@ -734,8 +738,8 @@ function bindMusicSettingsEvents() {
     });
 
   // 列表操作：精准播放
-  $("#siren-music-list").on("click", ".siren-ext-play-song", function () {
-    const songObj = JSON.parse(decodeURIComponent(atob($(this).data("obj"))));
+  $("#siren-music-list").on("click", ".siren-ext-play-music", function () {
+    const musicObj = JSON.parse(decodeURIComponent(atob($(this).data("obj"))));
 
     // 【优化】自动切换到歌单模式并保存
     if ($("#siren-music-mode").val() !== "playlist") {
@@ -745,9 +749,9 @@ function bindMusicSettingsEvents() {
 
     // 获取最新歌单同步给底层逻辑
     const mSettings = getSirenSettings().music;
-    setPlaylistContext(mSettings.playlist, songObj);
+    setPlaylistContext(mSettings.playlist, musicObj);
 
-    playExactSong(songObj);
+    playExactMusic(musicObj);
   });
   // 【新增】导出歌单逻辑
   $("#siren-music-export-btn").on("click", function () {
@@ -1037,7 +1041,7 @@ function updateStylePreview() {
                 <i class="fa-solid fa-play siren-play-icon"></i>
             </div>
             <div class="siren-music-info-wrap">
-                <span class="siren-title">Song of Siren</span>
+                <span class="siren-title">Music of Siren</span>
                 <span class="siren-artist">Siren</span>
             </div>
         </div>`;

@@ -2,7 +2,7 @@ const MODULE_NAME = "siren_voice_settings";
 
 // 定义默认设置，包含了未来的 tts 占位
 export const defaultSettings = Object.freeze({
-  bgm: {
+  ambience: {
     enabled: true,
     auto_play: true, // 🌟 新增：全局自动播放
     custom_end_tags: "", // 🌟 新增：自定义触发标签
@@ -15,7 +15,7 @@ export const defaultSettings = Object.freeze({
       default: [
         {
           name: "小雨",
-          url: "https://raw.githubusercontent.com/Ellinav/ST-Audio-Assets/main/BGM/%E4%B8%8B%E9%9B%A8/%E5%B0%8F%E9%9B%A8-1.ogg",
+          url: "https://raw.githubusercontent.com/Ellinav/ST-Audio-Assets/main/Ambience/%E4%B8%8B%E9%9B%A8/%E5%B0%8F%E9%9B%A8-1.ogg",
         },
         { name: "酒吧", url: "https://files.catbox.moe/qc7a9g.wav" },
       ],
@@ -216,89 +216,89 @@ export const defaultSettings = Object.freeze({
           name: "深海",
           icon: "fa-solid fa-headphones-simple",
           code: `
-.siren-bgm-card { display:inline-flex; align-items:center; gap:8px; background:rgba(10,15,30,0.85); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); border:1px solid rgba(6,182,212,0.3); padding:4px 12px; border-radius:20px; cursor:pointer; box-shadow:0 2px 10px rgba(0,0,0,0.3); transition:all 0.2s; margin: 4px 0; }
-.siren-bgm-card:hover { border-color:#06b6d4; box-shadow:0 4px 15px rgba(6,182,212,0.2); transform: translateY(-1px); }
-.siren-bgm-text { color:#f1f5f9; font-size:0.9em; text-shadow:0 0 5px rgba(255,255,255,0.2); }
-.siren-bgm-card .siren-btn-wrap { display: inline-flex !important; flex-shrink: 0; width: 24px !important; height: 24px !important; align-items: center !important; justify-content: center !important; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important; }
-.siren-bgm-card .siren-btn-wrap:hover { transform: scale(1.15) !important; }
-.siren-bgm-card i { display: flex; align-items: center; justify-content: center; transition: filter 0.3s ease !important; color: #06b6d4 !important; font-size: 1.1em !important; filter: drop-shadow(0 0 8px rgba(6,182,212,0.8)); }`,
+.siren-ambience-card { display:inline-flex; align-items:center; gap:8px; background:rgba(10,15,30,0.85); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); border:1px solid rgba(6,182,212,0.3); padding:4px 12px; border-radius:20px; cursor:pointer; box-shadow:0 2px 10px rgba(0,0,0,0.3); transition:all 0.2s; margin: 4px 0; }
+.siren-ambience-card:hover { border-color:#06b6d4; box-shadow:0 4px 15px rgba(6,182,212,0.2); transform: translateY(-1px); }
+.siren-ambience-text { color:#f1f5f9; font-size:0.9em; text-shadow:0 0 5px rgba(255,255,255,0.2); }
+.siren-ambience-card .siren-btn-wrap { display: inline-flex !important; flex-shrink: 0; width: 24px !important; height: 24px !important; align-items: center !important; justify-content: center !important; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important; }
+.siren-ambience-card .siren-btn-wrap:hover { transform: scale(1.15) !important; }
+.siren-ambience-card i { display: flex; align-items: center; justify-content: center; transition: filter 0.3s ease !important; color: #06b6d4 !important; font-size: 1.1em !important; filter: drop-shadow(0 0 8px rgba(6,182,212,0.8)); }`,
         },
         deepsea: {
           name: "霓虹",
           icon: "fa-solid fa-headphones-simple",
           code: `
-.siren-bgm-card { display:inline-flex; align-items:center; gap:8px; background:linear-gradient(135deg, rgba(8,47,73,0.88), rgba(15,23,42,0.92)); border:1px solid rgba(34,211,238,0.35); padding:4px 12px; border-radius:12px; cursor:pointer; box-shadow:0 0 14px rgba(6,182,212,0.18), inset 0 0 12px rgba(6,182,212,0.08); transition:all 0.2s; margin: 4px 0; }
-.siren-bgm-card:hover { border-color:rgba(34,211,238,0.8); box-shadow:0 0 20px rgba(6,182,212,0.4), inset 0 0 15px rgba(6,182,212,0.2); transform: translateY(-1px); }
-.siren-bgm-text { color:#67e8f9; font-weight:700; font-size:0.9em; }
-.siren-bgm-card .siren-btn-wrap { display: inline-flex !important; flex-shrink: 0; width: 24px !important; height: 24px !important; align-items: center !important; justify-content: center !important; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important; }
-.siren-bgm-card .siren-btn-wrap:hover { transform: scale(1.15) !important; }
-.siren-bgm-card i { display: flex; align-items: center; justify-content: center; transition: filter 0.3s ease !important; color: #22c55e !important; font-size: 1.1em !important; filter: drop-shadow(0 0 5px rgba(34,197,94,0.5)); }`,
+.siren-ambience-card { display:inline-flex; align-items:center; gap:8px; background:linear-gradient(135deg, rgba(8,47,73,0.88), rgba(15,23,42,0.92)); border:1px solid rgba(34,211,238,0.35); padding:4px 12px; border-radius:12px; cursor:pointer; box-shadow:0 0 14px rgba(6,182,212,0.18), inset 0 0 12px rgba(6,182,212,0.08); transition:all 0.2s; margin: 4px 0; }
+.siren-ambience-card:hover { border-color:rgba(34,211,238,0.8); box-shadow:0 0 20px rgba(6,182,212,0.4), inset 0 0 15px rgba(6,182,212,0.2); transform: translateY(-1px); }
+.siren-ambience-text { color:#67e8f9; font-weight:700; font-size:0.9em; }
+.siren-ambience-card .siren-btn-wrap { display: inline-flex !important; flex-shrink: 0; width: 24px !important; height: 24px !important; align-items: center !important; justify-content: center !important; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important; }
+.siren-ambience-card .siren-btn-wrap:hover { transform: scale(1.15) !important; }
+.siren-ambience-card i { display: flex; align-items: center; justify-content: center; transition: filter 0.3s ease !important; color: #22c55e !important; font-size: 1.1em !important; filter: drop-shadow(0 0 5px rgba(34,197,94,0.5)); }`,
         },
         glass: {
           name: "玻璃",
           icon: "fa-solid fa-headphones-simple",
           code: `
-.siren-bgm-card { display:inline-flex; align-items:center; gap:8px; background:rgba(255,255,255,0.08); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,0.18); padding:4px 12px; border-radius:16px; cursor:pointer; box-shadow:0 8px 24px rgba(0,0,0,0.18); transition:all 0.2s; margin: 4px 0; }
-.siren-bgm-card:hover { background: rgba(255,255,255,0.12); border-color:rgba(52,211,153,0.6); box-shadow:0 12px 28px rgba(0,0,0,0.25), 0 0 15px rgba(52,211,153,0.2); transform: translateY(-1px); }
-.siren-bgm-text { color:#e2e8f0; font-weight:600; font-size:0.9em; }
-.siren-bgm-card .siren-btn-wrap { display: inline-flex !important; flex-shrink: 0; width: 24px !important; height: 24px !important; align-items: center !important; justify-content: center !important; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important; }
-.siren-bgm-card .siren-btn-wrap:hover { transform: scale(1.15) !important; }
-.siren-bgm-card i { display: flex; align-items: center; justify-content: center; transition: filter 0.3s ease !important; color: #34d399 !important; font-size: 1.1em !important; }`,
+.siren-ambience-card { display:inline-flex; align-items:center; gap:8px; background:rgba(255,255,255,0.08); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,0.18); padding:4px 12px; border-radius:16px; cursor:pointer; box-shadow:0 8px 24px rgba(0,0,0,0.18); transition:all 0.2s; margin: 4px 0; }
+.siren-ambience-card:hover { background: rgba(255,255,255,0.12); border-color:rgba(52,211,153,0.6); box-shadow:0 12px 28px rgba(0,0,0,0.25), 0 0 15px rgba(52,211,153,0.2); transform: translateY(-1px); }
+.siren-ambience-text { color:#e2e8f0; font-weight:600; font-size:0.9em; }
+.siren-ambience-card .siren-btn-wrap { display: inline-flex !important; flex-shrink: 0; width: 24px !important; height: 24px !important; align-items: center !important; justify-content: center !important; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important; }
+.siren-ambience-card .siren-btn-wrap:hover { transform: scale(1.15) !important; }
+.siren-ambience-card i { display: flex; align-items: center; justify-content: center; transition: filter 0.3s ease !important; color: #34d399 !important; font-size: 1.1em !important; }`,
         },
         vinyl: {
           name: "黑胶唱片",
           icon: "fa-solid fa-headphones-simple",
           code: `
-.siren-bgm-card { display:inline-flex; align-items:center; gap:8px; background:#111827; border:1px solid #374151; padding:4px 12px; border-radius:14px; cursor:pointer; box-shadow:0 4px 18px rgba(0,0,0,0.35); transition:all 0.2s; margin: 4px 0; }
-.siren-bgm-card:hover { border-color:#f59e0b; box-shadow:0 6px 22px rgba(0,0,0,0.5), 0 0 15px rgba(245,158,11,0.15); transform: translateY(-1px); }
-.siren-bgm-text { color:#f9fafb; font-weight:700; font-size:0.9em; }
-.siren-bgm-card .siren-btn-wrap { display: inline-flex !important; flex-shrink: 0; width: 24px !important; height: 24px !important; align-items: center !important; justify-content: center !important; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important; }
-.siren-bgm-card .siren-btn-wrap:hover { transform: scale(1.15) !important; }
-.siren-bgm-card i { display: flex; align-items: center; justify-content: center; transition: filter 0.3s ease !important; color: #f59e0b !important; font-size: 1.1em !important; }`,
+.siren-ambience-card { display:inline-flex; align-items:center; gap:8px; background:#111827; border:1px solid #374151; padding:4px 12px; border-radius:14px; cursor:pointer; box-shadow:0 4px 18px rgba(0,0,0,0.35); transition:all 0.2s; margin: 4px 0; }
+.siren-ambience-card:hover { border-color:#f59e0b; box-shadow:0 6px 22px rgba(0,0,0,0.5), 0 0 15px rgba(245,158,11,0.15); transform: translateY(-1px); }
+.siren-ambience-text { color:#f9fafb; font-weight:700; font-size:0.9em; }
+.siren-ambience-card .siren-btn-wrap { display: inline-flex !important; flex-shrink: 0; width: 24px !important; height: 24px !important; align-items: center !important; justify-content: center !important; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important; }
+.siren-ambience-card .siren-btn-wrap:hover { transform: scale(1.15) !important; }
+.siren-ambience-card i { display: flex; align-items: center; justify-content: center; transition: filter 0.3s ease !important; color: #f59e0b !important; font-size: 1.1em !important; }`,
         },
         cyber: {
           name: "赛博终端",
           icon: "fa-solid fa-headphones-simple",
           code: `
-.siren-bgm-card { display:inline-flex; align-items:center; gap:8px; background:#0a0f1e; border:1px solid #00f5d4; padding:4px 12px; border-radius:6px; cursor:pointer; box-shadow:0 0 12px rgba(0,245,212,0.18), inset 0 0 10px rgba(0,245,212,0.08); font-family:monospace !important; transition:all 0.2s; margin: 4px 0; }
-.siren-bgm-card:hover { border-color:#00f5d4; box-shadow:0 0 20px rgba(0,245,212,0.4), inset 0 0 15px rgba(0,245,212,0.2); transform: translateY(-1px); }
-.siren-bgm-text { color:#d1fae5; font-weight:700; font-size:0.9em; }
-.siren-bgm-card .siren-btn-wrap { display: inline-flex !important; flex-shrink: 0; width: 24px !important; height: 24px !important; align-items: center !important; justify-content: center !important; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important; }
-.siren-bgm-card .siren-btn-wrap:hover { transform: scale(1.15) !important; }
-.siren-bgm-card i { display: flex; align-items: center; justify-content: center; transition: filter 0.3s ease !important; color: #00f5d4 !important; font-size: 1.1em !important; filter: drop-shadow(0 0 5px rgba(0,245,212,0.6)); }`,
+.siren-ambience-card { display:inline-flex; align-items:center; gap:8px; background:#0a0f1e; border:1px solid #00f5d4; padding:4px 12px; border-radius:6px; cursor:pointer; box-shadow:0 0 12px rgba(0,245,212,0.18), inset 0 0 10px rgba(0,245,212,0.08); font-family:monospace !important; transition:all 0.2s; margin: 4px 0; }
+.siren-ambience-card:hover { border-color:#00f5d4; box-shadow:0 0 20px rgba(0,245,212,0.4), inset 0 0 15px rgba(0,245,212,0.2); transform: translateY(-1px); }
+.siren-ambience-text { color:#d1fae5; font-weight:700; font-size:0.9em; }
+.siren-ambience-card .siren-btn-wrap { display: inline-flex !important; flex-shrink: 0; width: 24px !important; height: 24px !important; align-items: center !important; justify-content: center !important; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important; }
+.siren-ambience-card .siren-btn-wrap:hover { transform: scale(1.15) !important; }
+.siren-ambience-card i { display: flex; align-items: center; justify-content: center; transition: filter 0.3s ease !important; color: #00f5d4 !important; font-size: 1.1em !important; filter: drop-shadow(0 0 5px rgba(0,245,212,0.6)); }`,
         },
         nebula: {
           name: "梦幻星云",
           icon: "fa-solid fa-headphones-simple",
           code: `
-.siren-bgm-card { display:inline-flex; align-items:center; gap:8px; background:linear-gradient(135deg, rgba(76,29,149,0.9), rgba(30,41,59,0.92), rgba(219,39,119,0.18)); border:1px solid rgba(244,114,182,0.35); padding:4px 12px; border-radius:18px; cursor:pointer; box-shadow:0 0 18px rgba(168,85,247,0.18); transition:all 0.2s; margin: 4px 0; }
-.siren-bgm-card:hover { border-color:rgba(244,114,182,0.8); box-shadow:0 4px 25px rgba(244,114,182,0.4), 0 0 15px rgba(168,85,247,0.3); transform: translateY(-1px); }
-.siren-bgm-text { color:#fce7f3; font-weight:700; font-size:0.9em; }
-.siren-bgm-card .siren-btn-wrap { display: inline-flex !important; flex-shrink: 0; width: 24px !important; height: 24px !important; align-items: center !important; justify-content: center !important; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important; }
-.siren-bgm-card .siren-btn-wrap:hover { transform: scale(1.15) !important; }
-.siren-bgm-card i { display: flex; align-items: center; justify-content: center; transition: filter 0.3s ease !important; color: #f472b6 !important; font-size: 1.1em !important; filter: drop-shadow(0 0 5px rgba(244,114,182,0.5)); }`,
+.siren-ambience-card { display:inline-flex; align-items:center; gap:8px; background:linear-gradient(135deg, rgba(76,29,149,0.9), rgba(30,41,59,0.92), rgba(219,39,119,0.18)); border:1px solid rgba(244,114,182,0.35); padding:4px 12px; border-radius:18px; cursor:pointer; box-shadow:0 0 18px rgba(168,85,247,0.18); transition:all 0.2s; margin: 4px 0; }
+.siren-ambience-card:hover { border-color:rgba(244,114,182,0.8); box-shadow:0 4px 25px rgba(244,114,182,0.4), 0 0 15px rgba(168,85,247,0.3); transform: translateY(-1px); }
+.siren-ambience-text { color:#fce7f3; font-weight:700; font-size:0.9em; }
+.siren-ambience-card .siren-btn-wrap { display: inline-flex !important; flex-shrink: 0; width: 24px !important; height: 24px !important; align-items: center !important; justify-content: center !important; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important; }
+.siren-ambience-card .siren-btn-wrap:hover { transform: scale(1.15) !important; }
+.siren-ambience-card i { display: flex; align-items: center; justify-content: center; transition: filter 0.3s ease !important; color: #f472b6 !important; font-size: 1.1em !important; filter: drop-shadow(0 0 5px rgba(244,114,182,0.5)); }`,
         },
         retro: {
           name: "留声机",
           icon: "fa-solid fa-headphones-simple",
           code: `
-.siren-bgm-card { display:inline-flex; align-items:center; gap:8px; background:linear-gradient(135deg,#3f2f23,#1f1812); border:1px solid #8b6b4a; padding:4px 12px; border-radius:10px; cursor:pointer; box-shadow:0 6px 16px rgba(0,0,0,0.28); transition:all 0.2s; margin: 4px 0; }
-.siren-bgm-card:hover { border-color:#d6c1a3; box-shadow:0 8px 20px rgba(0,0,0,0.4), 0 0 12px rgba(139,107,74,0.3); transform: translateY(-1px); }
-.siren-bgm-text { color:#f5deb3; font-weight:700; font-size:0.9em; }
-.siren-bgm-card .siren-btn-wrap { display: inline-flex !important; flex-shrink: 0; width: 24px !important; height: 24px !important; align-items: center !important; justify-content: center !important; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important; }
-.siren-bgm-card .siren-btn-wrap:hover { transform: scale(1.15) !important; }
-.siren-bgm-card i { display: flex; align-items: center; justify-content: center; transition: filter 0.3s ease !important; color: #f5deb3 !important; font-size: 1.1em !important; }`,
+.siren-ambience-card { display:inline-flex; align-items:center; gap:8px; background:linear-gradient(135deg,#3f2f23,#1f1812); border:1px solid #8b6b4a; padding:4px 12px; border-radius:10px; cursor:pointer; box-shadow:0 6px 16px rgba(0,0,0,0.28); transition:all 0.2s; margin: 4px 0; }
+.siren-ambience-card:hover { border-color:#d6c1a3; box-shadow:0 8px 20px rgba(0,0,0,0.4), 0 0 12px rgba(139,107,74,0.3); transform: translateY(-1px); }
+.siren-ambience-text { color:#f5deb3; font-weight:700; font-size:0.9em; }
+.siren-ambience-card .siren-btn-wrap { display: inline-flex !important; flex-shrink: 0; width: 24px !important; height: 24px !important; align-items: center !important; justify-content: center !important; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important; }
+.siren-ambience-card .siren-btn-wrap:hover { transform: scale(1.15) !important; }
+.siren-ambience-card i { display: flex; align-items: center; justify-content: center; transition: filter 0.3s ease !important; color: #f5deb3 !important; font-size: 1.1em !important; }`,
         },
         pill: {
           name: "极简胶囊",
           icon: "fa-solid fa-headphones-simple",
           code: `
-.siren-bgm-card { display:inline-flex; align-items:center; gap:8px; background:rgba(255,255,255,0.95); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); border:1px solid rgba(0,0,0,0.08); padding:4px 12px; border-radius:999px; cursor:pointer; box-shadow:0 2px 10px rgba(0,0,0,0.04); transition:all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); margin: 4px 0; }
-.siren-bgm-card:hover { border-color:rgba(0,0,0,0.15); box-shadow:0 4px 16px rgba(0,0,0,0.08); transform: translateY(-1px); }
-.siren-bgm-text { color:#1d1d1f; font-weight:600; font-size:0.9em; }
-.siren-bgm-card .siren-btn-wrap { display: inline-flex !important; flex-shrink: 0; width: 24px !important; height: 24px !important; align-items: center !important; justify-content: center !important; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important; }
-.siren-bgm-card .siren-btn-wrap:hover { transform: scale(1.15) !important; }
-.siren-bgm-card i { display: flex; align-items: center; justify-content: center; transition: filter 0.3s ease !important; color: #1d1d1f !important; font-size: 1.1em !important; filter: drop-shadow(0 0 2px rgba(0,0,0,0.05)); }`,
+.siren-ambience-card { display:inline-flex; align-items:center; gap:8px; background:rgba(255,255,255,0.95); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); border:1px solid rgba(0,0,0,0.08); padding:4px 12px; border-radius:999px; cursor:pointer; box-shadow:0 2px 10px rgba(0,0,0,0.04); transition:all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); margin: 4px 0; }
+.siren-ambience-card:hover { border-color:rgba(0,0,0,0.15); box-shadow:0 4px 16px rgba(0,0,0,0.08); transform: translateY(-1px); }
+.siren-ambience-text { color:#1d1d1f; font-weight:600; font-size:0.9em; }
+.siren-ambience-card .siren-btn-wrap { display: inline-flex !important; flex-shrink: 0; width: 24px !important; height: 24px !important; align-items: center !important; justify-content: center !important; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important; }
+.siren-ambience-card .siren-btn-wrap:hover { transform: scale(1.15) !important; }
+.siren-ambience-card i { display: flex; align-items: center; justify-content: center; transition: filter 0.3s ease !important; color: #1d1d1f !important; font-size: 1.1em !important; filter: drop-shadow(0 0 2px rgba(0,0,0,0.05)); }`,
         },
       },
     },
@@ -400,7 +400,7 @@ export const defaultSettings = Object.freeze({
     prompt: "请根据当前聊天氛围，在回复末尾附带一首合适的背景音乐...",
     playlist: [],
     styles: {
-      msgEnabled: false,
+      msgEnabled: true,
       playerCurrent: "default",
       msgCurrent: "default",
       playerDict: {
@@ -418,8 +418,8 @@ export const defaultSettings = Object.freeze({
     border: 1px solid rgba(34,211,238,0.35);
     box-shadow: 0 10px 25px rgba(0,0,0,0.5), 0 0 14px rgba(6,182,212,0.18), inset 0 0 12px rgba(6,182,212,0.08);
 }
-#siren-music-player .siren-ext-song-title { color: #67e8f9; }
-#siren-music-player .siren-ext-song-artist { color: #94a3b8; }
+#siren-music-player .siren-ext-music-title { color: #67e8f9; }
+#siren-music-player .siren-ext-music-artist { color: #94a3b8; }
 #siren-music-player .siren-ext-ctrl-btn { color: #67e8f9; }
 #siren-music-player #siren-play-btn { color: #22c55e !important; }
 #siren-music-player #siren-ext-progress.siren-ext-progress-bar {
@@ -440,8 +440,8 @@ export const defaultSettings = Object.freeze({
     box-shadow: 0 12px 32px rgba(0,0,0,0.25);
 }
 #siren-music-player .siren-ext-player-cover { background: rgba(16,185,129,0.18); border: 1px solid rgba(16,185,129,0.35); }
-#siren-music-player .siren-ext-song-title { color: #e2e8f0; }
-#siren-music-player .siren-ext-song-artist { color: #cbd5e1; }
+#siren-music-player .siren-ext-music-title { color: #e2e8f0; }
+#siren-music-player .siren-ext-music-artist { color: #cbd5e1; }
 #siren-music-player .siren-ext-ctrl-btn { color: #e2e8f0; }
 #siren-music-player #siren-play-btn { color: #34d399 !important; }
 #siren-music-player #siren-ext-progress.siren-ext-progress-bar {
@@ -463,8 +463,8 @@ export const defaultSettings = Object.freeze({
     background: radial-gradient(circle at center, #1f2937 0 18%, #000 19% 58%, #1f2937 59% 70%, #000 71% 100%);
     border: 1px solid #4b5563;
 }
-#siren-music-player .siren-ext-song-title { color: #f9fafb; }
-#siren-music-player .siren-ext-song-artist { color: #9ca3af; }
+#siren-music-player .siren-ext-music-title { color: #f9fafb; }
+#siren-music-player .siren-ext-music-artist { color: #9ca3af; }
 #siren-music-player .siren-ext-ctrl-btn { color: #d1d5db; }
 #siren-music-player #siren-play-btn { color: #f59e0b !important; }
 #siren-music-player #siren-ext-progress.siren-ext-progress-bar {
@@ -486,8 +486,8 @@ export const defaultSettings = Object.freeze({
 }
 #siren-music-player.expanded { border-radius: 8px; }
 #siren-music-player .siren-ext-player-cover { border-radius: 4px; border: 1px solid #00f5d4; }
-#siren-music-player .siren-ext-song-title { color: #d1fae5; font-weight: 700; text-shadow: 0 0 5px rgba(0,245,212,0.4); }
-#siren-music-player .siren-ext-song-artist { color: #7dd3fc; }
+#siren-music-player .siren-ext-music-title { color: #d1fae5; font-weight: 700; text-shadow: 0 0 5px rgba(0,245,212,0.4); }
+#siren-music-player .siren-ext-music-artist { color: #7dd3fc; }
 #siren-music-player .siren-ext-ctrl-btn { color: #7dd3fc; }
 #siren-music-player #siren-play-btn { color: #00f5d4 !important; text-shadow: 0 0 8px rgba(0,245,212,0.8); }
 #siren-music-player #siren-ext-progress.siren-ext-progress-bar {
@@ -507,8 +507,8 @@ export const defaultSettings = Object.freeze({
 }
 #siren-music-player .siren-ext-player-cover { background: linear-gradient(135deg, #f472b6, #a855f7); }
 #siren-music-player .siren-ext-player-cover i { color: #ffffff !important; } /* 🌟 强制将音符染成白色 */
-#siren-music-player .siren-ext-song-title { color: #fce7f3; }
-#siren-music-player .siren-ext-song-artist { color: #ddd6fe; }
+#siren-music-player .siren-ext-music-title { color: #fce7f3; }
+#siren-music-player .siren-ext-music-artist { color: #ddd6fe; }
 #siren-music-player .siren-ext-ctrl-btn { color: #e9d5ff; }
 #siren-music-player #siren-play-btn { color: #f472b6 !important; }
 #siren-music-player #siren-ext-progress.siren-ext-progress-bar {
@@ -528,8 +528,8 @@ export const defaultSettings = Object.freeze({
 }
 #siren-music-player .siren-ext-player-cover { background: #8b6b4a; border: 2px solid #5c4033; }
 #siren-music-player .siren-ext-player-cover i { color: #f5deb3 !important; } /* 🌟 强制将音符染成复古黄铜色 */
-#siren-music-player .siren-ext-song-title { color: #f5deb3; }
-#siren-music-player .siren-ext-song-artist { color: #d6c1a3; }
+#siren-music-player .siren-ext-music-title { color: #f5deb3; }
+#siren-music-player .siren-ext-music-artist { color: #d6c1a3; }
 #siren-music-player .siren-ext-ctrl-btn { color: #d6c1a3; }
 #siren-music-player #siren-play-btn { color: #f5deb3 !important; }
 #siren-music-player #siren-ext-progress.siren-ext-progress-bar {
@@ -550,8 +550,8 @@ export const defaultSettings = Object.freeze({
     border-radius: 20px;
     box-shadow: 0 8px 24px rgba(0,0,0,0.06);
 }
-#siren-music-player .siren-ext-song-title { color: #1d1d1f; font-weight: 600; }
-#siren-music-player .siren-ext-song-artist { color: #86868b; font-weight: 500; }
+#siren-music-player .siren-ext-music-title { color: #1d1d1f; font-weight: 600; }
+#siren-music-player .siren-ext-music-artist { color: #86868b; font-weight: 500; }
 #siren-music-player .siren-ext-ctrl-btn { color: #86868b; transition: color 0.2s ease; }
 #siren-music-player .siren-ext-ctrl-btn:hover { color: #1d1d1f; }
 #siren-music-player #siren-play-btn { color: #1d1d1f !important; }
@@ -839,21 +839,21 @@ export const defaultSettings = Object.freeze({
     volume: {
       master: 100, // 主音量
       tts: 100, // TTS 语音
-      bgm: 100, // 环境背景音
+      ambience: 100, // 环境背景音
       sfx: 100, // 效果音
       music: 100, // 潮汐音乐台
     },
-    spatial_mode: 0, // 0: 无, 1: 简单模式, 2: 沉浸模式
+    spatial_mode: 1, // 0: 无, 1: 简单模式, 2: 沉浸模式
     stereo_width: 0.8, // 简单模式的声相宽度 (范围 0.0 ~ 1.0)
     spatial_radius: 2.0, // 沉浸模式的声场半径 (为了方便滑动条，存储时可保持浮点数，UI上映射)
     effects: {
       inner_voice: {
-        enabled: false,
+        enabled: true,
         reverb: 50, // 广度/空间感 (0-100)
         echo: 30, // 回声强度 (0-100)
       },
       telephone: {
-        enabled: false,
+        enabled: true,
         bandwidth: 60, // 频段压缩 (0-100)
         distortion: 40, // 失真度 (0-100)
       },

@@ -1,4 +1,4 @@
-import { playTargetSong, setPlaylistContext } from "./music_logic.js";
+import { playTargetMusic, setPlaylistContext } from "./music_logic.js";
 import {
   compileSirenCss,
   stripParentheticalAsides,
@@ -17,10 +17,10 @@ import {
   injectScenePlayButtons,
   scanAndRefreshAllScenes,
   triggerSceneAutoPlay,
-} from "./bgm_logic.js";
+} from "./ambience_logic.js";
 
 const INLINE_CARD_SELECTOR =
-  '.siren-music-card, .siren-ext-play-inline-btn, [data-siren-song-card="1"]';
+  '.siren-music-card, .siren-ext-play-inline-btn, [data-siren-music-card="1"]';
 
 function findInlineCardFromEvent(e) {
   const path = typeof e.composedPath === "function" ? e.composedPath() : [];
@@ -56,7 +56,7 @@ function getMessageIdFromElement(element) {
   return Number.isNaN(num) ? null : num;
 }
 
-function extractSongInfoFromCard(target) {
+function extractMusicInfoFromCard(target) {
   const floor = getMessageIdFromElement(target);
 
   // ① 优先从楼层变量拿，最稳
@@ -67,11 +67,11 @@ function extractSongInfoFromCard(target) {
         message_id: floor,
       });
 
-      const bgm = vars?.["siren-voice"]?.bgm;
-      if (bgm?.song) {
+      const ambience = vars?.["siren-voice"]?.ambience;
+      if (ambience?.music) {
         return {
-          title: bgm.song,
-          artist: bgm.artist || "",
+          title: ambience.music,
+          artist: ambience.artist || "",
           floor,
           from: "message_vars",
         };
@@ -83,12 +83,12 @@ function extractSongInfoFromCard(target) {
 
   // ② 再从 data-* 拿
   let title =
-    target.getAttribute("data-siren-song-title") ||
+    target.getAttribute("data-siren-music-title") ||
     target.getAttribute("data-title") ||
     "";
 
   let artist =
-    target.getAttribute("data-siren-song-artist") ||
+    target.getAttribute("data-siren-music-artist") ||
     target.getAttribute("data-artist") ||
     "";
 
@@ -125,24 +125,24 @@ function injectInlineCardDataset(html) {
 
   // 给模板的第一个根标签强制注入稳定标记
   return html.replace(/<([a-zA-Z][\w:-]*)([^>]*)>/, (all, tag, attrs) => {
-    const hasCard = /\bdata-siren-song-card\s*=/.test(attrs);
-    const hasTitle = /\bdata-siren-song-title\s*=/.test(attrs);
-    const hasArtist = /\bdata-siren-song-artist\s*=/.test(attrs);
+    const hasCard = /\bdata-siren-music-card\s*=/.test(attrs);
+    const hasTitle = /\bdata-siren-music-title\s*=/.test(attrs);
+    const hasArtist = /\bdata-siren-music-artist\s*=/.test(attrs);
 
     const extra = [
-      hasCard ? "" : ` data-siren-song-card="1"`,
-      hasTitle ? "" : ` data-siren-song-title="$1"`,
-      hasArtist ? "" : ` data-siren-song-artist="$2"`,
+      hasCard ? "" : ` data-siren-music-card="1"`,
+      hasTitle ? "" : ` data-siren-music-title="$1"`,
+      hasArtist ? "" : ` data-siren-music-artist="$2"`,
     ].join("");
 
     return `<${tag}${attrs}${extra}>`;
   });
 }
 
-window["playSirenSongInline"] = async function (element, title, artist) {
+window["playSirenMusicInline"] = async function (element, title, artist) {
   console.log(`[Siren Voice] 🧬 内联直连触发播放: ${title} - ${artist}`);
   const floor = getMessageIdFromElement(element);
-  await handleInlineSongPlay(element, title, artist, floor);
+  await handleInlineMusicPlay(element, title, artist, floor);
 };
 
 let sirenCardObserver = null;
@@ -150,7 +150,12 @@ let sirenCardObserver = null;
 /**
  * 统一播放入口
  */
-async function handleInlineSongPlay(element, title, artist = "", floor = null) {
+async function handleInlineMusicPlay(
+  element,
+  title,
+  artist = "",
+  floor = null,
+) {
   try {
     console.log(
       `[Siren Voice] 🎯 准备播放内联歌曲: ${title} - ${artist} @floor=${floor}`,
@@ -187,21 +192,21 @@ async function handleInlineSongPlay(element, title, artist = "", floor = null) {
     }
     const history = getEchoHistory();
     console.log("[Siren Voice] 🌊 当前 Echo History:", history);
-    const currentSong =
+    const currentMusic =
       floor !== null
         ? history.find((item) => Number(item.floor) === Number(floor)) || {
             name: title,
             artist,
           }
         : { name: title, artist };
-    setPlaylistContext(history, currentSong);
+    setPlaylistContext(history, currentMusic);
     if (window.toastr) window.toastr.info(`声纳重新锁定: ${title}...`);
     console.log(
       `[Siren Voice] 🚀 发起播放请求: ${title} - ${artist} via ${source}`,
     );
-    await playTargetSong(title, artist, source);
+    await playTargetMusic(title, artist, source);
   } catch (error) {
-    console.error("[Siren Voice] ❌ handleInlineSongPlay 崩溃:", error);
+    console.error("[Siren Voice] ❌ handleInlineMusicPlay 崩溃:", error);
   }
 }
 
@@ -222,23 +227,25 @@ function bindInlineSpeakCards(root = document) {
     );
 
     if (textSpan && rawSpan) {
-      // 1. 从绝对安全的隐藏节点读取原汁原味的文本
-      const rawText = rawSpan.textContent || "";
+      // 1. 🌟 核心修复：从绝对安全的隐藏节点读取 innerHTML，保留 ST 转换好的 <br> 标签！
+      // 不要用 textContent，否则会丢失内部换行符。
+      const rawHtml = rawSpan.innerHTML || "";
 
-      // 2. 使用统一函数清洗 UI 文本（去宏变量 + 去小括号 + 🌟 去首尾引号/星号）
-      let cleanDisplay = rawText.replace(/\{\{[\s\S]*?\}\}/g, "").trim();
+      // 2. 清理宏变量
+      let cleanDisplay = rawHtml.replace(/\{\{[\s\S]*?\}\}/g, "").trim();
+
+      // 3. 🚨 核心修复：抹除 ST 附加的样式 (如 <em>, <strong>)，但【严格保留 <br> 标签】！
+      // ST 的 Markdown 有时会把 *文本* 转成 <em>文本</em>。我们删掉 <em>，但留下 <br>，保住换行。
+      cleanDisplay = cleanDisplay.replace(/<\/?(?!br\b)[a-z0-9]+[^>]*>/gi, "");
+
+      // 4. 清除小括号和冗余标点（因为前一步删除了 HTML，双引号现在处于字符串的边缘，会被精准打击）
       cleanDisplay = stripParentheticalAsides(cleanDisplay);
       cleanDisplay = stripWrappingPunctuation(cleanDisplay);
 
-      // 3. 动态更新前端 UI！
-      // 🚨 核心修复：不能只判断 textContent！
-      // 如果 ST 的 Markdown 将 *文本* 转换成了 <em>文本</em>，
-      // 只要检测到包含子元素标签 (firstElementChild !== null)，就强制用纯文本覆写，抹除 ST 样式！
-      if (
-        textSpan.firstElementChild !== null ||
-        textSpan.textContent !== cleanDisplay
-      ) {
-        textSpan.textContent = cleanDisplay;
+      // 5. 动态更新前端 UI！
+      // 🚨 修复：将处理好的带 <br> 的 HTML 写回到 innerHTML，彻底解决吞换行问题。
+      if (textSpan.innerHTML !== cleanDisplay) {
+        textSpan.innerHTML = cleanDisplay;
       }
     }
 
@@ -251,7 +258,7 @@ function bindInlineSpeakCards(root = document) {
  * 直接给卡片本体绑定事件
  * 这是最稳的一层，避免 ST 某些结构导致 document 捕获失效
  */
-function bindInlineSongCards(root = document) {
+function bindInlineMusicCards(root = document) {
   const cards = root.querySelectorAll(INLINE_CARD_SELECTOR);
   if (!cards.length) return;
 
@@ -269,13 +276,13 @@ function bindInlineSongCards(root = document) {
 
       console.log("[Siren Voice] 🫧 卡片直绑点击命中:", card);
 
-      const songInfo = extractSongInfoFromCard(card);
-      console.log("[Siren Voice] 🎵 直绑提取结果:", songInfo);
-      await handleInlineSongPlay(
+      const musicInfo = extractMusicInfoFromCard(card);
+      console.log("[Siren Voice] 🎵 直绑提取结果:", musicInfo);
+      await handleInlineMusicPlay(
         card,
-        songInfo.title,
-        songInfo.artist,
-        songInfo.floor,
+        musicInfo.title,
+        musicInfo.artist,
+        musicInfo.floor,
       );
     });
 
@@ -287,12 +294,12 @@ function bindInlineSongCards(root = document) {
 
       console.log("[Siren Voice] ⌨️ 键盘触发卡片播放:", card);
 
-      const songInfo = extractSongInfoFromCard(card);
-      await handleInlineSongPlay(
+      const musicInfo = extractMusicInfoFromCard(card);
+      await handleInlineMusicPlay(
         card,
-        songInfo.title,
-        songInfo.artist,
-        songInfo.floor,
+        musicInfo.title,
+        musicInfo.artist,
+        musicInfo.floor,
       );
     });
   });
@@ -306,9 +313,9 @@ function initCardObserver() {
 
   sirenCardObserver = new MutationObserver((mutations) => {
     const settings = getSirenSettings();
-    const bStyle = settings?.bgm?.card_style;
-    const sStyle = settings?.bgm?.sfx_card_style;
-    const currentBgmIcon =
+    const bStyle = settings?.ambience?.card_style;
+    const sStyle = settings?.ambience?.sfx_card_style;
+    const currentAmbienceIcon =
       bStyle?.dict?.[bStyle.current]?.icon || "fa-solid fa-music";
     const currentSfxIcon =
       sStyle?.dict?.[sStyle.current]?.icon || "fa-solid fa-bolt";
@@ -319,17 +326,21 @@ function initCardObserver() {
       mutation.addedNodes.forEach((node) => {
         if (!(node instanceof HTMLElement)) return;
 
-        if (node.matches?.('[data-siren-bgm="1"]')) {
+        if (node.matches?.('[data-siren-ambience="1"]')) {
           const icon = node.querySelector("i");
-          if (icon) icon.className = currentBgmIcon;
+          if (icon) icon.className = currentAmbienceIcon;
         } else if (node.matches?.('[data-siren-sfx="1"]')) {
           const icon = node.querySelector("i");
           if (icon) icon.className = currentSfxIcon;
         } else {
           // 如果是包裹层，往里找
-          const newBgmIcons = node.querySelectorAll?.('[data-siren-bgm="1"] i');
-          if (newBgmIcons)
-            newBgmIcons.forEach((i) => (i.className = currentBgmIcon));
+          const newAmbienceIcons = node.querySelectorAll?.(
+            '[data-siren-ambience="1"] i',
+          );
+          if (newAmbienceIcons)
+            newAmbienceIcons.forEach(
+              (i) => (i.className = currentAmbienceIcon),
+            );
 
           const newSfxIcons = node.querySelectorAll?.('[data-siren-sfx="1"] i');
           if (newSfxIcons)
@@ -338,10 +349,10 @@ function initCardObserver() {
 
         // 🎵 原有的歌曲卡片监听
         if (node.matches?.(INLINE_CARD_SELECTOR)) {
-          bindInlineSongCards(node.parentNode || document);
+          bindInlineMusicCards(node.parentNode || document);
         } else {
           const hasCard = node.querySelector?.(INLINE_CARD_SELECTOR);
-          if (hasCard) bindInlineSongCards(node);
+          if (hasCard) bindInlineMusicCards(node);
         }
 
         // 🎙️ 新增：语音条卡片监听
@@ -365,11 +376,11 @@ function initCardObserver() {
 }
 
 // 1. 🌟 修改 applyKaraokeCss，变更为读取全局配置的动态注入
-export function applyBgmAndKaraokeCss() {
+export function applyAmbienceAndKaraokeCss() {
   const settings = getSirenSettings();
 
   // 获取 卡拉OK CSS
-  const kStyle = settings?.bgm?.karaoke_style;
+  const kStyle = settings?.ambience?.karaoke_style;
   const kCss = kStyle?.dict?.[kStyle.current]?.code || "";
   let kStyleTag = document.getElementById("siren-karaoke-style");
   if (!kStyleTag) {
@@ -380,20 +391,20 @@ export function applyBgmAndKaraokeCss() {
   // 👈 核心修复：注入前编译！
   kStyleTag.textContent = compileSirenCss(kCss);
 
-  // 获取 BGM 卡片 CSS
-  const bStyle = settings?.bgm?.card_style;
+  // 获取 AMBIENCE 卡片 CSS
+  const bStyle = settings?.ambience?.card_style;
   const bCss = bStyle?.dict?.[bStyle.current]?.code || "";
-  let bStyleTag = document.getElementById("siren-bgm-card-style");
+  let bStyleTag = document.getElementById("siren-ambience-card-style");
   if (!bStyleTag) {
     bStyleTag = document.createElement("style");
-    bStyleTag.id = "siren-bgm-card-style";
+    bStyleTag.id = "siren-ambience-card-style";
     document.head.appendChild(bStyleTag);
   }
   // 👈 核心修复：注入前编译！
   bStyleTag.textContent = compileSirenCss(bCss);
 
   // 👇 🌟 新增：获取 SFX 卡片 CSS
-  const sStyle = settings?.bgm?.sfx_card_style;
+  const sStyle = settings?.ambience?.sfx_card_style;
   const sCss = sStyle?.dict?.[sStyle.current]?.code || "";
   let sStyleTag = document.getElementById("siren-sfx-card-style");
   if (!sStyleTag) {
@@ -404,22 +415,22 @@ export function applyBgmAndKaraokeCss() {
   sStyleTag.textContent = compileSirenCss(sCss);
 }
 
-// 2. 🌟 新增 BGM 卡片的正则生成器
-function buildBgmRegexes(bgmIcon = "fa-solid fa-music") {
+// 2. 🌟 新增 AMBIENCE 卡片的正则生成器
+function buildAmbienceRegexes(ambienceIcon = "fa-solid fa-music") {
   return [
     {
-      id: "siren-voice-scene-bgm",
-      script_name: "Siren-Voice-Auto-Scene-BGM",
+      id: "siren-voice-scene-ambience",
+      script_name: "Siren-Voice-Auto-Scene-AMBIENCE",
       enabled: true,
       run_on_edit: true,
       scope: "global",
-      find_regex: "/<bgm>\\s*([\\s\\S]*?)\\s*<\\/bgm>/gi",
+      find_regex: "/<ambience>\\s*([\\s\\S]*?)\\s*<\\/ambience>/gi",
       replace_string:
-        `<span class="siren-bgm-card" data-siren-bgm="1" data-bgm-name="$1" tabindex="0">
-    <span class="siren-btn-wrap" data-siren-action="play_bgm" title="播放背景音">
-        <i class="${bgmIcon}"></i>
+        `<span class="siren-ambience-card" data-siren-ambience="1" data-ambience-name="$1" tabindex="0">
+    <span class="siren-btn-wrap" data-siren-action="play_ambience" title="播放背景音">
+        <i class="${ambienceIcon}"></i>
     </span>
-    <span class="siren-bgm-text">$1</span>
+    <span class="siren-ambience-text">$1</span>
 </span>`.replace(/\n\s+/g, " "),
       source: {
         user_input: true,
@@ -479,12 +490,12 @@ export function initEvents() {
 
   const handleEdit = async (msgId) => {
     if (msgId !== undefined && msgId !== null) {
-      const { handleMessageEditRevert } = await import("./bgm_logic.js");
+      const { handleMessageEditRevert } = await import("./ambience_logic.js");
       handleMessageEditRevert(msgId);
 
       // 顺便重新绑定一下可能会被 ST 重绘清理掉的内联卡片事件
       setTimeout(() => {
-        bindInlineSongCards(document);
+        bindInlineMusicCards(document);
         bindInlineSpeakCards(document);
       }, 200);
     }
@@ -502,10 +513,11 @@ export function initEvents() {
       if (msgs && msgs.length > 0) msgId = msgs[0].message_id;
     }
 
-    // 侧滑时清空该楼层的 BGM 随机缓存
+    // 侧滑时清空该楼层的 AMBIENCE 随机缓存
     if (msgId) {
-      const { clearBgmCacheForFloor } = await import("./bgm_logic.js");
-      clearBgmCacheForFloor(msgId);
+      const { clearAmbienceCacheForFloor } =
+        await import("./ambience_logic.js");
+      clearAmbienceCacheForFloor(msgId);
     }
     await handleNewMessage();
   });
@@ -522,7 +534,7 @@ export function initEvents() {
 
     // 🌟 3. 兜底更新：刷新页面上其他所有旧按钮的状态
     setTimeout(() => {
-      bindInlineSongCards(document);
+      bindInlineMusicCards(document);
       bindInlineSpeakCards(document);
       scanAndRefreshAllScenes();
     }, 500);
@@ -535,7 +547,7 @@ export function initEvents() {
     window.dispatchEvent(new CustomEvent("siren:character_changed"));
 
     setTimeout(() => {
-      bindInlineSongCards(document);
+      bindInlineMusicCards(document);
       bindInlineSpeakCards(document);
       injectScenePlayButtons();
     }, 200);
@@ -549,24 +561,24 @@ export function initEvents() {
     initSecuritySweeper();
   }
 
-  window.addEventListener("siren:bgm_settings_updated", () => {
-    applyBgmAndKaraokeCss();
+  window.addEventListener("siren:ambience_settings_updated", () => {
+    applyAmbienceAndKaraokeCss();
 
     const settings = getSirenSettings();
-    const bStyle = settings?.bgm?.card_style;
-    const sStyle = settings?.bgm?.sfx_card_style;
-    const currentBgmIcon =
+    const bStyle = settings?.ambience?.card_style;
+    const sStyle = settings?.ambience?.sfx_card_style;
+    const currentAmbienceIcon =
       bStyle?.dict?.[bStyle.current]?.icon || "fa-solid fa-music";
     const currentSfxIcon =
       sStyle?.dict?.[sStyle.current]?.icon || "fa-solid fa-bolt";
 
-    // 👇 核心修复：使用 data-siren-bgm="1" 绕过 custom- 前缀陷阱
-    document.querySelectorAll('[data-siren-bgm="1"] i').forEach((el) => {
+    // 👇 核心修复：使用 data-siren-ambience="1" 绕过 custom- 前缀陷阱
+    document.querySelectorAll('[data-siren-ambience="1"] i').forEach((el) => {
       if (
         !el.classList.contains("fa-circle-pause") &&
         !el.classList.contains("fa-spinner")
       ) {
-        el.className = currentBgmIcon;
+        el.className = currentAmbienceIcon;
       }
     });
 
@@ -586,7 +598,7 @@ export function initEvents() {
     // 修改为：就算没有 music.styles 也要执行，保证 speak 正则能刷新
     updateSirenRegex(settings?.music?.styles || {});
     applyMusicBeautifyCss();
-    applyBgmAndKaraokeCss();
+    applyAmbienceAndKaraokeCss();
   }, 1000);
 
   console.log("[Siren Voice] 🟢 鹰眼捕获级监听器已就绪！");
@@ -602,17 +614,20 @@ export function initEvents() {
           typeof e.composedPath === "function" ? e.composedPath() : [];
 
         // 🎵 1. 先检查是不是直连音乐卡片
-        const songTarget = findInlineCardFromEvent(e);
-        if (songTarget) {
+        const musicTarget = findInlineCardFromEvent(e);
+        if (musicTarget) {
           e.preventDefault();
           e.stopPropagation();
-          console.log("[Siren Voice] 🦅 捕获阶段拦截成功 (音乐)！", songTarget);
-          const songInfo = extractSongInfoFromCard(songTarget);
-          await handleInlineSongPlay(
-            songTarget,
-            songInfo.title,
-            songInfo.artist,
-            songInfo.floor,
+          console.log(
+            "[Siren Voice] 🦅 捕获阶段拦截成功 (音乐)！",
+            musicTarget,
+          );
+          const musicInfo = extractMusicInfoFromCard(musicTarget);
+          await handleInlineMusicPlay(
+            musicTarget,
+            musicInfo.title,
+            musicInfo.artist,
+            musicInfo.floor,
           );
           return; // 匹配成功，直接终结本次点击事件的处理
         }
@@ -739,46 +754,49 @@ export function initEvents() {
 
             await handleInlineSpeakPlay(speakObj, speakTarget, action);
           }
-          return; // 只要点击落在语音卡片内，一律 return 退出，不让它再去匹配 BGM
+          return; // 只要点击落在语音卡片内，一律 return 退出，不让它再去匹配 AMBIENCE
         }
 
-        // 🎵 3. 最后检查是不是 BGM 环境音卡片
-        let bgmTarget = null;
+        // 🎵 3. 最后检查是不是 AMBIENCE 环境音卡片
+        let ambienceTarget = null;
         for (const node of path) {
           if (
             node instanceof Element &&
-            node.matches?.('[data-siren-bgm="1"]')
+            node.matches?.('[data-siren-ambience="1"]')
           ) {
-            bgmTarget = node;
+            ambienceTarget = node;
             break;
           }
         }
-        if (!bgmTarget && e.target instanceof Element) {
-          bgmTarget = e.target.closest('[data-siren-bgm="1"]');
+        if (!ambienceTarget && e.target instanceof Element) {
+          ambienceTarget = e.target.closest('[data-siren-ambience="1"]');
         }
 
-        if (bgmTarget) {
+        if (ambienceTarget) {
           e.preventDefault();
           e.stopPropagation();
-          const bgmName = bgmTarget.getAttribute("data-bgm-name");
-          const floor = getMessageIdFromElement(bgmTarget);
-          if (bgmName) {
-            console.log(`[Siren Voice] 🎵 单独点击环境音: ${bgmName}`);
+          const ambienceName =
+            ambienceTarget.getAttribute("data-ambience-name");
+          const floor = getMessageIdFromElement(ambienceTarget);
+          if (ambienceName) {
+            console.log(`[Siren Voice] 🎵 单独点击环境音: ${ambienceName}`);
 
             // 🌟 1. UI 立即响应：切为转圈 loading
-            const icon = bgmTarget.querySelector("i");
+            const icon = ambienceTarget.querySelector("i");
             if (icon) {
               // 把其他所有卡片的图标恢复成默认音符
-              document.querySelectorAll(".siren-bgm-card i").forEach((el) => {
-                if (el !== icon) el.className = "fa-solid fa-music";
-              });
+              document
+                .querySelectorAll(".siren-ambience-card i")
+                .forEach((el) => {
+                  if (el !== icon) el.className = "fa-solid fa-music";
+                });
               // 当前点击的卡片开始转圈
               icon.className = "fa-solid fa-spinner fa-spin";
             }
 
             // 🌟 2. 调起播放引擎
-            const { playSceneBgm } = await import("./bgm_logic.js");
-            const state = await playSceneBgm(bgmName, floor);
+            const { playSceneAmbience } = await import("./ambience_logic.js");
+            const state = await playSceneAmbience(ambienceName, floor);
 
             // 🌟 3. 根据引擎返回状态更新 UI
             if (icon) {
@@ -786,7 +804,7 @@ export function initEvents() {
                 icon.className = "fa-solid fa-circle-pause";
               } else {
                 // 👇 动态获取并设置还原图标
-                const bStyle = getSirenSettings()?.bgm?.card_style;
+                const bStyle = getSirenSettings()?.ambience?.card_style;
                 icon.className =
                   bStyle?.dict?.[bStyle.current]?.icon || "fa-solid fa-music";
               }
@@ -831,7 +849,7 @@ export function initEvents() {
 
             // 🌟 2. 调起播放引擎 (同时引入刚才新建的获取音频方法)
             const { playSceneSfx, getActiveSfxAudio } =
-              await import("./bgm_logic.js");
+              await import("./ambience_logic.js");
 
             if (typeof playSceneSfx === "function") {
               const state = await playSceneSfx(sfxName, floor, false, sfxDir);
@@ -845,7 +863,8 @@ export function initEvents() {
                   if (currentAudio) {
                     const resetIcon = () => {
                       // 👇 动态获取并设置还原图标
-                      const sStyle = getSirenSettings()?.bgm?.sfx_card_style;
+                      const sStyle =
+                        getSirenSettings()?.ambience?.sfx_card_style;
                       icon.className =
                         sStyle?.dict?.[sStyle.current]?.icon ||
                         "fa-solid fa-bolt";
@@ -859,14 +878,14 @@ export function initEvents() {
                   }
                 } else {
                   // 👇 动态获取并设置还原图标
-                  const sStyle = getSirenSettings()?.bgm?.sfx_card_style;
+                  const sStyle = getSirenSettings()?.ambience?.sfx_card_style;
                   icon.className =
                     sStyle?.dict?.[sStyle.current]?.icon || "fa-solid fa-bolt";
                 }
               }
             } else {
               console.warn(
-                "[Siren Voice] 尚未在 bgm_logic.js 中实现 playSceneSfx 方法！",
+                "[Siren Voice] 尚未在 ambience_logic.js 中实现 playSceneSfx 方法！",
               );
               if (icon) icon.className = "fa-solid fa-bolt";
             }
@@ -879,7 +898,7 @@ export function initEvents() {
   }
 
   // 第二层：初始化时直接扫一遍页面上的卡片并直绑
-  bindInlineSongCards(document);
+  bindInlineMusicCards(document);
   bindInlineSpeakCards(document);
 
   // 第三层：监听后续 DOM 注入
@@ -899,29 +918,29 @@ async function handleNewMessage() {
   }
 
   const originalText = lastMsg.message;
-  const songRegex = /<song>([\s\S]*?)<\/song>/i;
-  const match = originalText.match(songRegex);
+  const musicRegex = /<music>([\s\S]*?)<\/music>/i;
+  const match = originalText.match(musicRegex);
 
   if (!match) return;
 
   const innerText = match[1].trim();
-  let songName = innerText;
+  let musicName = innerText;
   let artistName = "";
 
   if (innerText.includes("-")) {
     const parts = innerText.split("-");
-    songName = parts[0].trim();
+    musicName = parts[0].trim();
     artistName = parts.slice(1).join("-").trim();
   }
 
-  if (!songName) return;
+  if (!musicName) return;
 
   try {
     await window.TavernHelper.updateVariablesWith(
       (vars) => {
         if (!vars["siren-voice"]) vars["siren-voice"] = {};
-        vars["siren-voice"].bgm = {
-          song: songName,
+        vars["siren-voice"].ambience = {
+          music: musicName,
           artist: artistName,
         };
         return vars;
@@ -937,17 +956,17 @@ async function handleNewMessage() {
     const source = settings.music.source || "netease";
     const history = getEchoHistory();
     const isExist = history.some(
-      (s) => s.name === songName && s.artist === artistName,
+      (s) => s.name === musicName && s.artist === artistName,
     );
     if (!isExist) {
       history.unshift({
         floor: lastMsg.message_id,
-        name: songName,
+        name: musicName,
         artist: artistName,
         source: source,
       });
     }
-    setPlaylistContext(history, { name: songName, artist: artistName });
+    setPlaylistContext(history, { name: musicName, artist: artistName });
 
     const isAutoPlay = settings.music.auto_play ?? true;
     // 如果你的设置里有开放自定义符号（比如 tts.stop_chars），可以取出来，否则传空字符串走默认规则
@@ -959,9 +978,9 @@ async function handleNewMessage() {
 
       if (isComplete) {
         console.log(
-          `[Siren Voice] 🟢 消息完整，允许自动请求歌曲 API: ${songName}`,
+          `[Siren Voice] 🟢 消息完整，允许自动请求歌曲 API: ${musicName}`,
         );
-        await playTargetSong(songName, artistName, source);
+        await playTargetMusic(musicName, artistName, source);
       } else {
         console.log(
           `[Siren Voice] ⚠️ 回复不完整 (可能被截断/流式输出中)，终止自动音乐请求。`,
@@ -969,42 +988,44 @@ async function handleNewMessage() {
       }
     } else {
       console.log(
-        `[Siren Voice] ⏸️ 自动播放已关闭。已捕获 [${songName}] 但不主动发起请求。`,
+        `[Siren Voice] ⏸️ 自动播放已关闭。已捕获 [${musicName}] 但不主动发起请求。`,
       );
     }
   }
 
   setTimeout(() => {
     window.dispatchEvent(new CustomEvent("siren:echo_updated"));
-    bindInlineSongCards(document);
+    bindInlineMusicCards(document);
   }, 200);
 }
 
-function buildSongRegexes(styles) {
+function buildMusicRegexes(styles) {
   const isEnabled = styles?.msgEnabled;
   const regexes = [];
 
   if (isEnabled) {
-    // 🚀 核心优化 1：统一且干净的静态 HTML 骨架，彻底抛弃内联样式！
+    // 🚀 核心修复：将所有的 div 降维打击为 span，彻底绕过 Showdown 的块级检测陷阱！
+    // 加上 style="display: flex;" 防止破坏你原有的卡片 UI 布局
     let displayReplace = `<br><br>
-<div class="siren-music-card" data-siren-song-card="1" data-siren-song-title="$1" data-siren-song-artist="$2" tabindex="0">
-    <div class="siren-music-cover-wrap">
+<span class="siren-music-card" data-siren-music-card="1" data-siren-music-title="$1" data-siren-music-artist="$2" tabindex="0" style="display: flex;">
+    <span class="siren-music-cover-wrap">
         <i class="fa-solid fa-play siren-play-icon"></i>
-    </div>
-    <div class="siren-music-info-wrap">
+    </span>
+    <span class="siren-music-info-wrap">
         <span class="siren-title">$1</span>
         <span class="siren-artist">$2</span>
-    </div>
-</div><br>`;
-    displayReplace = displayReplace.replace(/\r?\n|\r/g, " "); // 压缩成一行防换行打断
+    </span>
+</span><br>`;
+    displayReplace = displayReplace.replace(/\r?\n|\r/g, " ");
 
     regexes.push({
-      id: "siren-voice-song-display-html",
-      script_name: "Siren-Voice-Auto-Song-HTML",
+      id: "siren-voice-music-display-html",
+      script_name: "Siren-Voice-Auto-Music-HTML",
       enabled: true,
       run_on_edit: true,
       scope: "global",
-      find_regex: "/<song>\\s*([^-<]+?)(?:\\s*-\\s*([^<]+?))?\\s*<\\/song>/gi",
+      find_regex:
+        "/<music>\\s*([^-<]+?)(?:\\s*-\\s*([^<]+?))?\\s*<\\/music>/gi",
       replace_string: displayReplace,
       source: {
         user_input: true,
@@ -1019,12 +1040,12 @@ function buildSongRegexes(styles) {
   } else {
     // ... (保留你原有的 text-full 和 text-single 兜底正则不变)
     regexes.push({
-      id: "siren-voice-song-display-text-full",
-      script_name: "Siren-Voice-Auto-Song-Text-Full",
+      id: "siren-voice-music-display-text-full",
+      script_name: "Siren-Voice-Auto-Music-Text-Full",
       enabled: true,
       run_on_edit: true,
       scope: "global",
-      find_regex: "/<song>\\s*(.+?)\\s*-\\s*(.+?)\\s*<\\/song>/gi",
+      find_regex: "/<music>\\s*(.+?)\\s*-\\s*(.+?)\\s*<\\/music>/gi",
       replace_string:
         "<br><br><span style='color: #10b981;'>[🎵 正在打捞: $1 - $2]</span><br>",
       source: {
@@ -1038,12 +1059,12 @@ function buildSongRegexes(styles) {
       max_depth: null,
     });
     regexes.push({
-      id: "siren-voice-song-display-text-single",
-      script_name: "Siren-Voice-Auto-Song-Text-Single",
+      id: "siren-voice-music-display-text-single",
+      script_name: "Siren-Voice-Auto-Music-Text-Single",
       enabled: true,
       run_on_edit: true,
       scope: "global",
-      find_regex: "/<song>\\s*([^-<]+?)\\s*<\\/song>/gi",
+      find_regex: "/<music>\\s*([^-<]+?)\\s*<\\/music>/gi",
       replace_string:
         "<br><br><span style='color: #10b981;'>[🎵 正在打捞: $1]</span><br>",
       source: {
@@ -1166,21 +1187,22 @@ export async function updateSirenRegex(styles) {
 
   // 👇 获取全局设置中的自定义图标
   const settings = getSirenSettings();
-  const bStyle = settings?.bgm?.card_style;
-  const sStyle = settings?.bgm?.sfx_card_style;
-  const bgmIcon = bStyle?.dict?.[bStyle.current]?.icon || "fa-solid fa-music";
+  const bStyle = settings?.ambience?.card_style;
+  const sStyle = settings?.ambience?.sfx_card_style;
+  const ambienceIcon =
+    bStyle?.dict?.[bStyle.current]?.icon || "fa-solid fa-music";
   const sfxIcon = sStyle?.dict?.[sStyle.current]?.icon || "fa-solid fa-bolt";
 
-  const songRegexes = buildSongRegexes(styles);
+  const musicRegexes = buildMusicRegexes(styles);
   const speakRegexes = buildSpeakRegexes();
-  const bgmRegexes = buildBgmRegexes(bgmIcon); // 👈 传入图标
+  const ambienceRegexes = buildAmbienceRegexes(ambienceIcon); // 👈 传入图标
   const sfxRegexes = buildSfxRegexes(sfxIcon); // 👈 🌟 拿到效果音正则
 
   // 👈 🌟 把它展开合并进总数组
   const allSirenRegexes = [
     ...speakRegexes,
-    ...songRegexes,
-    ...bgmRegexes,
+    ...musicRegexes,
+    ...ambienceRegexes,
     ...sfxRegexes,
   ];
 
@@ -1193,7 +1215,7 @@ export async function updateSirenRegex(styles) {
   });
 
   setTimeout(() => {
-    bindInlineSongCards(document);
+    bindInlineMusicCards(document);
     bindInlineSpeakCards(document);
   }, 200);
 }
@@ -1224,9 +1246,9 @@ async function cleanGhostVariables(msgId) {
       type: "message",
       message_id: msgId,
     });
-    if (vars && vars["siren-voice"] && vars["siren-voice"].bgm) {
+    if (vars && vars["siren-voice"] && vars["siren-voice"].ambience) {
       const cleanVars = { ...vars };
-      delete cleanVars["siren-voice"].bgm;
+      delete cleanVars["siren-voice"].ambience;
       if (
         cleanVars["siren-voice"] &&
         Object.keys(cleanVars["siren-voice"]).length === 0

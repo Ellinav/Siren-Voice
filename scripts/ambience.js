@@ -1,7 +1,7 @@
 import { getSirenSettings, saveSirenSettings } from "./settings.js";
-import { syncBgmWorldbookEntries } from "./utils.js";
+import { syncAmbienceWorldbookEntries } from "./utils.js";
 
-let localBgmState = {
+let localAmbienceState = {
   fade_duration: 2.0,
   karaoke_speed: 1.0,
   current_list: "default",
@@ -10,44 +10,48 @@ let localBgmState = {
   card_style: { current: "default", dict: {} },
 };
 
-export function initBgmSettings() {
-  const container = document.getElementById("tab-bgm");
+export function initAmbienceSettings() {
+  const container = document.getElementById("tab-ambience");
   if (!container) return;
 
   const globalSettings = getSirenSettings();
-  localBgmState = JSON.parse(JSON.stringify(globalSettings.bgm || {}));
+  localAmbienceState = JSON.parse(
+    JSON.stringify(globalSettings.ambience || {}),
+  );
 
-  // --- 补全 BGM 保底逻辑 ---
-  if (typeof localBgmState.enabled === "undefined")
-    localBgmState.enabled = true;
-  if (!localBgmState.current_list) localBgmState.current_list = "default";
-  if (!localBgmState.libraries) localBgmState.libraries = { default: [] };
-  if (typeof localBgmState.auto_play === "undefined")
-    localBgmState.auto_play = true;
-  if (typeof localBgmState.custom_end_tags === "undefined")
-    localBgmState.custom_end_tags = "";
+  // --- 补全 Ambience 保底逻辑 ---
+  if (typeof localAmbienceState.enabled === "undefined")
+    localAmbienceState.enabled = true;
+  if (!localAmbienceState.current_list)
+    localAmbienceState.current_list = "default";
+  if (!localAmbienceState.libraries)
+    localAmbienceState.libraries = { default: [] };
+  if (typeof localAmbienceState.auto_play === "undefined")
+    localAmbienceState.auto_play = true;
+  if (typeof localAmbienceState.custom_end_tags === "undefined")
+    localAmbienceState.custom_end_tags = "";
 
   // --- 样式与速度保底 (已有逻辑) ---
-  if (localBgmState.karaoke_speed === undefined)
-    localBgmState.karaoke_speed = 1.0;
-  if (!localBgmState.karaoke_style)
-    localBgmState.karaoke_style = { current: "default", dict: {} };
-  if (!localBgmState.card_style)
-    localBgmState.card_style = { current: "default", dict: {} };
-  if (!localBgmState.sfx_card_style)
-    localBgmState.sfx_card_style = { current: "default", dict: {} };
+  if (localAmbienceState.karaoke_speed === undefined)
+    localAmbienceState.karaoke_speed = 1.0;
+  if (!localAmbienceState.karaoke_style)
+    localAmbienceState.karaoke_style = { current: "default", dict: {} };
+  if (!localAmbienceState.card_style)
+    localAmbienceState.card_style = { current: "default", dict: {} };
+  if (!localAmbienceState.sfx_card_style)
+    localAmbienceState.sfx_card_style = { current: "default", dict: {} };
 
   // --- 补全 SFX 保底逻辑 ---
-  if (!localBgmState.sfx_libraries) {
-    localBgmState.sfx_current_list = "default";
-    localBgmState.sfx_libraries = { default: [] };
+  if (!localAmbienceState.sfx_libraries) {
+    localAmbienceState.sfx_current_list = "default";
+    localAmbienceState.sfx_libraries = { default: [] };
   }
 
   container.innerHTML = `
         <style>
-            #siren-bgm-fade-input::-webkit-outer-spin-button,
-            #siren-bgm-fade-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-            #siren-bgm-fade-input { -moz-appearance: textfield; }
+            #siren-ambience-fade-input::-webkit-outer-spin-button,
+            #siren-ambience-fade-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+            #siren-ambience-fade-input { -moz-appearance: textfield; }
             .siren-style-textarea { width: 100%; height: 80px; background: #0f172a; color: #38bdf8; border: 1px solid #334155; border-radius: 4px; padding: 8px; font-family: monospace; font-size: 12px; outline: none; resize: vertical; }
             .siren-style-textarea:focus { border-color: #3b82f6; }
             .siren-icon-btn { background: transparent; color: #e2e8f0; border: 1px solid #475569; border-radius: 4px; width: 30px; height: 30px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
@@ -66,7 +70,7 @@ export function initBgmSettings() {
         <div class="siren-ext-settings-container">
             <h3 style="display: flex; align-items: center; justify-content: space-between;">
                 <span><i class="fa-solid fa-wand-magic-sparkles fa-fw" style="color:#3b82f6; margin-right:8px;"></i>幻境氛围</span>
-                <i id="siren-bgm-save-btn" class="fa-solid fa-floppy-disk interactable" style="color: #10b981; font-size: 1.2em; transition: transform 0.2s; cursor: pointer;" title="保存全局配置"></i>
+                <i id="siren-ambience-save-btn" class="fa-solid fa-floppy-disk interactable" style="color: #10b981; font-size: 1.2em; transition: transform 0.2s; cursor: pointer;" title="保存全局配置"></i>
             </h3>
             
             <div style="background: rgba(15, 23, 42, 0.6); padding: 12px; border-radius: 8px; border: 1px solid #334155; margin-bottom: 15px;">
@@ -75,13 +79,13 @@ export function initBgmSettings() {
                         <i class="fa-solid fa-power-off"></i> 幻境启动
                     </span>
                     <label class="siren-toggle-switch">
-                        <input type="checkbox" id="siren-bgm-enable-toggle">
+                        <input type="checkbox" id="siren-ambience-enable-toggle">
                         <span class="siren-toggle-slider"></span>
                     </label>
                 </div>
             </div>
 
-            <div id="siren-bgm-settings-body" style="${localBgmState.enabled ? "" : "display: none;"}">
+            <div id="siren-ambience-settings-body" style="${localAmbienceState.enabled ? "" : "display: none;"}">
 
                 <div style="background: rgba(15, 23, 42, 0.6); padding: 12px; border-radius: 8px; border: 1px solid #334155; margin-bottom: 15px;">
                     <div style="font-weight: bold; color: #3b82f6; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
@@ -91,17 +95,17 @@ export function initBgmSettings() {
                     <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
                         <span style="color: #e2e8f0; font-size: 14px;">全局自动播放 (Auto Play)</span>
                         <label class="siren-toggle-switch">
-                            <input type="checkbox" id="siren-bgm-auto-play">
+                            <input type="checkbox" id="siren-ambience-auto-play">
                             <span class="siren-toggle-slider"></span>
                         </label>
                     </div>
 
-                    <div id="siren-bgm-custom-end-tags-wrapper" style="display: ${localBgmState.auto_play ? "flex" : "none"}; align-items: center; justify-content: space-between; margin-bottom: 12px; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 4px;">
+                    <div id="siren-ambience-custom-end-tags-wrapper" style="display: ${localAmbienceState.auto_play ? "flex" : "none"}; align-items: center; justify-content: space-between; margin-bottom: 12px; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 4px;">
                         <div style="display: flex; flex-direction: column;">
                             <span style="color: #e2e8f0; font-size: 14px;">自定义触发标签</span>
                             <span style="color: #64748b; font-size: 12px;">覆盖默认标点，多个用逗号隔开</span>
                         </div>
-                        <input type="text" id="siren-bgm-custom-end-tags" placeholder="默认使用标点" 
+                        <input type="text" id="siren-ambience-custom-end-tags" placeholder="默认使用标点" 
                                style="width: 130px; height: 28px; box-sizing: border-box; background: #1e293b; color: white; border: 1px solid #475569; border-radius: 4px; padding: 0 8px; font-size: 13px; text-align: center; outline: none;">
                     </div>
                 </div>
@@ -110,7 +114,7 @@ export function initBgmSettings() {
                     <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
                         <span style="font-weight: bold; color: #e2e8f0;">平滑过渡</span>
                         <div style="display: flex; align-items: center; gap: 8px;">
-                            <input type="number" id="siren-bgm-fade-input" step="0.5" min="0" style="width: 50px; height: 28px; box-sizing: border-box; background: #1e293b; color: white; border: 1px solid #475569; border-radius: 4px; padding: 0 4px; font-size: 14px; text-align: center; outline: none;">
+                            <input type="number" id="siren-ambience-fade-input" step="0.5" min="0" style="width: 50px; height: 28px; box-sizing: border-box; background: #1e293b; color: white; border: 1px solid #475569; border-radius: 4px; padding: 0 4px; font-size: 14px; text-align: center; outline: none;">
                             <span style="color: #94a3b8; font-size: 14px;">秒</span>
                         </div>
                     </div>
@@ -119,12 +123,12 @@ export function initBgmSettings() {
                     <div style="display: flex; flex-direction: column; gap: 10px; padding-top: 12px;">
                         <div style="display: flex; align-items: center; justify-content: space-between;">
                             <span style="font-weight: bold; color: #e2e8f0;">起始标签</span>
-                            <input type="text" id="siren-bgm-start-tag-input" placeholder="<content>" 
+                            <input type="text" id="siren-ambience-start-tag-input" placeholder="<content>" 
                                    style="width: 200px; height: 28px; box-sizing: border-box; background: #1e293b; color: white; border: 1px solid #475569; border-radius: 4px; padding: 0 8px; font-family: monospace; font-size: 14px; text-align: center; outline: none;">
                         </div>
                         <div style="display: flex; align-items: center; justify-content: space-between;">
                             <span style="font-weight: bold; color: #e2e8f0;">终止标签</span>
-                            <input type="text" id="siren-bgm-end-tag-input" placeholder="</content>" 
+                            <input type="text" id="siren-ambience-end-tag-input" placeholder="</content>" 
                                    style="width: 200px; height: 28px; box-sizing: border-box; background: #1e293b; color: white; border: 1px solid #475569; border-radius: 4px; padding: 0 8px; font-family: monospace; font-size: 14px; text-align: center; outline: none;">
                         </div>
                     </div>
@@ -140,8 +144,8 @@ export function initBgmSettings() {
                     <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
                         <span style="color: white; font-size: 14px;">滚动速度</span>
                         <div style="display: flex; align-items: center; gap: 8px; flex: 1; margin-left: 20px;">
-                            <input type="range" id="siren-bgm-karaoke-speed" class="siren-ext-progress-bar" min="0.5" max="2.0" step="0.1" style="flex: 1;">
-                            <span id="siren-bgm-karaoke-speed-val" style="color: white; font-size: 14px; width: 35px; text-align: right;"></span>
+                            <input type="range" id="siren-ambience-karaoke-speed" class="siren-ext-progress-bar" min="0.5" max="2.0" step="0.1" style="flex: 1;">
+                            <span id="siren-ambience-karaoke-speed-val" style="color: white; font-size: 14px; width: 35px; text-align: right;"></span>
                         </div>
                     </div>
 
@@ -200,7 +204,7 @@ export function initBgmSettings() {
                 <div class="siren-ext-style-preview-box" style="margin-top: 5px; margin-bottom: 15px; background: rgba(15, 23, 42, 0.6); border: 1px solid #1e293b; border-radius: 8px; padding: 15px; box-shadow: inset 0 0 10px rgba(0,0,0,0.5);">
                     <div style="color: #94a3b8; font-size: 0.8em; margin-bottom: 12px; display:flex; justify-content:space-between;">
                         <span><i class="fa-solid fa-eye"></i> 场景实机双模预览</span>
-                        <span id="siren-bgm-preview-status" style="color:#10b981;">已就绪</span>
+                        <span id="siren-ambience-preview-status" style="color:#10b981;">已就绪</span>
                     </div>
                 
                     <div class="siren-ext-chat-msg-mock" style="display: flex; gap: 12px; background: #0f172a; padding: 12px; border-radius: 8px; border: 1px solid #334155;">
@@ -215,11 +219,11 @@ export function initBgmSettings() {
                                 <span class="siren-karaoke-target">收到来自深海的呼唤。</span>
                             
                                 <div style="margin-top: 12px; display: flex; flex-direction: column; gap: 8px; align-items: flex-start;">
-                                    <div class="siren-bgm-card" data-siren-bgm="1" tabindex="0">
-                                        <span class="siren-btn-wrap" data-siren-action="play_bgm" title="播放背景音">
+                                    <div class="siren-ambience-card" data-siren-ambience="1" tabindex="0">
+                                        <span class="siren-btn-wrap" data-siren-action="play_ambience" title="播放背景音">
                                             <i class="fa-solid fa-music"></i>
                                         </span>
-                                        <span class="siren-bgm-text">雨声</span>
+                                        <span class="siren-ambience-text">雨声</span>
                                     </div>
                                     <div class="siren-sfx-card" data-siren-sfx="1" tabindex="0">
                                         <span class="siren-btn-wrap" data-siren-action="play_sfx" title="播放效果音">
@@ -239,21 +243,21 @@ export function initBgmSettings() {
 
                 <div style="background: rgba(15, 23, 42, 0.6); padding: 12px; border-radius: 8px; border: 1px solid #334155;">
                     <div style="display: flex; gap: 12px; margin-bottom: 15px; align-items: center;">
-                        <span style="color: #e2e8f0; font-weight: bold; font-size: 14px; white-space: nowrap;">BGM 库</span>
-                        <select id="siren-bgm-list-select" style="flex: 1; background: #1e293b; color: white; border: 1px solid #475569; border-radius: 4px; padding: 6px; outline: none;"></select>
+                        <span style="color: #e2e8f0; font-weight: bold; font-size: 14px; white-space: nowrap;">Ambience 库</span>
+                        <select id="siren-ambience-list-select" style="flex: 1; background: #1e293b; color: white; border: 1px solid #475569; border-radius: 4px; padding: 6px; outline: none;"></select>
                         <div style="display: flex; gap: 8px;">
-                            <button class="siren-icon-btn" id="siren-bgm-btn-import-list" title="导入背景库"><i class="fa-solid fa-file-import"></i></button>
-                            <button class="siren-icon-btn" id="siren-bgm-btn-export-list" title="导出当前背景库"><i class="fa-solid fa-file-export"></i></button>
-                            <button class="siren-icon-btn" id="siren-bgm-btn-new-list" title="新增背景库"><i class="fa-solid fa-plus"></i></button>
-                            <button class="siren-icon-btn" id="siren-bgm-btn-del-list" title="删除当前背景库"><i class="fa-solid fa-trash"></i></button>
-                            <input type="file" id="siren-bgm-file-import-list" accept=".json" style="display: none;">
+                            <button class="siren-icon-btn" id="siren-ambience-btn-import-list" title="导入背景库"><i class="fa-solid fa-file-import"></i></button>
+                            <button class="siren-icon-btn" id="siren-ambience-btn-export-list" title="导出当前背景库"><i class="fa-solid fa-file-export"></i></button>
+                            <button class="siren-icon-btn" id="siren-ambience-btn-new-list" title="新增背景库"><i class="fa-solid fa-plus"></i></button>
+                            <button class="siren-icon-btn" id="siren-ambience-btn-del-list" title="删除当前背景库"><i class="fa-solid fa-trash"></i></button>
+                            <input type="file" id="siren-ambience-file-import-list" accept=".json" style="display: none;">
                         </div>
                     </div>
                 
-                    <div id="siren-bgm-items-container" style="display: flex; flex-direction: column; gap: 8px; max-height: 250px; overflow-y: auto; padding-right: 4px; margin-bottom: 12px;"></div>
+                    <div id="siren-ambience-items-container" style="display: flex; flex-direction: column; gap: 8px; max-height: 250px; overflow-y: auto; padding-right: 4px; margin-bottom: 12px;"></div>
                 
-                    <button id="siren-bgm-btn-add-row" style="width: 100%; padding: 8px; background: rgba(59, 130, 246, 0.1); border: 1px dashed #3b82f6; color: #3b82f6; border-radius: 4px; cursor: pointer; transition: all 0.2s;">
-                        <i class="fa-solid fa-plus"></i> 新增 BGM
+                    <button id="siren-ambience-btn-add-row" style="width: 100%; padding: 8px; background: rgba(59, 130, 246, 0.1); border: 1px dashed #3b82f6; color: #3b82f6; border-radius: 4px; cursor: pointer; transition: all 0.2s;">
+                        <i class="fa-solid fa-plus"></i> 新增 Ambience
                     </button>
                 </div>
                 
@@ -281,14 +285,14 @@ export function initBgmSettings() {
                     </button>
                 </div>
 
-                <button id="siren-bgm-save-btn-bottom" style="width: 100%; margin-top: 24px; padding: 12px; background: rgba(16, 185, 129, 0.1); border: 1px solid #10b981; color: #10b981; font-weight: bold; font-size: 16px; border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; justify-content: center; align-items: center; gap: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+                <button id="siren-ambience-save-btn-bottom" style="width: 100%; margin-top: 24px; padding: 12px; background: rgba(16, 185, 129, 0.1); border: 1px solid #10b981; color: #10b981; font-weight: bold; font-size: 16px; border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; justify-content: center; align-items: center; gap: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
                     <i class="fa-solid fa-floppy-disk"></i> 保存全局配置
                 </button>
                 
             </div> </div> `;
 
-  bindBgmEvents();
-  renderBgmAll();
+  bindAmbienceEvents();
+  renderAmbienceAll();
 }
 
 function updateProgressBar(inputEl) {
@@ -321,71 +325,74 @@ function renderStyleModule(stateObj, prefix) {
   }
 
   // 渲染完立马触发一次预览更新
-  updateBgmPreview();
+  updateAmbiencePreview();
 }
 
-function renderBgmAll() {
-  document.getElementById("siren-bgm-enable-toggle").checked =
-    localBgmState.enabled;
-  document.getElementById("siren-bgm-auto-play").checked =
-    localBgmState.auto_play;
-  document.getElementById("siren-bgm-custom-end-tags").value =
-    localBgmState.custom_end_tags || "";
-  document.getElementById("siren-bgm-custom-end-tags-wrapper").style.display =
-    localBgmState.auto_play ? "flex" : "none";
-  document.getElementById("siren-bgm-fade-input").value =
-    localBgmState.fade_duration;
-  document.getElementById("siren-bgm-start-tag-input").value =
-    localBgmState.start_tag || "<content>";
-  document.getElementById("siren-bgm-end-tag-input").value =
-    localBgmState.end_tag || "</content>";
+function renderAmbienceAll() {
+  document.getElementById("siren-ambience-enable-toggle").checked =
+    localAmbienceState.enabled;
+  document.getElementById("siren-ambience-auto-play").checked =
+    localAmbienceState.auto_play;
+  document.getElementById("siren-ambience-custom-end-tags").value =
+    localAmbienceState.custom_end_tags || "";
+  document.getElementById(
+    "siren-ambience-custom-end-tags-wrapper",
+  ).style.display = localAmbienceState.auto_play ? "flex" : "none";
+  document.getElementById("siren-ambience-fade-input").value =
+    localAmbienceState.fade_duration;
+  document.getElementById("siren-ambience-start-tag-input").value =
+    localAmbienceState.start_tag || "<content>";
+  document.getElementById("siren-ambience-end-tag-input").value =
+    localAmbienceState.end_tag || "</content>";
 
-  const speedInput = document.getElementById("siren-bgm-karaoke-speed");
-  speedInput.value = localBgmState.karaoke_speed || 1.0;
-  document.getElementById("siren-bgm-karaoke-speed-val").textContent =
-    Number(localBgmState.karaoke_speed).toFixed(1) + "x";
+  const speedInput = document.getElementById("siren-ambience-karaoke-speed");
+  speedInput.value = localAmbienceState.karaoke_speed || 1.0;
+  document.getElementById("siren-ambience-karaoke-speed-val").textContent =
+    Number(localAmbienceState.karaoke_speed).toFixed(1) + "x";
   updateProgressBar(speedInput);
 
-  renderStyleModule(localBgmState.karaoke_style, "k");
-  renderStyleModule(localBgmState.card_style, "b");
-  renderStyleModule(localBgmState.sfx_card_style, "s");
+  renderStyleModule(localAmbienceState.karaoke_style, "k");
+  renderStyleModule(localAmbienceState.card_style, "b");
+  renderStyleModule(localAmbienceState.sfx_card_style, "s");
 
-  const select = document.getElementById("siren-bgm-list-select");
+  const select = document.getElementById("siren-ambience-list-select");
   select.innerHTML = "";
-  Object.keys(localBgmState.libraries).forEach((listName) => {
+  Object.keys(localAmbienceState.libraries).forEach((listName) => {
     const option = document.createElement("option");
     option.value = listName;
     option.textContent = listName;
-    if (listName === localBgmState.current_list) option.selected = true;
+    if (listName === localAmbienceState.current_list) option.selected = true;
     select.appendChild(option);
   });
-  renderBgmRows();
+  renderAmbienceRows();
 
   const sfxSelect = document.getElementById("siren-sfx-list-select");
   if (sfxSelect) {
     sfxSelect.innerHTML = "";
-    Object.keys(localBgmState.sfx_libraries).forEach((listName) => {
+    Object.keys(localAmbienceState.sfx_libraries).forEach((listName) => {
       const option = document.createElement("option");
       option.value = listName;
       option.textContent = listName;
-      if (listName === localBgmState.sfx_current_list) option.selected = true;
+      if (listName === localAmbienceState.sfx_current_list)
+        option.selected = true;
       sfxSelect.appendChild(option);
     });
     renderSfxRows(); // 调用下面新增的函数
   }
 }
 
-function renderBgmRows() {
-  const container = document.getElementById("siren-bgm-items-container");
+function renderAmbienceRows() {
+  const container = document.getElementById("siren-ambience-items-container");
   container.innerHTML = "";
-  const currentLib = localBgmState.libraries[localBgmState.current_list] || [];
+  const currentLib =
+    localAmbienceState.libraries[localAmbienceState.current_list] || [];
   currentLib.forEach((item, index) => {
     const row = document.createElement("div");
     row.style.cssText = "display: flex; gap: 8px; align-items: center;";
     row.innerHTML = `
-            <input type="text" class="siren-bgm-input-name" data-idx="${index}" placeholder="名称" value="${item.name}" style="width: 30%; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; padding: 6px; outline: none;">
-            <input type="text" class="siren-bgm-input-url" data-idx="${index}" placeholder="URL" value="${item.url}" style="flex: 1; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; padding: 6px; outline: none;">
-            <button class="siren-bgm-btn-del-row" data-idx="${index}" title="删除" style="background: transparent; color: #ef4444; border: 1px solid #ef4444; border-radius: 4px; width: 30px; height: 30px; cursor: pointer;"><i class="fa-solid fa-xmark"></i></button>
+            <input type="text" class="siren-ambience-input-name" data-idx="${index}" placeholder="名称" value="${item.name}" style="width: 30%; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; padding: 6px; outline: none;">
+            <input type="text" class="siren-ambience-input-url" data-idx="${index}" placeholder="URL" value="${item.url}" style="flex: 1; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; padding: 6px; outline: none;">
+            <button class="siren-ambience-btn-del-row" data-idx="${index}" title="删除" style="background: transparent; color: #ef4444; border: 1px solid #ef4444; border-radius: 4px; width: 30px; height: 30px; cursor: pointer;"><i class="fa-solid fa-xmark"></i></button>
         `;
     container.appendChild(row);
   });
@@ -397,7 +404,7 @@ function renderSfxRows() {
 
   container.innerHTML = "";
   const currentLib =
-    localBgmState.sfx_libraries[localBgmState.sfx_current_list] || [];
+    localAmbienceState.sfx_libraries[localAmbienceState.sfx_current_list] || [];
 
   currentLib.forEach((item, index) => {
     const row = document.createElement("div");
@@ -426,38 +433,42 @@ function compileSirenCss(rawCss) {
 }
 
 // 🌟 更新预览视图室
-function updateBgmPreview() {
+function updateAmbiencePreview() {
   const kCss =
-    localBgmState.karaoke_style.dict[localBgmState.karaoke_style.current]
-      ?.code || "";
+    localAmbienceState.karaoke_style.dict[
+      localAmbienceState.karaoke_style.current
+    ]?.code || "";
   const bCss =
-    localBgmState.card_style.dict[localBgmState.card_style.current]?.code || "";
-  const sCss =
-    localBgmState.sfx_card_style.dict[localBgmState.sfx_card_style.current]
+    localAmbienceState.card_style.dict[localAmbienceState.card_style.current]
       ?.code || "";
+  const sCss =
+    localAmbienceState.sfx_card_style.dict[
+      localAmbienceState.sfx_card_style.current
+    ]?.code || "";
   const bIcon =
-    localBgmState.card_style.dict[localBgmState.card_style.current]?.icon ||
-    "fa-solid fa-music";
+    localAmbienceState.card_style.dict[localAmbienceState.card_style.current]
+      ?.icon || "fa-solid fa-music";
   const sIcon =
-    localBgmState.sfx_card_style.dict[localBgmState.sfx_card_style.current]
-      ?.icon || "fa-solid fa-bolt";
+    localAmbienceState.sfx_card_style.dict[
+      localAmbienceState.sfx_card_style.current
+    ]?.icon || "fa-solid fa-bolt";
 
-  const mockBgmIcon = document.querySelector(
-    ".siren-ext-chat-msg-mock .siren-bgm-card i",
+  const mockAmbienceIcon = document.querySelector(
+    ".siren-ext-chat-msg-mock .siren-ambience-card i",
   );
   const mockSfxIcon = document.querySelector(
     ".siren-ext-chat-msg-mock .siren-sfx-card i",
   );
 
-  if (mockBgmIcon) mockBgmIcon.className = bIcon;
+  if (mockAmbienceIcon) mockAmbienceIcon.className = bIcon;
   if (mockSfxIcon) mockSfxIcon.className = sIcon;
 
-  let styleTag = document.getElementById("siren-bgm-preview-style");
+  let styleTag = document.getElementById("siren-ambience-preview-style");
   if (styleTag) {
     styleTag.remove();
   }
   styleTag = document.createElement("style");
-  styleTag.id = "siren-bgm-preview-style";
+  styleTag.id = "siren-ambience-preview-style";
   document.head.appendChild(styleTag);
 
   // 编译合并双方 CSS 后注入
@@ -468,12 +479,12 @@ function updateBgmPreview() {
     "\n" +
     compileSirenCss(sCss);
 
-  const status = document.getElementById("siren-bgm-preview-status");
+  const status = document.getElementById("siren-ambience-preview-status");
   if (status) {
     status.textContent = "正在预览...";
     status.style.color = "#0ea5e9";
-    clearTimeout(window.sirenBgmPreviewTimer);
-    window.sirenBgmPreviewTimer = setTimeout(() => {
+    clearTimeout(window.sirenAmbiencePreviewTimer);
+    window.sirenAmbiencePreviewTimer = setTimeout(() => {
       status.textContent = "未保存";
       status.style.color = "#f59e0b";
     }, 800);
@@ -494,7 +505,7 @@ function bindStyleEvents(stateObj, prefix) {
       if (stateObj.dict[stateObj.current]) {
         stateObj.dict[stateObj.current].code = e.target.value;
       }
-      updateBgmPreview(); // 👈 输入时触发动态渲染
+      updateAmbiencePreview(); // 👈 输入时触发动态渲染
     });
 
   const iconInput = document.getElementById(`siren-${prefix}-icon-input`);
@@ -510,7 +521,7 @@ function bindStyleEvents(stateObj, prefix) {
 
       // 重新开始计时，500毫秒（0.5秒）内没有新输入，才执行预览更新
       iconDebounceTimer = setTimeout(() => {
-        updateBgmPreview();
+        updateAmbiencePreview();
       }, 500);
     });
   }
@@ -576,25 +587,27 @@ function bindStyleEvents(stateObj, prefix) {
   });
 }
 
-function bindBgmEvents() {
-  bindStyleEvents(localBgmState.karaoke_style, "k");
-  bindStyleEvents(localBgmState.card_style, "b");
-  bindStyleEvents(localBgmState.sfx_card_style, "s");
+function bindAmbienceEvents() {
+  bindStyleEvents(localAmbienceState.karaoke_style, "k");
+  bindStyleEvents(localAmbienceState.card_style, "b");
+  bindStyleEvents(localAmbienceState.sfx_card_style, "s");
 
   document
-    .getElementById("siren-bgm-enable-toggle")
+    .getElementById("siren-ambience-enable-toggle")
     .addEventListener("change", async (e) => {
       const isEnabled = e.target.checked;
-      localBgmState.enabled = isEnabled;
+      localAmbienceState.enabled = isEnabled;
 
       // 🌟 动态切换下方配置区的显示状态
-      const settingsBody = document.getElementById("siren-bgm-settings-body");
+      const settingsBody = document.getElementById(
+        "siren-ambience-settings-body",
+      );
       if (settingsBody) {
         settingsBody.style.display = isEnabled ? "block" : "none";
       }
 
       // 依然触发世界书同步
-      await syncBgmWorldbookEntries(isEnabled);
+      await syncAmbienceWorldbookEntries(isEnabled);
     });
 
   const performSave = async (btnEl) => {
@@ -602,15 +615,15 @@ function bindBgmEvents() {
     setTimeout(() => (btnEl.style.transform = "scale(1)"), 150);
 
     const globalSettings = getSirenSettings();
-    globalSettings.bgm = JSON.parse(JSON.stringify(localBgmState));
+    globalSettings.ambience = JSON.parse(JSON.stringify(localAmbienceState));
     saveSirenSettings(false);
 
     // 🌟 新增：全局设置存盘后，立即将最新的列表数据同步进世界书
-    await syncBgmWorldbookEntries(localBgmState.enabled);
+    await syncAmbienceWorldbookEntries(localAmbienceState.enabled);
 
-    window.dispatchEvent(new CustomEvent("siren:bgm_settings_updated"));
+    window.dispatchEvent(new CustomEvent("siren:ambience_settings_updated"));
 
-    const status = document.getElementById("siren-bgm-preview-status");
+    const status = document.getElementById("siren-ambience-preview-status");
     if (status) {
       status.textContent = "已存盘！";
       status.style.color = "#10b981";
@@ -619,84 +632,84 @@ function bindBgmEvents() {
 
   // 绑定顶部图标保存按钮
   document
-    .getElementById("siren-bgm-save-btn")
+    .getElementById("siren-ambience-save-btn")
     .addEventListener("click", function () {
       performSave(this);
     });
 
   // 🌟 绑定底部全宽保存按钮
   document
-    .getElementById("siren-bgm-save-btn-bottom")
+    .getElementById("siren-ambience-save-btn-bottom")
     .addEventListener("click", function () {
       performSave(this);
     });
 
   document
-    .getElementById("siren-bgm-auto-play")
+    .getElementById("siren-ambience-auto-play")
     .addEventListener("change", (e) => {
-      localBgmState.auto_play = e.target.checked;
+      localAmbienceState.auto_play = e.target.checked;
       const wrapper = document.getElementById(
-        "siren-bgm-custom-end-tags-wrapper",
+        "siren-ambience-custom-end-tags-wrapper",
       );
       if (wrapper)
-        wrapper.style.display = localBgmState.auto_play ? "flex" : "none";
+        wrapper.style.display = localAmbienceState.auto_play ? "flex" : "none";
     });
 
   document
-    .getElementById("siren-bgm-custom-end-tags")
+    .getElementById("siren-ambience-custom-end-tags")
     .addEventListener("input", (e) => {
-      localBgmState.custom_end_tags = e.target.value;
+      localAmbienceState.custom_end_tags = e.target.value;
     });
 
   document
-    .getElementById("siren-bgm-fade-input")
+    .getElementById("siren-ambience-fade-input")
     .addEventListener("input", (e) => {
-      localBgmState.fade_duration = parseFloat(e.target.value) || 0;
+      localAmbienceState.fade_duration = parseFloat(e.target.value) || 0;
     });
 
   document
-    .getElementById("siren-bgm-start-tag-input")
+    .getElementById("siren-ambience-start-tag-input")
     .addEventListener("input", (e) => {
-      localBgmState.start_tag = e.target.value.trim();
+      localAmbienceState.start_tag = e.target.value.trim();
     });
   document
-    .getElementById("siren-bgm-end-tag-input")
+    .getElementById("siren-ambience-end-tag-input")
     .addEventListener("input", (e) => {
-      localBgmState.end_tag = e.target.value.trim();
+      localAmbienceState.end_tag = e.target.value.trim();
     });
 
-  const speedInput = document.getElementById("siren-bgm-karaoke-speed");
+  const speedInput = document.getElementById("siren-ambience-karaoke-speed");
   speedInput.addEventListener("input", (e) => {
-    localBgmState.karaoke_speed = parseFloat(e.target.value);
-    document.getElementById("siren-bgm-karaoke-speed-val").textContent =
-      localBgmState.karaoke_speed.toFixed(1) + "x";
+    localAmbienceState.karaoke_speed = parseFloat(e.target.value);
+    document.getElementById("siren-ambience-karaoke-speed-val").textContent =
+      localAmbienceState.karaoke_speed.toFixed(1) + "x";
     updateProgressBar(e.target);
   });
 
   document
-    .getElementById("siren-bgm-list-select")
+    .getElementById("siren-ambience-list-select")
     .addEventListener("change", (e) => {
-      localBgmState.current_list = e.target.value;
-      renderBgmRows();
+      localAmbienceState.current_list = e.target.value;
+      renderAmbienceRows();
     });
 
   document
-    .getElementById("siren-bgm-btn-new-list")
+    .getElementById("siren-ambience-btn-new-list")
     .addEventListener("click", () => {
       const name = prompt("请输入新列表名称：");
-      if (name && !localBgmState.libraries[name]) {
-        localBgmState.libraries[name] = [];
-        localBgmState.current_list = name;
-        renderBgmAll();
+      if (name && !localAmbienceState.libraries[name]) {
+        localAmbienceState.libraries[name] = [];
+        localAmbienceState.current_list = name;
+        renderAmbienceAll();
       }
     });
 
-  // --- BGM 列表导入导出逻辑 ---
+  // --- Ambience 列表导入导出逻辑 ---
   document
-    .getElementById("siren-bgm-btn-export-list")
+    .getElementById("siren-ambience-btn-export-list")
     .addEventListener("click", () => {
-      const currentListName = localBgmState.current_list;
-      const currentData = localBgmState.libraries[currentListName];
+      const currentListName = localAmbienceState.current_list;
+      const currentData = localAmbienceState.libraries[currentListName];
       if (!currentData || currentData.length === 0) {
         if (window.toastr) window.toastr.warning("当前列表为空，无需导出！");
         return;
@@ -706,18 +719,18 @@ function bindBgmEvents() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `siren_bgm_list_${currentListName}.json`;
+      a.download = `siren_ambience_list_${currentListName}.json`;
       a.click();
       URL.revokeObjectURL(url);
     });
 
-  const bgmListFileInput = document.getElementById(
-    "siren-bgm-file-import-list",
+  const ambienceListFileInput = document.getElementById(
+    "siren-ambience-file-import-list",
   );
   document
-    .getElementById("siren-bgm-btn-import-list")
-    .addEventListener("click", () => bgmListFileInput.click());
-  bgmListFileInput.addEventListener("change", (e) => {
+    .getElementById("siren-ambience-btn-import-list")
+    .addEventListener("click", () => ambienceListFileInput.click());
+  ambienceListFileInput.addEventListener("change", (e) => {
     const file = e.target.files[0];
     if (!file) return;
     const reader = new FileReader();
@@ -729,32 +742,32 @@ function bindBgmEvents() {
 
         // 默认使用文件名去后缀作为列表名
         let defaultName = file.name.replace(/\.json$/i, "");
-        let newListName = prompt("请输入导入的 BGM 库名称：", defaultName);
+        let newListName = prompt("请输入导入的 Ambience 库名称：", defaultName);
 
         if (!newListName) {
-          bgmListFileInput.value = "";
+          ambienceListFileInput.value = "";
           return; // 用户取消
         }
 
         // 查重：如果有重名的，自动加上 _1, _2 等后缀，确保是新增
         let finalName = newListName;
         let counter = 1;
-        while (localBgmState.libraries[finalName]) {
+        while (localAmbienceState.libraries[finalName]) {
           finalName = `${newListName}_${counter}`;
           counter++;
         }
 
-        localBgmState.libraries[finalName] = importedData;
-        localBgmState.current_list = finalName;
-        renderBgmAll(); // 刷新整个面版，更新下拉框
+        localAmbienceState.libraries[finalName] = importedData;
+        localAmbienceState.current_list = finalName;
+        renderAmbienceAll(); // 刷新整个面版，更新下拉框
         if (window.toastr)
           window.toastr.success(`成功导入并创建列表：${finalName}`);
       } catch (err) {
         console.error(err);
         if (window.toastr)
-          window.toastr.error("BGM 列表导入失败：文件格式不正确");
+          window.toastr.error("Ambience 列表导入失败：文件格式不正确");
       }
-      bgmListFileInput.value = ""; // 重置 input 允许重复导入同名文件
+      ambienceListFileInput.value = ""; // 重置 input 允许重复导入同名文件
     };
     reader.readAsText(file);
   });
@@ -763,8 +776,8 @@ function bindBgmEvents() {
   document
     .getElementById("siren-sfx-btn-export-list")
     .addEventListener("click", () => {
-      const currentListName = localBgmState.sfx_current_list;
-      const currentData = localBgmState.sfx_libraries[currentListName];
+      const currentListName = localAmbienceState.sfx_current_list;
+      const currentData = localAmbienceState.sfx_libraries[currentListName];
       if (!currentData || currentData.length === 0) {
         if (window.toastr) window.toastr.warning("当前列表为空，无需导出！");
         return;
@@ -805,14 +818,14 @@ function bindBgmEvents() {
 
         let finalName = newListName;
         let counter = 1;
-        while (localBgmState.sfx_libraries[finalName]) {
+        while (localAmbienceState.sfx_libraries[finalName]) {
           finalName = `${newListName}_${counter}`;
           counter++;
         }
 
-        localBgmState.sfx_libraries[finalName] = importedData;
-        localBgmState.sfx_current_list = finalName;
-        renderBgmAll();
+        localAmbienceState.sfx_libraries[finalName] = importedData;
+        localAmbienceState.sfx_current_list = finalName;
+        renderAmbienceAll();
         if (window.toastr)
           window.toastr.success(`成功导入并创建列表：${finalName}`);
       } catch (err) {
@@ -826,52 +839,59 @@ function bindBgmEvents() {
   });
 
   document
-    .getElementById("siren-bgm-btn-del-list")
+    .getElementById("siren-ambience-btn-del-list")
     .addEventListener("click", () => {
-      if (localBgmState.current_list !== "default" && confirm("删除此列表？")) {
-        delete localBgmState.libraries[localBgmState.current_list];
-        localBgmState.current_list = "default";
-        renderBgmAll();
+      if (
+        localAmbienceState.current_list !== "default" &&
+        confirm("删除此列表？")
+      ) {
+        delete localAmbienceState.libraries[localAmbienceState.current_list];
+        localAmbienceState.current_list = "default";
+        renderAmbienceAll();
       }
     });
 
   document
-    .getElementById("siren-bgm-btn-add-row")
+    .getElementById("siren-ambience-btn-add-row")
     .addEventListener("click", () => {
-      localBgmState.libraries[localBgmState.current_list].push({
+      localAmbienceState.libraries[localAmbienceState.current_list].push({
         name: "",
         url: "",
       });
-      renderBgmRows();
+      renderAmbienceRows();
     });
 
   document
-    .getElementById("siren-bgm-items-container")
+    .getElementById("siren-ambience-items-container")
     .addEventListener("input", (e) => {
       if (e.target.tagName !== "INPUT") return;
       const idx = e.target.getAttribute("data-idx");
-      const list = localBgmState.libraries[localBgmState.current_list];
-      if (e.target.classList.contains("siren-bgm-input-name"))
+      const list =
+        localAmbienceState.libraries[localAmbienceState.current_list];
+      if (e.target.classList.contains("siren-ambience-input-name"))
         list[idx].name = e.target.value;
-      else if (e.target.classList.contains("siren-bgm-input-url"))
+      else if (e.target.classList.contains("siren-ambience-input-url"))
         list[idx].url = e.target.value;
     });
 
   document
-    .getElementById("siren-bgm-items-container")
+    .getElementById("siren-ambience-items-container")
     .addEventListener("click", (e) => {
-      const btn = e.target.closest(".siren-bgm-btn-del-row");
+      const btn = e.target.closest(".siren-ambience-btn-del-row");
       if (!btn) return;
       const idx = btn.getAttribute("data-idx");
-      localBgmState.libraries[localBgmState.current_list].splice(idx, 1);
-      renderBgmRows();
+      localAmbienceState.libraries[localAmbienceState.current_list].splice(
+        idx,
+        1,
+      );
+      renderAmbienceRows();
     });
 
   // 🌟 SFX 事件绑定
   document
     .getElementById("siren-sfx-list-select")
     .addEventListener("change", (e) => {
-      localBgmState.sfx_current_list = e.target.value;
+      localAmbienceState.sfx_current_list = e.target.value;
       renderSfxRows();
     });
 
@@ -879,10 +899,10 @@ function bindBgmEvents() {
     .getElementById("siren-sfx-btn-new-list")
     .addEventListener("click", () => {
       const name = prompt("请输入新 SFX 库名称：");
-      if (name && !localBgmState.sfx_libraries[name]) {
-        localBgmState.sfx_libraries[name] = [];
-        localBgmState.sfx_current_list = name;
-        renderBgmAll(); // 刷新整个面板以更新下拉框
+      if (name && !localAmbienceState.sfx_libraries[name]) {
+        localAmbienceState.sfx_libraries[name] = [];
+        localAmbienceState.sfx_current_list = name;
+        renderAmbienceAll(); // 刷新整个面板以更新下拉框
       }
     });
 
@@ -890,19 +910,23 @@ function bindBgmEvents() {
     .getElementById("siren-sfx-btn-del-list")
     .addEventListener("click", () => {
       if (
-        localBgmState.sfx_current_list !== "default" &&
+        localAmbienceState.sfx_current_list !== "default" &&
         confirm("确定删除此 SFX 库吗？")
       ) {
-        delete localBgmState.sfx_libraries[localBgmState.sfx_current_list];
-        localBgmState.sfx_current_list = "default";
-        renderBgmAll();
+        delete localAmbienceState.sfx_libraries[
+          localAmbienceState.sfx_current_list
+        ];
+        localAmbienceState.sfx_current_list = "default";
+        renderAmbienceAll();
       }
     });
 
   document
     .getElementById("siren-sfx-btn-add-row")
     .addEventListener("click", () => {
-      localBgmState.sfx_libraries[localBgmState.sfx_current_list].push({
+      localAmbienceState.sfx_libraries[
+        localAmbienceState.sfx_current_list
+      ].push({
         name: "",
         url: "",
       });
@@ -914,7 +938,8 @@ function bindBgmEvents() {
     .addEventListener("input", (e) => {
       if (e.target.tagName !== "INPUT") return;
       const idx = e.target.getAttribute("data-idx");
-      const list = localBgmState.sfx_libraries[localBgmState.sfx_current_list];
+      const list =
+        localAmbienceState.sfx_libraries[localAmbienceState.sfx_current_list];
       if (e.target.classList.contains("siren-sfx-input-name"))
         list[idx].name = e.target.value;
       else if (e.target.classList.contains("siren-sfx-input-url"))
@@ -927,10 +952,9 @@ function bindBgmEvents() {
       const btn = e.target.closest(".siren-sfx-btn-del-row");
       if (!btn) return;
       const idx = btn.getAttribute("data-idx");
-      localBgmState.sfx_libraries[localBgmState.sfx_current_list].splice(
-        idx,
-        1,
-      );
+      localAmbienceState.sfx_libraries[
+        localAmbienceState.sfx_current_list
+      ].splice(idx, 1);
       renderSfxRows();
     });
 }

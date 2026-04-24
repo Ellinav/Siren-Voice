@@ -4,379 +4,375 @@
 
 /* 基础遮罩与全屏容器 */
 #siren-ext-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background-color: rgba(6, 11, 23, 0.88); /* 更深的深海底色 */
-    backdrop-filter: blur(6px); /* 稍强一点的模糊 */
-    z-index: 9999;
-    display: flex;
-    flex-direction: column;
-    font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    color: #e2e8f0; /* 冷银色文字 */
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(6, 11, 23, 0.88); /* 更深的深海底色 */
+  backdrop-filter: blur(6px); /* 稍强一点的模糊 */
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  color: #e2e8f0; /* 冷银色文字 */
 }
 
 .siren-ext-hidden {
-    display: none !important;
+  display: none !important;
 }
 
 /* 顶部标题栏 */
 .siren-ext-header-bar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 20px;
-    background: #111a2e; /* 稍浅的深蓝 */
-    border-bottom: 1px solid #1e293b;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px;
+  background: #111a2e; /* 稍浅的深蓝 */
+  border-bottom: 1px solid #1e293b;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
 }
 
 .siren-ext-brand {
-    color: #06b6d4; /* Siren Cyan 霓虹青 */
-    font-size: 1.1em;
-    text-shadow: 0 0 10px rgba(6, 182, 212, 0.5); /* 文字发光 */
+  color: #06b6d4; /* Siren Cyan 霓虹青 */
+  font-size: 1.1em;
+  text-shadow: 0 0 10px rgba(6, 182, 212, 0.5); /* 文字发光 */
 }
 
 #siren-ext-toggle-sidebar,
 #siren-ext-close-btn {
-    cursor: pointer;
-    font-size: 1.2rem;
-    color: #94a3b8;
-    transition: all 0.2s ease;
+  cursor: pointer;
+  font-size: 1.2rem;
+  color: #94a3b8;
+  transition: all 0.2s ease;
 }
 
 #siren-ext-toggle-sidebar:hover {
-    color: #06b6d4;
-    transform: scale(1.1);
+  color: #06b6d4;
+  transform: scale(1.1);
 }
 
 #siren-ext-close-btn:hover {
-    color: #ef4444; /* 关闭按钮 hover 红色 */
-    transform: rotate(90deg);
+  color: #ef4444; /* 关闭按钮 hover 红色 */
+  transform: rotate(90deg);
 }
 
 /* 主体布局 (侧边栏 + 内容区) */
 .siren-ext-main-layout {
-    display: flex;
-    flex: 1;
-    overflow: hidden;
-    position: relative; /* 🌟 关键点：给侧边栏提供绝对定位的参照物 */
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  position: relative; /* 🌟 关键点：给侧边栏提供绝对定位的参照物 */
 }
 
 /* =========================================================
    侧边栏 (悬浮抽屉 Drawer)
    ========================================================= */
 .siren-ext-sidebar {
-    position: absolute; /* 🌟 核心：脱离文档流，悬浮在内容上方 */
-    top: 0;
-    left: 0;
-    height: 100%;
-    z-index: 100;
-    width: 200px;
-    background: rgba(10, 15, 30, 0.95); /* 加深背景并增加点透明度 */
-    backdrop-filter: blur(8px); /* 毛玻璃效果，透出底部的内容 */
-    border-right: 1px solid #1e293b;
-    box-shadow: 5px 0 25px rgba(0, 0, 0, 0.6); /* 右侧增加阴影，凸显层级 */
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    display: flex;
-    flex-direction: column;
-    padding-top: 15px;
-    transform: translateX(0); /* 默认展开位置 */
+  position: absolute; /* 🌟 核心：脱离文档流，悬浮在内容上方 */
+  top: 0;
+  left: 0;
+  height: 100%;
+  z-index: 100;
+  width: 200px;
+  background: rgba(10, 15, 30, 0.95); /* 加深背景并增加点透明度 */
+  backdrop-filter: blur(8px); /* 毛玻璃效果，透出底部的内容 */
+  border-right: 1px solid #1e293b;
+  box-shadow: 5px 0 25px rgba(0, 0, 0, 0.6); /* 右侧增加阴影，凸显层级 */
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  padding-top: 15px;
+  transform: translateX(0); /* 默认展开位置 */
 }
 
 /* 收起状态：直接滑出屏幕，不占任何空间 */
 .siren-ext-sidebar.collapsed {
-    transform: translateX(-100%); /* 🌟 彻底向左平移出屏幕 */
-    /* width: 60px; 删掉了这行，宽度保持不变 */
+  transform: translateX(-100%); /* 🌟 彻底向左平移出屏幕 */
+  /* width: 60px; 删掉了这行，宽度保持不变 */
 }
 
 .siren-ext-nav-item {
-    padding: 15px 20px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    border-left: 3px solid transparent;
-    transition: all 0.2s ease-in-out;
-    white-space: nowrap;
-    color: #94a3b8;
-    margin-bottom: 5px;
+  padding: 15px 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  border-left: 3px solid transparent;
+  transition: all 0.2s ease-in-out;
+  white-space: nowrap;
+  color: #94a3b8;
+  margin-bottom: 5px;
 }
 
 .siren-ext-nav-item i {
-    font-size: 1.2em;
-    min-width: 25px;
-    text-align: center;
-    transition: transform 0.2s ease;
-    margin-right: 15px; /* 图标右边距固定 */
+  font-size: 1.2em;
+  min-width: 25px;
+  text-align: center;
+  transition: transform 0.2s ease;
+  margin-right: 15px; /* 图标右边距固定 */
 }
 
 .siren-ext-sidebar:not(.collapsed) .siren-ext-nav-item i {
-    margin-right: 15px;
+  margin-right: 15px;
 }
 
 .siren-ext-sidebar.collapsed .siren-ext-nav-item {
-    justify-content: center;
-    padding: 15px 0;
+  justify-content: center;
+  padding: 15px 0;
 }
 .siren-ext-sidebar.collapsed .siren-ext-nav-item i {
-    margin-right: 0;
+  margin-right: 0;
 }
 
 /* Hover 效果 (微光) */
 .siren-ext-nav-item:hover {
-    background: rgba(30, 41, 59, 0.5);
-    color: #f1f5f9;
+  background: rgba(30, 41, 59, 0.5);
+  color: #f1f5f9;
 }
 .siren-ext-nav-item:hover i {
-    transform: scale(1.1);
+  transform: scale(1.1);
 }
 
 /* Active 效果 (Siren Glow) */
 .siren-ext-nav-item.active {
-    background: #111a2e;
-    border-left-color: #06b6d4; /* 青色边框 */
-    color: #06b6d4; /* 青色文字 */
-    font-weight: 600;
-    box-shadow: inset 5px 0 15px -5px rgba(6, 182, 212, 0.3); /* 内发光 */
-    text-shadow: 0 0 8px rgba(6, 182, 212, 0.4);
+  background: #111a2e;
+  border-left-color: #06b6d4; /* 青色边框 */
+  color: #06b6d4; /* 青色文字 */
+  font-weight: 600;
+  box-shadow: inset 5px 0 15px -5px rgba(6, 182, 212, 0.3); /* 内发光 */
+  text-shadow: 0 0 8px rgba(6, 182, 212, 0.4);
 }
 
 /* =========================================================
    内容区
    ========================================================= */
 .siren-ext-content-area {
-    flex: 1;
-    padding: 30px;
-    overflow-y: auto;
-    background: #0f172a; /* 内容区底色 */
-    background-image:
-        radial-gradient(
-            at top left,
-            rgba(16, 185, 129, 0.05) 0%,
-            transparent 50%
-        ),
-        radial-gradient(
-            at bottom right,
-            rgba(167, 139, 250, 0.05) 0%,
-            transparent 50%
-        ); /* 极其细微的背景渐变光 */
+  flex: 1;
+  padding: 30px;
+  overflow-y: auto;
+  background: #0f172a; /* 内容区底色 */
+  background-image:
+    radial-gradient(at top left, rgba(16, 185, 129, 0.05) 0%, transparent 50%),
+    radial-gradient(
+      at bottom right,
+      rgba(167, 139, 250, 0.05) 0%,
+      transparent 50%
+    ); /* 极其细微的背景渐变光 */
 }
 
 /* 内容排版基础 */
 .siren-ext-tab-content {
-    display: none;
-    animation: siren-ext-fade-in 0.4s ease-out;
-    max-width: 1000px; /* 限制最大宽度，防止大屏拉伸 */
-    margin: 0 auto;
+  display: none;
+  animation: siren-ext-fade-in 0.4s ease-out;
+  max-width: 1000px; /* 限制最大宽度，防止大屏拉伸 */
+  margin: 0 auto;
 }
 
 .siren-ext-tab-content.active {
-    display: block;
+  display: block;
 }
 
 .siren-ext-tab-content h3 {
-    border-bottom: 1px solid #334155;
-    padding-bottom: 15px;
-    margin-bottom: 25px;
-    font-weight: 500;
-    letter-spacing: 0.5px;
-    color: #f1f5f9;
+  border-bottom: 1px solid #334155;
+  padding-bottom: 15px;
+  margin-bottom: 25px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  color: #f1f5f9;
 }
 
 /* 占位符样式 (用于还没写功能的页面) */
 .siren-ext-placeholder-content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 100px 0;
-    color: #475569;
-    text-align: center;
-    background: rgba(0, 0, 0, 0.1);
-    border-radius: 10px;
-    border: 2px dashed #334155;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 100px 0;
+  color: #475569;
+  text-align: center;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+  border: 2px dashed #334155;
 }
 
 /* 动画 */
 @keyframes siren-ext-fade-in {
-    from {
-        opacity: 0;
-        transform: translateY(8px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* 自定义滚动条 (保持风格一致) */
 .siren-ext-content-area::-webkit-scrollbar {
-    width: 6px;
+  width: 6px;
 }
 .siren-ext-content-area::-webkit-scrollbar-track {
-    background: #0a0f1e;
+  background: #0a0f1e;
 }
 .siren-ext-content-area::-webkit-scrollbar-thumb {
-    background: #334155;
-    border-radius: 3px;
+  background: #334155;
+  border-radius: 3px;
 }
 .siren-ext-content-area::-webkit-scrollbar-thumb:hover {
-    background: #06b6d4;
+  background: #06b6d4;
 }
 
 /* =========================================================
    Siren Voice - Form Controls (深海表单组件)
    ========================================================= */
 .siren-ext-settings-container {
-    color: #cbd5e1;
-    font-size: 0.95em;
+  color: #cbd5e1;
+  font-size: 0.95em;
 }
 
 .siren-ext-setting-row {
-    margin-bottom: 20px;
-    padding: 10px;
-    background: rgba(30, 41, 59, 0.3);
-    border-radius: 8px;
-    border: 1px solid rgba(51, 65, 85, 0.5);
-    transition: all 0.2s;
+  margin-bottom: 20px;
+  padding: 10px;
+  background: rgba(30, 41, 59, 0.3);
+  border-radius: 8px;
+  border: 1px solid rgba(51, 65, 85, 0.5);
+  transition: all 0.2s;
 }
 .siren-ext-setting-row:hover {
-    border-color: rgba(6, 182, 212, 0.3); /* 霓虹青微光 */
-    background: rgba(30, 41, 59, 0.5);
+  border-color: rgba(6, 182, 212, 0.3); /* 霓虹青微光 */
+  background: rgba(30, 41, 59, 0.5);
 }
 
 .siren-ext-flex-between {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .siren-ext-setting-label label {
-    display: block;
-    font-weight: 500;
-    color: #f1f5f9;
-    margin-bottom: 4px;
+  display: block;
+  font-weight: 500;
+  color: #f1f5f9;
+  margin-bottom: 4px;
 }
 .siren-ext-setting-label small {
-    color: #64748b;
-    font-size: 0.85em;
+  color: #64748b;
+  font-size: 0.85em;
 }
 
 .siren-ext-divider {
-    border: 0;
-    height: 1px;
-    background: linear-gradient(to right, transparent, #334155, transparent);
-    margin: 25px 0;
+  border: 0;
+  height: 1px;
+  background: linear-gradient(to right, transparent, #334155, transparent);
+  margin: 25px 0;
 }
 
 /* 霓虹滑块开关 */
 .siren-ext-switch {
-    position: relative;
-    display: inline-block;
-    width: 44px;
-    height: 24px;
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
 }
 .siren-ext-switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
+  opacity: 0;
+  width: 0;
+  height: 0;
 }
 .siren-ext-slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: #1e293b;
-    transition: 0.4s;
-    border-radius: 24px;
-    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5);
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #1e293b;
+  transition: 0.4s;
+  border-radius: 24px;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 .siren-ext-slider:before {
-    position: absolute;
-    content: "";
-    height: 18px;
-    width: 18px;
-    left: 3px;
-    bottom: 3px;
-    background-color: #94a3b8;
-    transition: 0.4s;
-    border-radius: 50%;
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: #94a3b8;
+  transition: 0.4s;
+  border-radius: 50%;
 }
 .siren-ext-switch input:checked + .siren-ext-slider {
-    background-color: #06b6d4; /* 激活时发光青 */
-    box-shadow: 0 0 10px rgba(6, 182, 212, 0.4);
+  background-color: #06b6d4; /* 激活时发光青 */
+  box-shadow: 0 0 10px rgba(6, 182, 212, 0.4);
 }
 .siren-ext-switch input:checked + .siren-ext-slider:before {
-    transform: translateX(20px);
-    background-color: #ffffff;
+  transform: translateX(20px);
+  background-color: #ffffff;
 }
 
 /* 输入框与下拉菜单 */
 .siren-ext-select,
 .siren-ext-input,
 .siren-ext-textarea {
-    background: #0f172a;
-    color: #e2e8f0;
-    border: 1px solid #334155;
-    padding: 8px 12px;
-    border-radius: 6px;
-    font-family: inherit;
-    font-size: 0.9em;
-    outline: none;
-    transition: all 0.2s;
+  background: #0f172a;
+  color: #e2e8f0;
+  border: 1px solid #334155;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 0.9em;
+  outline: none;
+  transition: all 0.2s;
 }
 .siren-ext-select:focus,
 .siren-ext-input:focus,
 .siren-ext-textarea:focus {
-    border-color: #06b6d4;
-    box-shadow: 0 0 8px rgba(6, 182, 212, 0.2);
+  border-color: #06b6d4;
+  box-shadow: 0 0 8px rgba(6, 182, 212, 0.2);
 }
 .siren-ext-textarea {
-    width: 100%;
-    resize: vertical;
+  width: 100%;
+  resize: vertical;
 }
 
 /* 四宫格 Grid */
 .siren-ext-setting-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 15px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 15px;
 }
 .siren-ext-setting-item label {
-    display: block;
-    margin-bottom: 6px;
-    color: #94a3b8;
-    font-size: 0.85em;
+  display: block;
+  margin-bottom: 6px;
+  color: #94a3b8;
+  font-size: 0.85em;
 }
 .siren-ext-setting-item select,
 .siren-ext-setting-item input {
-    width: 100%;
+  width: 100%;
 }
 
 /* 按钮 */
 .siren-ext-btn {
-    padding: 8px 16px;
-    border-radius: 6px;
-    border: none;
-    cursor: pointer;
-    font-weight: 500;
-    transition: all 0.2s;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 .siren-ext-btn-primary {
-    background: linear-gradient(135deg, #0284c7, #06b6d4);
-    color: white;
-    box-shadow: 0 2px 8px rgba(6, 182, 212, 0.3);
+  background: linear-gradient(135deg, #0284c7, #06b6d4);
+  color: white;
+  box-shadow: 0 2px 8px rgba(6, 182, 212, 0.3);
 }
 .siren-ext-btn-primary:hover {
-    box-shadow: 0 4px 12px rgba(6, 182, 212, 0.5);
-    transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(6, 182, 212, 0.5);
+  transform: translateY(-1px);
 }
 
 /* =========================================================
@@ -384,262 +380,262 @@
    ========================================================= */
 
 #siren-music-player.siren-wb-warning {
-    border: 1px solid #f59e0b !important;
-    box-shadow:
-        0 0 10px rgba(245, 158, 11, 0.4),
-        inset 0 0 5px rgba(245, 158, 11, 0.2) !important;
+  border: 1px solid #f59e0b !important;
+  box-shadow:
+    0 0 10px rgba(245, 158, 11, 0.4),
+    inset 0 0 5px rgba(245, 158, 11, 0.2) !important;
 }
 
-#siren-music-player.siren-wb-warning .siren-ext-song-title {
-    color: #fcd34d !important; /* 让标题也微微偏黄提示异常 */
+#siren-music-player.siren-wb-warning .siren-ext-music-title {
+  color: #fcd34d !important; /* 让标题也微微偏黄提示异常 */
 }
 
 .siren-ext-player-pill {
-    position: fixed;
-    /* 改为按 top 和 left 定位，这样高度增加时就会往下展开 */
-    top: calc(100vh - 120px);
-    left: calc(100vw - 320px);
+  position: fixed;
+  /* 改为按 top 和 left 定位，这样高度增加时就会往下展开 */
+  top: calc(100vh - 120px);
+  left: calc(100vw - 320px);
 
-    width: 280px;
-    background: rgba(10, 15, 30, 0.85);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(6, 182, 212, 0.3);
-    border-radius: 40px;
-    padding: 10px 15px;
-    display: flex;
-    flex-direction: column;
-    box-shadow:
-        0 10px 25px rgba(0, 0, 0, 0.5),
-        0 0 15px rgba(6, 182, 212, 0.1);
-    z-index: 8000;
-    color: #e2e8f0;
-    transition:
-        border-radius 0.3s ease,
-        height 0.3s ease;
-    overflow: hidden;
+  width: 280px;
+  background: rgba(10, 15, 30, 0.85);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(6, 182, 212, 0.3);
+  border-radius: 40px;
+  padding: 10px 15px;
+  display: flex;
+  flex-direction: column;
+  box-shadow:
+    0 10px 25px rgba(0, 0, 0, 0.5),
+    0 0 15px rgba(6, 182, 212, 0.1);
+  z-index: 8000;
+  color: #e2e8f0;
+  transition:
+    border-radius 0.3s ease,
+    height 0.3s ease;
+  overflow: hidden;
 }
 
 /* 展开状态 */
 .siren-ext-player-pill.expanded {
-    border-radius: 20px;
+  border-radius: 20px;
 }
 
 /* 收起时的基础排版 (Flex 药丸) */
 .siren-ext-player-basic {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
 }
 
 /* 拖拽手柄 */
 .siren-ext-player-drag-handle {
-    cursor: grab;
-    color: #475569;
-    margin-right: 10px;
-    font-size: 1.2em;
+  cursor: grab;
+  color: #475569;
+  margin-right: 10px;
+  font-size: 1.2em;
 }
 .siren-ext-player-drag-handle:active {
-    cursor: grabbing;
+  cursor: grabbing;
 }
 
 /* 旋转光盘/封面 */
 .siren-ext-player-cover {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    background: #1e293b;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-right: 12px;
-    box-shadow: 0 0 8px rgba(0, 0, 0, 0.5);
-    overflow: hidden;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #1e293b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 12px;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
 }
 .siren-ext-player-cover img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 /* 歌曲信息 */
 .siren-ext-player-info {
-    flex: 1;
-    overflow: hidden;
-    white-space: nowrap;
+  flex: 1;
+  overflow: hidden;
+  white-space: nowrap;
 }
-.siren-ext-song-title {
-    font-size: 0.9em;
-    font-weight: 600;
-    color: #f1f5f9;
-    text-shadow: 0 0 5px rgba(255, 255, 255, 0.2);
-    overflow: hidden;
-    text-overflow: ellipsis;
+.siren-ext-music-title {
+  font-size: 0.9em;
+  font-weight: 600;
+  color: #f1f5f9;
+  text-shadow: 0 0 5px rgba(255, 255, 255, 0.2);
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
-.siren-ext-song-artist {
-    font-size: 0.75em;
-    color: #94a3b8;
-    margin-top: 2px;
-    overflow: hidden;
-    text-overflow: ellipsis;
+.siren-ext-music-artist {
+  font-size: 0.75em;
+  color: #94a3b8;
+  margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* 控制按钮区 */
 .siren-ext-player-controls {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-left: 10px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: 10px;
 }
 .siren-ext-ctrl-btn {
-    cursor: pointer;
-    color: #cbd5e1;
-    transition: all 0.2s;
-    font-size: 1.1em;
+  cursor: pointer;
+  color: #cbd5e1;
+  transition: all 0.2s;
+  font-size: 1.1em;
 }
 .siren-ext-ctrl-btn:hover {
-    color: #06b6d4;
-    transform: scale(1.1);
+  color: #06b6d4;
+  transform: scale(1.1);
 }
 #siren-play-btn {
-    color: #10b981; /* 播放按钮用绿色 */
-    font-size: 1.3em;
+  color: #10b981; /* 播放按钮用绿色 */
+  font-size: 1.3em;
 }
 
 /* 展开面板区 (默认隐藏) */
 .siren-ext-player-expanded-panel {
-    display: none;
-    margin-top: 15px;
-    border-top: 1px solid rgba(51, 65, 85, 0.5);
-    padding-top: 15px;
-    flex-direction: column;
-    gap: 10px;
+  display: none;
+  margin-top: 15px;
+  border-top: 1px solid rgba(51, 65, 85, 0.5);
+  padding-top: 15px;
+  flex-direction: column;
+  gap: 10px;
 }
 .siren-ext-player-pill.expanded .siren-ext-player-expanded-panel {
-    display: flex;
-    animation: siren-ext-fade-in 0.3s ease;
+  display: flex;
+  animation: siren-ext-fade-in 0.3s ease;
 }
 
 /* 歌词区 */
 .siren-ext-player-lyrics {
-    text-align: center;
-    color: #64748b;
-    height: 90px; /* 从 75px 增加到 90px */
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    gap: 6px;
-    overflow: hidden;
-    position: relative;
-    -webkit-mask-image: linear-gradient(
-        to bottom,
-        transparent 0%,
-        black 15%,
-        black 85%,
-        transparent 100%
-    );
-    mask-image: linear-gradient(
-        to bottom,
-        transparent 0%,
-        black 15%,
-        black 85%,
-        transparent 100%
-    );
-    position: relative;
+  text-align: center;
+  color: #64748b;
+  height: 90px; /* 从 75px 增加到 90px */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+  overflow: hidden;
+  position: relative;
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    black 15%,
+    black 85%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    black 15%,
+    black 85%,
+    transparent 100%
+  );
+  position: relative;
 }
 
 .siren-ext-lyric-toggle {
-    position: absolute;
-    top: 0px;
-    right: 5px;
-    font-size: 0.75em;
-    color: #94a3b8;
-    cursor: pointer;
-    border: 1px solid rgba(51, 65, 85, 0.5);
-    border-radius: 4px;
-    padding: 2px 5px;
-    z-index: 10;
-    background: rgba(10, 15, 30, 0.6);
-    backdrop-filter: blur(2px);
-    transition: all 0.2s ease;
-    user-select: none;
+  position: absolute;
+  top: 0px;
+  right: 5px;
+  font-size: 0.75em;
+  color: #94a3b8;
+  cursor: pointer;
+  border: 1px solid rgba(51, 65, 85, 0.5);
+  border-radius: 4px;
+  padding: 2px 5px;
+  z-index: 10;
+  background: rgba(10, 15, 30, 0.6);
+  backdrop-filter: blur(2px);
+  transition: all 0.2s ease;
+  user-select: none;
 }
 .siren-ext-lyric-toggle {
-    position: absolute;
-    top: -5px; /* 🌟 向上提，突破原来的顶部限制 */
-    right: 0px; /* 🌟 完全贴紧右侧 */
-    font-size: 0.75em;
-    color: #94a3b8;
-    cursor: pointer;
-    border: 1px solid rgba(51, 65, 85, 0.5);
-    border-radius: 4px;
-    padding: 2px 5px;
-    z-index: 10;
-    /* 加深一点背景透明度，防止和背后的歌词文字重叠时看不清 */
-    background: rgba(10, 15, 30, 0.85);
-    backdrop-filter: blur(4px);
-    transition: all 0.2s ease;
-    user-select: none;
+  position: absolute;
+  top: -5px; /* 🌟 向上提，突破原来的顶部限制 */
+  right: 0px; /* 🌟 完全贴紧右侧 */
+  font-size: 0.75em;
+  color: #94a3b8;
+  cursor: pointer;
+  border: 1px solid rgba(51, 65, 85, 0.5);
+  border-radius: 4px;
+  padding: 2px 5px;
+  z-index: 10;
+  /* 加深一点背景透明度，防止和背后的歌词文字重叠时看不清 */
+  background: rgba(10, 15, 30, 0.85);
+  backdrop-filter: blur(4px);
+  transition: all 0.2s ease;
+  user-select: none;
 }
 
 .siren-ext-lyric-toggle:hover {
-    color: #06b6d4;
-    border-color: #06b6d4;
-    background: rgba(30, 41, 59, 0.9);
-    box-shadow: 0 0 5px rgba(6, 182, 212, 0.3);
+  color: #06b6d4;
+  border-color: #06b6d4;
+  background: rgba(30, 41, 59, 0.9);
+  box-shadow: 0 0 5px rgba(6, 182, 212, 0.3);
 }
 
 /* 歌词通用基础样式 */
 .siren-ext-lyric-line {
-    white-space: normal;
-    word-break: break-word; /* 防止过长的英文单词不换行 */
-    line-height: 1.4;
-    transition:
-        transform 0.3s ease,
-        opacity 0.3s ease,
-        font-size 0.3s ease;
-    font-size: 0.85em;
-    padding: 0 15px; /* 两侧增加内边距，防止文字贴边 */
+  white-space: normal;
+  word-break: break-word; /* 防止过长的英文单词不换行 */
+  line-height: 1.4;
+  transition:
+    transform 0.3s ease,
+    opacity 0.3s ease,
+    font-size 0.3s ease;
+  font-size: 0.85em;
+  padding: 0 15px; /* 两侧增加内边距，防止文字贴边 */
 }
 
 /* 上下两行 (暗淡缩小) */
 .siren-ext-lyric-prev,
 .siren-ext-lyric-next {
-    opacity: 0.5;
-    transform: scale(0.95);
+  opacity: 0.5;
+  transform: scale(0.95);
 }
 
 /* 当前行 (放大 + 渐变填充魔法) */
 .siren-ext-lyric-current {
-    font-size: 1.05em;
-    font-weight: 600;
-    transform: scale(1);
+  font-size: 1.05em;
+  font-weight: 600;
+  transform: scale(1);
 
-    /* 🌟 核心魔法：画一张 2倍宽 的纯静态画布 */
-    /* 左半边全是霓虹青，右半边全是暗灰 */
-    background-image: linear-gradient(to right, #06b6d4 50%, #cbd5e1 50%);
-    background-size: 200% 100%;
+  /* 🌟 核心魔法：画一张 2倍宽 的纯静态画布 */
+  /* 左半边全是霓虹青，右半边全是暗灰 */
+  background-image: linear-gradient(to right, #06b6d4 50%, #cbd5e1 50%);
+  background-size: 200% 100%;
 
-    /* 🚀 动画交由 background-position 驱动 */
-    /* 进度 0% 时，背景图靠右对齐（露出右半边的灰色） */
-    /* 进度 100% 时，背景图靠左对齐（露出左半边的青色） */
-    background-position: calc(100% - var(--lyric-progress, 0%)) 0;
+  /* 🚀 动画交由 background-position 驱动 */
+  /* 进度 0% 时，背景图靠右对齐（露出右半边的灰色） */
+  /* 进度 100% 时，背景图靠左对齐（露出左半边的青色） */
+  background-position: calc(100% - var(--lyric-progress, 0%)) 0;
 
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    color: transparent;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
 
-    /* 🚨 拆除性能炸弹：给一个固定的柔和发光即可，绝对不要在这里绑定动态变量！ */
-    text-shadow: 0 0 8px rgba(6, 182, 212, 0.35);
+  /* 🚨 拆除性能炸弹：给一个固定的柔和发光即可，绝对不要在这里绑定动态变量！ */
+  text-shadow: 0 0 8px rgba(6, 182, 212, 0.35);
 }
 
 /* 底部进度与模式 */
 .siren-ext-player-modes {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 10px;
 }
 
 /* =========================================================
@@ -648,367 +644,367 @@
 
 /* 1. 轨道容器 */
 .siren-ext-progress-container {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 5px 15px 10px 15px;
-    font-size: 0.75em;
-    color: #94a3b8 !important;
-    border-bottom: 1px solid rgba(51, 65, 85, 0.3) !important;
-    /* 🌟 核心修改：将原来的 10px 改为 0，消除叠加间距，让 flex gap 自动接管对称排版 */
-    margin-bottom: 0 !important;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 5px 15px 10px 15px;
+  font-size: 0.75em;
+  color: #94a3b8 !important;
+  border-bottom: 1px solid rgba(51, 65, 85, 0.3) !important;
+  /* 🌟 核心修改：将原来的 10px 改为 0，消除叠加间距，让 flex gap 自动接管对称排版 */
+  margin-bottom: 0 !important;
 }
 
 /* 1. 轨道容器 (替代了以前的 input) */
 .siren-ext-progress-bar {
-    flex: 1;
-    height: 16px !important; /* 保持 16px 的触摸/点击热区，方便拖拽 */
-    cursor: pointer;
-    margin: 0 !important;
-    position: relative; /* 🌟 关键：为内部的圆形手柄提供绝对定位的参考系 */
+  flex: 1;
+  height: 16px !important; /* 保持 16px 的触摸/点击热区，方便拖拽 */
+  cursor: pointer;
+  margin: 0 !important;
+  position: relative; /* 🌟 关键：为内部的圆形手柄提供绝对定位的参考系 */
 
-    /* 直接在容器上使用背景图画出纤细的轨道 */
-    background-color: transparent !important;
-    background-image: linear-gradient(
-        to right,
-        #06b6d4 var(--progress, 0%),
-        rgba(255, 255, 255, 0.25) var(--progress, 0%)
-    ) !important;
-    background-size: 100% 4px !important; /* 强制背景图高度为 4px */
-    background-position: center !important; /* 垂直居中 */
-    background-repeat: no-repeat !important;
-    border-radius: 2px !important;
+  /* 直接在容器上使用背景图画出纤细的轨道 */
+  background-color: transparent !important;
+  background-image: linear-gradient(
+    to right,
+    #06b6d4 var(--progress, 0%),
+    rgba(255, 255, 255, 0.25) var(--progress, 0%)
+  ) !important;
+  background-size: 100% 4px !important; /* 强制背景图高度为 4px */
+  background-position: center !important; /* 垂直居中 */
+  background-repeat: no-repeat !important;
+  border-radius: 2px !important;
 }
 
 /* 2. 模拟的手柄 (替代了以前的 ::-webkit-slider-thumb) */
 .siren-ext-progress-thumb {
-    position: absolute !important;
-    top: 50% !important;
-    left: var(
-        --progress,
-        0%
-    ) !important; /* 🌟 核心魔法：跟随 JS 传入的进度变量移动 */
-    transform: translate(-50%, -50%) !important; /* 确保圆心严格对齐进度线 */
+  position: absolute !important;
+  top: 50% !important;
+  left: var(
+    --progress,
+    0%
+  ) !important; /* 🌟 核心魔法：跟随 JS 传入的进度变量移动 */
+  transform: translate(-50%, -50%) !important; /* 确保圆心严格对齐进度线 */
 
-    width: 14px !important;
-    height: 14px !important;
-    background: #06b6d4 !important; /* 霓虹青 */
-    border-radius: 50% !important;
-    border: 2px solid #ffffff !important; /* 网易云同款白边 */
-    box-shadow: 0 0 8px rgba(6, 182, 212, 0.8) !important;
-    transition: transform 0.1s !important;
+  width: 14px !important;
+  height: 14px !important;
+  background: #06b6d4 !important; /* 霓虹青 */
+  border-radius: 50% !important;
+  border: 2px solid #ffffff !important; /* 网易云同款白边 */
+  box-shadow: 0 0 8px rgba(6, 182, 212, 0.8) !important;
+  transition: transform 0.1s !important;
 
-    /* 🌟 究极细节：让鼠标点击事件直接穿透手柄，落在背后的轨道上，这样 JS 计算位置才不会报错 */
-    pointer-events: none !important;
+  /* 🌟 究极细节：让鼠标点击事件直接穿透手柄，落在背后的轨道上，这样 JS 计算位置才不会报错 */
+  pointer-events: none !important;
 }
 
 /* 3. 手柄 Hover / 拖拽发光放大特效 */
 .siren-ext-progress-bar:hover .siren-ext-progress-thumb,
 .siren-ext-progress-bar:active .siren-ext-progress-thumb {
-    transform: translate(-50%, -50%) scale(1.3) !important;
-    background: #ffffff !important;
-    box-shadow: 0 0 15px rgba(6, 182, 212, 1) !important;
+  transform: translate(-50%, -50%) scale(1.3) !important;
+  background: #ffffff !important;
+  box-shadow: 0 0 15px rgba(6, 182, 212, 1) !important;
 }
 
 /* 4. 时间文本 (保持你原来的不变即可) */
 .siren-ext-time-current {
-    color: #06b6d4 !important;
-    font-weight: 500;
-    min-width: 35px;
-    text-align: right;
-    font-family: monospace;
+  color: #06b6d4 !important;
+  font-weight: 500;
+  min-width: 35px;
+  text-align: right;
+  font-family: monospace;
 }
 .siren-ext-time-total {
-    min-width: 35px;
-    font-family: monospace;
+  min-width: 35px;
+  font-family: monospace;
 }
 
 /* 7. 时间文本 */
 .siren-ext-time-current {
-    color: #06b6d4 !important;
-    font-weight: 500;
-    min-width: 35px;
-    text-align: right;
-    font-family: monospace;
+  color: #06b6d4 !important;
+  font-weight: 500;
+  min-width: 35px;
+  text-align: right;
+  font-family: monospace;
 }
 .siren-ext-time-total {
-    min-width: 35px;
-    font-family: monospace;
+  min-width: 35px;
+  font-family: monospace;
 }
 
 /* 次级按钮 (用于导出等非主要操作) */
 .siren-ext-btn-secondary {
-    background: #1e293b;
-    color: #e2e8f0;
-    border: 1px solid #334155;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  background: #1e293b;
+  color: #e2e8f0;
+  border: 1px solid #334155;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 .siren-ext-btn-secondary:hover {
-    border-color: #06b6d4;
-    color: #06b6d4;
-    box-shadow: 0 2px 8px rgba(6, 182, 212, 0.2);
+  border-color: #06b6d4;
+  color: #06b6d4;
+  box-shadow: 0 2px 8px rgba(6, 182, 212, 0.2);
 }
 
 /* =========================================================
    Siren Voice - Prismatic Shell (幻彩贝壳样式区)
    ========================================================= */
 .siren-ext-style-preview-box {
-    background: rgba(15, 23, 42, 0.6);
-    border: 1px dashed #475569;
-    border-radius: 8px;
-    padding: 15px;
-    margin-bottom: 20px;
-    box-shadow: inset 0 4px 10px rgba(0, 0, 0, 0.3);
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px dashed #475569;
+  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: 20px;
+  box-shadow: inset 0 4px 10px rgba(0, 0, 0, 0.3);
 }
 
 .siren-ext-chat-msg-mock {
-    display: flex;
-    gap: 12px;
-    background: #1e293b;
-    padding: 12px;
-    border-radius: 8px;
-    border-left: 3px solid #06b6d4; /* 假装是角色的发光边框 */
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+  display: flex;
+  gap: 12px;
+  background: #1e293b;
+  padding: 12px;
+  border-radius: 8px;
+  border-left: 3px solid #06b6d4; /* 假装是角色的发光边框 */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
 }
 
 /* =========================================================
    移动端自适应 (Mobile Responsive)
    ========================================================= */
 @media screen and (max-width: 768px) {
-    /* 搜索栏：强制换行适配 */
-    .siren-ext-add-song-row {
-        flex-wrap: wrap !important;
-    }
+  /* 搜索栏：强制换行适配 */
+  .siren-ext-add-music-row {
+    flex-wrap: wrap !important;
+  }
 
-    #siren-music-search-title,
-    #siren-music-search-artist {
-        /* 让输入框平分第一行的空间，减去 gap 的间距 */
-        flex: 1 1 calc(50% - 10px) !important;
-        min-width: 100px;
-    }
+  #siren-music-search-title,
+  #siren-music-search-artist {
+    /* 让输入框平分第一行的空间，减去 gap 的间距 */
+    flex: 1 1 calc(50% - 10px) !important;
+    min-width: 100px;
+  }
 
-    #siren-music-search-btn {
-        /* 让按钮独占第二行，并且文字居中 */
-        flex: 1 1 100% !important;
-        justify-content: center;
-        margin-top: 5px;
-    }
+  #siren-music-search-btn {
+    /* 让按钮独占第二行，并且文字居中 */
+    flex: 1 1 100% !important;
+    justify-content: center;
+    margin-top: 5px;
+  }
 }
 
 /* =========================================================
    TTS Provider 下拉选框高亮优化
    ========================================================= */
 #siren-tts-provider {
-    font-size: 1.1em;
-    font-weight: 600;
-    color: #06b6d4;
-    background-color: rgba(10, 15, 30, 0.9);
-    border: 2px solid #06b6d4;
-    box-shadow: 0 0 10px rgba(6, 182, 212, 0.3);
-    padding: 8px 15px;
-    width: 220px;
-    max-width: 100%;
-    cursor: pointer;
-    transition: all 0.3s ease;
+  font-size: 1.1em;
+  font-weight: 600;
+  color: #06b6d4;
+  background-color: rgba(10, 15, 30, 0.9);
+  border: 2px solid #06b6d4;
+  box-shadow: 0 0 10px rgba(6, 182, 212, 0.3);
+  padding: 8px 15px;
+  width: 220px;
+  max-width: 100%;
+  cursor: pointer;
+  transition: all 0.3s ease;
 }
 
 #siren-tts-provider:hover,
 #siren-tts-provider:focus {
-    box-shadow: 0 0 15px rgba(6, 182, 212, 0.6);
-    border-color: #22d3ee;
+  box-shadow: 0 0 15px rgba(6, 182, 212, 0.6);
+  border-color: #22d3ee;
 }
 
 #siren-tts-provider option {
-    background: #0f172a;
-    color: #e2e8f0;
-    font-size: 0.9em;
-    font-weight: normal;
+  background: #0f172a;
+  color: #e2e8f0;
+  font-size: 0.9em;
+  font-weight: normal;
 }
 
 /* =========================================================
    Siren Voice - 上传文件标签暂存区
    ========================================================= */
 .siren-idx-file-tag {
-    display: inline-flex;
-    align-items: center;
-    background: rgba(6, 182, 212, 0.1);
-    border: 1px solid rgba(6, 182, 212, 0.4);
-    color: #e2e8f0;
-    padding: 6px 12px;
-    border-radius: 16px;
-    font-size: 0.85em;
-    gap: 8px;
-    transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  background: rgba(6, 182, 212, 0.1);
+  border: 1px solid rgba(6, 182, 212, 0.4);
+  color: #e2e8f0;
+  padding: 6px 12px;
+  border-radius: 16px;
+  font-size: 0.85em;
+  gap: 8px;
+  transition: all 0.2s;
 }
 
 .siren-idx-file-tag:hover {
-    background: rgba(6, 182, 212, 0.2);
-    border-color: #06b6d4;
-    box-shadow: 0 0 8px rgba(6, 182, 212, 0.2);
+  background: rgba(6, 182, 212, 0.2);
+  border-color: #06b6d4;
+  box-shadow: 0 0 8px rgba(6, 182, 212, 0.2);
 }
 
 .siren-idx-file-tag-remove {
-    cursor: pointer;
-    color: #94a3b8;
-    transition:
-        color 0.2s,
-        transform 0.2s;
+  cursor: pointer;
+  color: #94a3b8;
+  transition:
+    color 0.2s,
+    transform 0.2s;
 }
 
 .siren-idx-file-tag-remove:hover {
-    color: #ef4444;
-    transform: scale(1.2);
+  color: #ef4444;
+  transform: scale(1.2);
 }
 
 /* ==========================================
    TTS 语音条基础结构 (骨架) - 优化版
    ========================================== */
 [data-siren-speak="1"] {
-    display: inline-flex !important;
-    width: fit-content !important;
-    align-items: center;
-    gap: 12px;
-    margin: 6px 0;
-    padding: 8px 16px;
-    border-radius: 20px;
-    max-width: 90%;
-    /* 保留基础的位移过渡，把颜色的过渡也加上 */
-    transition: all 0.3s ease !important;
-    cursor: default;
-    background: rgba(30, 41, 59, 0.5);
-    border: 1px solid rgba(148, 163, 184, 0.2);
+  display: inline-flex !important;
+  width: fit-content !important;
+  align-items: center;
+  gap: 12px;
+  margin: 6px 0;
+  padding: 8px 16px;
+  border-radius: 20px;
+  max-width: 90%;
+  /* 保留基础的位移过渡，把颜色的过渡也加上 */
+  transition: all 0.3s ease !important;
+  cursor: default;
+  background: rgba(30, 41, 59, 0.5);
+  border: 1px solid rgba(148, 163, 184, 0.2);
 }
 
 /* 剥离写死的颜色，只保留悬浮时的上浮动作 */
 [data-siren-speak="1"]:hover {
-    transform: translateY(-2px);
-    /* 背景和边框颜色的 hover 效果移交给了 utils.js 里的主题 */
+  transform: translateY(-2px);
+  /* 背景和边框颜色的 hover 效果移交给了 utils.js 里的主题 */
 }
 
 /* 修复高度跳动：给按钮包裹层设置严格的固定宽高！ */
 [data-siren-speak="1"] .siren-btn-wrap {
-    display: inline-flex !important;
-    flex-shrink: 0;
-    cursor: pointer;
-    align-items: center !important;
-    justify-content: center !important;
-    background: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-    /* 👇 核心修复：锁死宽高，不管里面是播放还是转圈，都不会撑大父级 */
-    width: 28px !important;
-    height: 28px !important;
-    /* 👇 核心修复：强制加上 transition，确保旋转和放大平滑无比 */
-    transition:
-        transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-        filter 0.3s ease !important;
+  display: inline-flex !important;
+  flex-shrink: 0;
+  cursor: pointer;
+  align-items: center !important;
+  justify-content: center !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  /* 👇 核心修复：锁死宽高，不管里面是播放还是转圈，都不会撑大父级 */
+  width: 28px !important;
+  height: 28px !important;
+  /* 👇 核心修复：强制加上 transition，确保旋转和放大平滑无比 */
+  transition:
+    transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    filter 0.3s ease !important;
 }
 
 /* 按钮 hover 特效 */
 [data-siren-speak="1"] :is(.siren-play-wrap, .custom-siren-play-wrap):hover {
-    transform: scale(1.15) !important;
+  transform: scale(1.15) !important;
 }
 
 [data-siren-speak="1"] :is(.siren-regen-wrap, .custom-siren-regen-wrap):hover {
-    transform: rotate(90deg) scale(1.1) !important;
+  transform: rotate(90deg) scale(1.1) !important;
 }
 
 /* 规范图标大小，确保它们在 28x28 的框里完美居中 */
 [data-siren-speak="1"] i {
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 [data-siren-speak="1"] .fa-circle-play,
 [data-siren-speak="1"] .siren-play-spinner-wrap .fa-spinner {
-    font-size: 1.4em !important;
+  font-size: 1.4em !important;
 }
 
 [data-siren-speak="1"] .fa-rotate-right,
 [data-siren-speak="1"] .siren-regen-spinner-wrap .fa-spinner {
-    font-size: 1.2em !important;
+  font-size: 1.2em !important;
 }
 
 [data-siren-speak="1"] .siren-speak-text {
-    font-size: 0.95em;
-    white-space: pre-wrap;
-    word-break: break-word;
-    line-height: 1.5;
-    flex-grow: 1;
-    font-family: inherit;
-    letter-spacing: 0.5px;
+  font-size: 0.95em;
+  white-space: pre-wrap;
+  word-break: break-word;
+  line-height: 1.5;
+  flex-grow: 1;
+  font-family: inherit;
+  letter-spacing: 0.5px;
 }
 
 /* ==========================================
    ✨ Siren Voice: 高级面板滑动条定制 (Slider)
    ========================================== */
 input[type="range"].siren-ext-slider-input {
-    -webkit-appearance: none;
-    width: 100%;
-    /* 🌟 核心魔法：使用传入的变量，左侧渲染主题色，右侧渲染暗底色 */
-    background: linear-gradient(
-        to right,
-        var(--theme-color) var(--val, 50%),
-        rgba(30, 41, 59, 0.8) var(--val, 50%)
-    );
-    height: 6px;
-    border-radius: 4px;
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    margin: 8px 0;
-    cursor: pointer;
-    outline: none;
-    transition: filter 0.2s;
+  -webkit-appearance: none;
+  width: 100%;
+  /* 🌟 核心魔法：使用传入的变量，左侧渲染主题色，右侧渲染暗底色 */
+  background: linear-gradient(
+    to right,
+    var(--theme-color) var(--val, 50%),
+    rgba(30, 41, 59, 0.8) var(--val, 50%)
+  );
+  height: 6px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  margin: 8px 0;
+  cursor: pointer;
+  outline: none;
+  transition: filter 0.2s;
 }
 
 input[type="range"].siren-ext-slider-input:focus {
-    outline: none;
+  outline: none;
 }
 
 input[type="range"].siren-ext-slider-input:hover {
-    filter: brightness(1.2);
+  filter: brightness(1.2);
 }
 
 /* 隐藏原生轨道的背景色，因为我们把背景色挂载在外层的 input 上了 */
 input[type="range"].siren-ext-slider-input::-webkit-slider-runnable-track {
-    width: 100%;
-    height: 6px;
-    background: transparent;
-    border: none;
+  width: 100%;
+  height: 6px;
+  background: transparent;
+  border: none;
 }
 
 /* 滑块 (Thumb) 同样读取 --theme-color 变量 */
 input[type="range"].siren-ext-slider-input::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    height: 16px;
-    width: 16px;
-    border-radius: 50%;
-    background: var(--theme-color);
-    cursor: pointer;
-    margin-top: -5px; /* 居中 */
-    /* 利用 rgba 计算制造一点柔和发光感，或者直接使用变量自带的色彩 */
-    box-shadow: 0 0 10px var(--theme-color);
-    transition:
-        transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
-        box-shadow 0.2s;
+  -webkit-appearance: none;
+  height: 16px;
+  width: 16px;
+  border-radius: 50%;
+  background: var(--theme-color);
+  cursor: pointer;
+  margin-top: -5px; /* 居中 */
+  /* 利用 rgba 计算制造一点柔和发光感，或者直接使用变量自带的色彩 */
+  box-shadow: 0 0 10px var(--theme-color);
+  transition:
+    transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.2s;
 }
 
 input[type="range"].siren-ext-slider-input::-webkit-slider-thumb:hover {
-    transform: scale(1.35);
-    box-shadow: 0 0 15px var(--theme-color);
+  transform: scale(1.35);
+  box-shadow: 0 0 15px var(--theme-color);
 }
 
 /* Firefox 兼容补丁 */
 input[type="range"].siren-ext-slider-input::-moz-range-track {
-    width: 100%;
-    height: 6px;
-    background: transparent;
+  width: 100%;
+  height: 6px;
+  background: transparent;
 }
 input[type="range"].siren-ext-slider-input::-moz-range-thumb {
-    height: 16px;
-    width: 16px;
-    border-radius: 50%;
-    background: var(--theme-color);
-    border: none;
-    box-shadow: 0 0 10px var(--theme-color);
+  height: 16px;
+  width: 16px;
+  border-radius: 50%;
+  background: var(--theme-color);
+  border: none;
+  box-shadow: 0 0 10px var(--theme-color);
 }

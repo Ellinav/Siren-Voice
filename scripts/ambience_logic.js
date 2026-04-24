@@ -1,4 +1,4 @@
-// scripts/bgm_logic.js
+// scripts/ambience_logic.js
 import { getSirenSettings } from "./settings.js";
 import { parseSpeakTags, getRealVolume, checkReplyIntegrity } from "./utils.js";
 import {
@@ -6,7 +6,11 @@ import {
   preloadTtsForTimeline,
   stopCurrentTTS,
 } from "./tts_logic.js";
-import { findExactTtsRecord, getBgmRecord, saveBgmRecord } from "./db.js";
+import {
+  findExactTtsRecord,
+  getAmbienceRecord,
+  saveAmbienceRecord,
+} from "./db.js";
 import { initAudioEngine, routeAudioToMixer } from "./audio_engine.js";
 
 // ====== 新增：CSSOM 隐形渲染引擎 ======
@@ -44,13 +48,13 @@ function initStealthKaraokeCss() {
   stealthCssRule = sheet.cssRules[1]; // 锁定 :root 规则
 }
 
-let isBgmEventBound = false;
+let isAmbienceEventBound = false;
 
 let activeSceneState = {
   floorId: null,
   isPlaying: false,
   isPaused: false,
-  bgmAudio: null,
+  ambienceAudio: null,
   ttsAudio: null,
   activeSfxPool: new Set(),
   currentStepIndex: 0,
@@ -63,8 +67,8 @@ let activeKaraokeRaf = null;
 // 🌟 新增：监听混音台滑块拖动，实时修改当前正在播放的音频音量
 document.addEventListener("sirenVolumeChanged", (e) => {
   const channel = e.detail.channel;
-  if (channel === "bgm" && activeSceneState.bgmAudio) {
-    activeSceneState.bgmAudio.volume = getRealVolume("bgm");
+  if (channel === "ambience" && activeSceneState.ambienceAudio) {
+    activeSceneState.ambienceAudio.volume = getRealVolume("ambience");
   }
   // 👇 修改这里的 SFX 判断逻辑
   if (channel === "sfx" && activeSceneState.activeSfxPool.size > 0) {
@@ -178,15 +182,14 @@ class LocalStorageCache {
   }
 }
 
-// 实例化时，默认最多记忆 500 层楼的 BGM 和 SFX 随机结果，绝对安全不爆内存
-export const randomBgmCache = new LocalStorageCache("siren_bgm", 500);
+export const randomAmbienceCache = new LocalStorageCache("siren_ambience", 500);
 export const randomSfxCache = new LocalStorageCache("siren_sfx", 500);
 
 // 提供给重新生成时调用的清理函数
-export function clearBgmCacheForFloor(floorId) {
+export function clearAmbienceCacheForFloor(floorId) {
   if (!floorId) return;
-  for (const key of randomBgmCache.keys()) {
-    if (key.startsWith(`${floorId}_`)) randomBgmCache.delete(key);
+  for (const key of randomAmbienceCache.keys()) {
+    if (key.startsWith(`${floorId}_`)) randomAmbienceCache.delete(key);
   }
   // 🌟 新增：顺便清理 SFX 缓存
   for (const key of randomSfxCache.keys()) {
@@ -225,23 +228,23 @@ function mapTimelineToDom(floorId, timeline) {
         skipParent = currentNode;
       } else if (
         currentNode.matches?.(
-          '.siren-music-card, [data-siren-song-card="1"], .siren-bgm-card, [data-siren-bgm="1"]',
+          '.siren-music-card, [data-siren-music-card="1"], .siren-ambience-card, [data-siren-ambience="1"]',
         ) ||
-        currentNode.tagName.toLowerCase() === "bgm" ||
+        currentNode.tagName.toLowerCase() === "ambience" ||
         currentNode.tagName.toLowerCase() === "sfx" // 🌟 1. 新增跳过 SFX
       ) {
-        domSequence.push({ type: "bgm_or_sfx", el: currentNode }); // 🌟 改名合并
+        domSequence.push({ type: "ambience_or_sfx", el: currentNode }); // 🌟 改名合并
         skipParent = currentNode;
       }
     } else if (currentNode.nodeType === 3) {
       const txt = currentNode.textContent;
       if (txt.trim() !== "") {
         if (
-          /<bgm>[\s\S]*?<\/bgm>/i.test(txt) ||
+          /<ambience>[\s\S]*?<\/ambience>/i.test(txt) ||
           /<sfx>[\s\S]*?<\/sfx>/i.test(txt)
         ) {
           // 🌟 2. 新增正则匹配
-          domSequence.push({ type: "bgm_or_sfx", el: currentNode });
+          domSequence.push({ type: "ambience_or_sfx", el: currentNode });
         } else {
           domSequence.push({ type: "text", el: currentNode });
         }
@@ -252,7 +255,7 @@ function mapTimelineToDom(floorId, timeline) {
   let domIndex = 0;
   for (const node of timeline) {
     node.domElements = [];
-    if (node.type === "bgm" || node.type === "sfx") continue;
+    if (node.type === "ambience" || node.type === "sfx") continue;
 
     if (node.type === "tts") {
       while (domIndex < domSequence.length) {
@@ -281,7 +284,7 @@ function mapTimelineToDom(floorId, timeline) {
 
         const item = domSequence[domIndex];
         if (item.type === "tts") break;
-        if (item.type === "bgm_or_sfx") {
+        if (item.type === "ambience_or_sfx") {
           domIndex++;
           continue;
         }
@@ -511,9 +514,9 @@ async function handleGlobalSceneClick(e) {
  * 🌟 真正的全局注入：先扫描 DB 确定最终状态，再进行无闪烁注入
  */
 export async function injectScenePlayButtons() {
-  if (!isBgmEventBound) {
+  if (!isAmbienceEventBound) {
     document.addEventListener("click", handleGlobalSceneClick, true);
-    isBgmEventBound = true;
+    isAmbienceEventBound = true;
   }
 
   const messageBlocks = document.querySelectorAll(".mes");
@@ -539,7 +542,7 @@ export async function injectScenePlayButtons() {
       parsedTimeline = parseMessageTimeline(floorId); // 👈 🌟 修复点 2：将解析结果赋值给外部变量（去掉原先这里的 const）
 
       const hasAction = parsedTimeline.some((n) =>
-        ["bgm", "tts", "sfx"].includes(n.type),
+        ["ambience", "tts", "sfx"].includes(n.type),
       );
 
       if (!hasAction) {
@@ -658,13 +661,13 @@ export async function scanAndRefreshAllScenes() {
       // 解析剧本
       const timeline = parseMessageTimeline(floorId);
       const hasAction = timeline.some((n) =>
-        ["bgm", "tts", "sfx"].includes(n.type),
+        ["ambience", "tts", "sfx"].includes(n.type),
       );
       if (!hasAction) return;
 
       const ttsNodes = timeline.filter((n) => n.type === "tts");
 
-      // 如果这层楼只有 BGM，无需查库，直接绿灯
+      // 如果这层楼只有 ambience，无需查库，直接绿灯
       if (ttsNodes.length === 0) {
         playBtn.dataset.state = "ready";
         playBtn.innerHTML = `<i class="fa-solid fa-play" style="color: #10b981; filter: drop-shadow(0 0 5px #10b981);"></i>`;
@@ -728,13 +731,13 @@ async function refreshSceneButtonStatus(playBtn, regenBtn, floorId, chatId) {
 
   // 检查是否有实质动作，什么都没有就保持初始状态
   const hasAction = timeline.some((n) =>
-    ["bgm", "tts", "sfx"].includes(n.type),
+    ["ambience", "tts", "sfx"].includes(n.type),
   );
   if (!hasAction) return;
 
   const ttsNodes = timeline.filter((n) => n.type === "tts");
 
-  // 🌟 核心修复 2：如果这层楼只有 BGM，不需要等 TTS，直接绿灯放行
+  // 🌟 核心修复 2：如果这层楼只有 ambience，不需要等 TTS，直接绿灯放行
   if (ttsNodes.length === 0) {
     actualPlayBtn.dataset.state = "ready";
     actualPlayBtn.innerHTML = `<i class="fa-solid fa-play" style="color: #10b981; filter: drop-shadow(0 0 5px #10b981);"></i>`;
@@ -782,9 +785,9 @@ async function handleSceneRegenClick(regenBtn, mesNode) {
   const playBtn = regenBtn.parentElement.querySelector(".siren-scene-play-btn");
   if (!playBtn) return;
 
-  // 👇 新增：清理这层楼的 BGM 随机缓存，让它重新掷骰子
+  // 👇 新增：清理这层楼的 ambience 随机缓存，让它重新掷骰子
   const floorId = mesNode.getAttribute("mesid");
-  clearBgmCacheForFloor(floorId);
+  clearAmbienceCacheForFloor(floorId);
 
   // 1. 如果当前楼层正在播放，先强行停止
   if (activeSceneState.floorId === floorId) {
@@ -831,11 +834,11 @@ async function handleSceneButtonClick(btn, mesNode, forceRegen = false) {
     try {
       const timeline = parseMessageTimeline(floorId);
       const hasAction = timeline.some((n) =>
-        ["bgm", "tts", "sfx"].includes(n.type),
+        ["ambience", "tts", "sfx"].includes(n.type),
       );
       if (!hasAction) {
         if (window.toastr)
-          window.toastr.warning("未检测到任何 BGM 或 语音 标签。");
+          window.toastr.warning("未检测到任何 Ambience 或 语音 标签。");
         btn.dataset.state = "initial";
         btn.innerHTML = `<i class="fa-solid fa-clapperboard" style="color: #3b82f6;"></i>`;
         return;
@@ -845,7 +848,7 @@ async function handleSceneButtonClick(btn, mesNode, forceRegen = false) {
       const settings = context?.extensionSettings?.siren_voice_settings;
       const provider = settings?.tts?.provider || "indextts";
       const ttsSettings = settings?.tts?.[provider] || {};
-      await preloadBgmForTimeline(timeline, floorId);
+      await preloadAmbienceForTimeline(timeline, floorId);
       await preloadSfxForTimeline(timeline, floorId);
 
       // 并发/串行 预加载 TTS
@@ -938,8 +941,8 @@ function parseMessageTimeline(floorId) {
   const rawText = mesArr[0].message;
 
   const settings = getSirenSettings();
-  const startTag = settings.bgm?.start_tag || "<content>";
-  const endTag = settings.bgm?.end_tag || "</content>";
+  const startTag = settings.ambience?.start_tag || "<content>";
+  const endTag = settings.ambience?.end_tag || "</content>";
 
   const escape = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
@@ -960,9 +963,9 @@ function parseMessageTimeline(floorId) {
   }
 
   const timeline = [];
-  // 🌟 修复 1：更具弹性的全局切分正则，允许 bgm/sfx 标签带任意属性
+  // 🌟 修复 1：更具弹性的全局切分正则，允许 ambience/sfx 标签带任意属性
   const combinedRegex =
-    /(<bgm\b[^>]*>[\s\S]*?<\/bgm>|<sfx\b[^>]*>[\s\S]*?<\/sfx>|<(?:speak|inner|phone)\b[^>]*>[\s\S]*?<\/(?:speak|inner|phone)>)/gi;
+    /(<ambience\b[^>]*>[\s\S]*?<\/ambience>|<sfx\b[^>]*>[\s\S]*?<\/sfx>|<(?:speak|inner|phone)\b[^>]*>[\s\S]*?<\/(?:speak|inner|phone)>)/gi;
   const parts = textToParse.split(combinedRegex);
 
   for (let i = 0; i < parts.length; i++) {
@@ -972,13 +975,15 @@ function parseMessageTimeline(floorId) {
     const trimmed = part.trim();
     if (trimmed === "") continue;
 
-    if (trimmed.toLowerCase().startsWith("<bgm")) {
-      // 🌟 修复 2：健壮抓取 bgm 名字
-      const bgmMatch = /<bgm\b[^>]*>([\s\S]*?)<\/bgm>/i.exec(part);
-      if (bgmMatch) {
+    if (trimmed.toLowerCase().startsWith("<ambience")) {
+      // 🌟 修复 2：健壮抓取 ambience 名字
+      const ambienceMatch = /<ambience\b[^>]*>([\s\S]*?)<\/ambience>/i.exec(
+        part,
+      );
+      if (ambienceMatch) {
         timeline.push({
-          type: "bgm",
-          name: bgmMatch[1].trim(),
+          type: "ambience",
+          name: ambienceMatch[1].trim(),
           raw: part,
         });
       }
@@ -1041,24 +1046,24 @@ function parseMessageTimeline(floorId) {
 }
 
 /**
- * 🌟 新增：批量解析并预下载 BGM，存入 IndexedDB
+ * 🌟 新增：批量解析并预下载 Ambience，存入 IndexedDB
  */
-async function preloadBgmForTimeline(timeline, floorId) {
+async function preloadAmbienceForTimeline(timeline, floorId) {
   const settings = getSirenSettings();
-  const bgmLibs = settings?.bgm?.libraries || {};
+  const ambienceLibs = settings?.ambience?.libraries || {};
 
   // 🌟 新增：记录当前预加载批次中已开始处理的 URL，彻底防并发重复下载
   const downloadingUrls = new Set();
 
   for (const node of timeline) {
-    if (node.type === "bgm") {
+    if (node.type === "ambience") {
       let targetUrl = null;
-      let actualBgmName = node.name;
+      let actualAmbienceName = node.name;
 
       // 1. 模拟查找匹配项与随机选择
       let candidates = [];
-      for (const libKey in bgmLibs) {
-        for (const item of bgmLibs[libKey]) {
+      for (const libKey in ambienceLibs) {
+        for (const item of ambienceLibs[libKey]) {
           if (
             item.name === node.name ||
             item.name.startsWith(node.name + "-")
@@ -1069,12 +1074,12 @@ async function preloadBgmForTimeline(timeline, floorId) {
       }
 
       const cacheKey = floorId ? `${floorId}_${node.name}` : null;
-      if (cacheKey && randomBgmCache.has(cacheKey)) {
-        const cachedName = randomBgmCache.get(cacheKey);
+      if (cacheKey && randomAmbienceCache.has(cacheKey)) {
+        const cachedName = randomAmbienceCache.get(cacheKey);
         const found = candidates.find((c) => c.name === cachedName);
         if (found) {
           targetUrl = found.url;
-          actualBgmName = found.name;
+          actualAmbienceName = found.name;
         }
       }
 
@@ -1082,8 +1087,8 @@ async function preloadBgmForTimeline(timeline, floorId) {
         const picked =
           candidates[Math.floor(Math.random() * candidates.length)];
         targetUrl = picked.url;
-        actualBgmName = picked.name;
-        if (cacheKey) randomBgmCache.set(cacheKey, actualBgmName);
+        actualAmbienceName = picked.name;
+        if (cacheKey) randomAmbienceCache.set(cacheKey, actualAmbienceName);
       }
 
       if (!targetUrl) continue;
@@ -1094,25 +1099,28 @@ async function preloadBgmForTimeline(timeline, floorId) {
 
       // 2. 检查 IndexedDB 是否已存在
       try {
-        const record = await getBgmRecord(targetUrl);
+        const record = await getAmbienceRecord(targetUrl);
         if (record && record.audioBlob) {
           continue; // 已经缓存过，直接跳过下载
         }
 
         console.log(
-          `[Siren Voice] 📥 开始后台下载并缓存 BGM: ${actualBgmName}`,
+          `[Siren Voice] 📥 开始后台下载并缓存 Ambience: ${actualAmbienceName}`,
         );
         const response = await fetch(targetUrl);
         if (response.ok) {
           const blob = await response.blob();
-          await saveBgmRecord(targetUrl, blob); // 存入 DB，内部会自动触发超限清理
+          await saveAmbienceRecord(targetUrl, blob); // 存入 DB，内部会自动触发超限清理
         } else {
           console.warn(
-            `[Siren Voice] ⚠️ BGM 下载失败，状态码: ${response.status}`,
+            `[Siren Voice] ⚠️ Ambience 下载失败，状态码: ${response.status}`,
           );
         }
       } catch (e) {
-        console.error(`[Siren Voice] ❌ BGM 下载缓存失败: ${actualBgmName}`, e);
+        console.error(
+          `[Siren Voice] ❌ Ambience 下载缓存失败: ${actualAmbienceName}`,
+          e,
+        );
       }
     }
   }
@@ -1123,7 +1131,7 @@ async function preloadBgmForTimeline(timeline, floorId) {
  */
 async function preloadSfxForTimeline(timeline, floorId) {
   const settings = getSirenSettings();
-  const sfxLibs = settings?.bgm?.sfx_libraries || {};
+  const sfxLibs = settings?.ambience?.sfx_libraries || {};
   const downloadingUrls = new Set();
 
   for (const node of timeline) {
@@ -1160,15 +1168,15 @@ async function preloadSfxForTimeline(timeline, floorId) {
       downloadingUrls.add(targetUrl);
 
       try {
-        // 🌟 复用 BGM 的底层数据库，完美达到去重目的
-        const record = await getBgmRecord(targetUrl);
+        // 🌟 复用 Ambience 的底层数据库，完美达到去重目的
+        const record = await getAmbienceRecord(targetUrl);
         if (record && record.audioBlob) continue;
 
         console.log(`[Siren Voice] 📥 后台缓存 SFX: ${node.name}`);
         const response = await fetch(targetUrl);
         if (response.ok) {
           const blob = await response.blob();
-          await saveBgmRecord(targetUrl, blob);
+          await saveAmbienceRecord(targetUrl, blob);
         }
       } catch (e) {
         console.error(`[Siren Voice] ❌ SFX 缓存失败: ${node.name}`, e);
@@ -1212,8 +1220,8 @@ async function startScenePlayback(floorId, timeline, btnNode) {
     activeSceneState.currentStepIndex = i;
     const node = timeline[i];
 
-    if (node.type === "bgm") {
-      playSceneBgm(node.name, floorId, true);
+    if (node.type === "ambience") {
+      playSceneAmbience(node.name, floorId, true);
     } else if (node.type === "sfx") {
       // 🚀 核心脱钩：删除了 await！让音效进入后台并行，主线程立刻去渲染后面的文字或触发其他音效！
       playSceneSfxSync(node.name, floorId, node.dir);
@@ -1238,7 +1246,7 @@ async function startScenePlayback(floorId, timeline, btnNode) {
     } else if (node.type === "text") {
       const settings =
         SillyTavern.getContext()?.extensionSettings?.siren_voice_settings;
-      const speed = settings?.bgm?.karaoke_speed || 1.0;
+      const speed = settings?.ambience?.karaoke_speed || 1.0;
       const waitTime = Math.max(1000, (node.text.length * 150) / speed);
 
       await startKaraokeAnimation(node.domElements, waitTime, null, floorId);
@@ -1299,7 +1307,7 @@ async function checkableSleep(ms, expectedFloorId) {
 function pauseScenePlayback() {
   activeSceneState.isPaused = true;
   if (activeSceneState.ttsAudio) activeSceneState.ttsAudio.pause();
-  if (activeSceneState.bgmAudio) activeSceneState.bgmAudio.pause();
+  if (activeSceneState.ambienceAudio) activeSceneState.ambienceAudio.pause();
   activeSceneState.activeSfxPool.forEach((audio) => audio.pause());
 
   // 🌟 核心：取消楼层沉浸变暗，并暂存所有卡拉OK变色状态
@@ -1351,8 +1359,8 @@ function resumeScenePlayback() {
     activeSceneState.ttsAudio.play();
   }
 
-  if (activeSceneState.bgmAudio) {
-    activeSceneState.bgmAudio.play();
+  if (activeSceneState.ambienceAudio) {
+    activeSceneState.ambienceAudio.play();
   }
   activeSceneState.activeSfxPool.forEach((audio) => {
     if (!audio.ended) audio.play();
@@ -1362,7 +1370,7 @@ function resumeScenePlayback() {
 /**
  * 🌟 核心修复：完善停止播放时的清场逻辑，彻底超度旧楼层的 Promise
  */
-export function stopScenePlayback(btnNode = null, fadeOutBgm = false) {
+export function stopScenePlayback(btnNode = null, fadeOutAmbience = false) {
   activeSceneState.isPlaying = false;
   activeSceneState.isPaused = false;
   activeSceneState.currentStepIndex = 0;
@@ -1391,22 +1399,22 @@ export function stopScenePlayback(btnNode = null, fadeOutBgm = false) {
     activeSceneState.activeSfxPool.clear(); // 彻底清空池子
   }
 
-  if (activeSceneState.bgmAudio) {
-    if (fadeOutBgm) {
-      const oldBgm = activeSceneState.bgmAudio;
-      fadeAudio(oldBgm, 0, 2.0).then(() => {
-        oldBgm.pause();
-        const src = oldBgm.src; // 👈 暂存 URL
-        oldBgm.removeAttribute("src");
+  if (activeSceneState.ambienceAudio) {
+    if (fadeOutAmbience) {
+      const oldAmbience = activeSceneState.ambienceAudio;
+      fadeAudio(oldAmbience, 0, 2.0).then(() => {
+        oldAmbience.pause();
+        const src = oldAmbience.src; // 👈 暂存 URL
+        oldAmbience.removeAttribute("src");
         if (src && src.startsWith("blob:")) URL.revokeObjectURL(src); // 👈 释放内存
       });
     } else {
-      activeSceneState.bgmAudio.pause();
-      const src = activeSceneState.bgmAudio.src; // 👈 暂存 URL
-      activeSceneState.bgmAudio.removeAttribute("src");
+      activeSceneState.ambienceAudio.pause();
+      const src = activeSceneState.ambienceAudio.src; // 👈 暂存 URL
+      activeSceneState.ambienceAudio.removeAttribute("src");
       if (src && src.startsWith("blob:")) URL.revokeObjectURL(src); // 👈 释放内存
     }
-    activeSceneState.bgmAudio = null;
+    activeSceneState.ambienceAudio = null;
   }
 
   // 彻底清除动画痕迹
@@ -1445,20 +1453,20 @@ export function stopScenePlayback(btnNode = null, fadeOutBgm = false) {
 
   // 👇 1. 获取最新的自定义图标
   const settings = getSirenSettings();
-  const bStyle = settings?.bgm?.card_style;
-  const sStyle = settings?.bgm?.sfx_card_style;
-  const currentBgmIcon =
+  const bStyle = settings?.ambience?.card_style;
+  const sStyle = settings?.ambience?.sfx_card_style;
+  const currentAmbienceIcon =
     bStyle?.dict?.[bStyle.current]?.icon || "fa-solid fa-music";
   const currentSfxIcon =
     sStyle?.dict?.[sStyle.current]?.icon || "fa-solid fa-bolt";
 
   // 👇 2. 使用数据属性选择器恢复背景音图标
-  document.querySelectorAll('[data-siren-bgm="1"] i').forEach((el) => {
+  document.querySelectorAll('[data-siren-ambience="1"] i').forEach((el) => {
     if (
       el.classList.contains("fa-circle-pause") ||
       el.classList.contains("fa-spinner")
     ) {
-      el.className = currentBgmIcon;
+      el.className = currentAmbienceIcon;
     }
   });
 
@@ -1530,32 +1538,39 @@ function playSceneTtsSync(blob, speakObj = null) {
   return { audio, promise, startAudio };
 }
 
-export async function playSceneBgm(bgmName, floorId = null, forcePlay = false) {
+export async function playSceneAmbience(
+  ambienceName,
+  floorId = null,
+  forcePlay = false,
+) {
   const settings = getSirenSettings();
-  const bgmLibs = settings?.bgm?.libraries || {};
-  const fadeSec = settings?.bgm?.fade_duration ?? 2.0;
+  const ambienceLibs = settings?.ambience?.libraries || {};
+  const fadeSec = settings?.ambience?.fade_duration ?? 2.0;
 
   let targetUrl = null;
-  let actualBgmName = bgmName;
+  let actualAmbienceName = ambienceName;
 
-  // 🌟 1. 收集所有符合条件的 BGM (完全匹配，或者以 "名字_" 开头)
+  // 🌟 1. 收集所有符合条件的 Ambience (完全匹配，或者以 "名字_" 开头)
   let candidates = [];
-  for (const libKey in bgmLibs) {
-    for (const item of bgmLibs[libKey]) {
-      if (item.name === bgmName || item.name.startsWith(bgmName + "-")) {
+  for (const libKey in ambienceLibs) {
+    for (const item of ambienceLibs[libKey]) {
+      if (
+        item.name === ambienceName ||
+        item.name.startsWith(ambienceName + "-")
+      ) {
         candidates.push(item);
       }
     }
   }
 
   // 🌟 2. 检查该楼层是否已经为这个前缀抽取过随机音乐 (防止多次点击乱切歌)
-  const cacheKey = floorId ? `${floorId}_${bgmName}` : null;
-  if (cacheKey && randomBgmCache.has(cacheKey)) {
-    const cachedName = randomBgmCache.get(cacheKey);
+  const cacheKey = floorId ? `${floorId}_${ambienceName}` : null;
+  if (cacheKey && randomAmbienceCache.has(cacheKey)) {
+    const cachedName = randomAmbienceCache.get(cacheKey);
     const found = candidates.find((c) => c.name === cachedName);
     if (found) {
       targetUrl = found.url;
-      actualBgmName = found.name;
+      actualAmbienceName = found.name;
     }
   }
 
@@ -1563,88 +1578,95 @@ export async function playSceneBgm(bgmName, floorId = null, forcePlay = false) {
   if (!targetUrl && candidates.length > 0) {
     const picked = candidates[Math.floor(Math.random() * candidates.length)];
     targetUrl = picked.url;
-    actualBgmName = picked.name;
+    actualAmbienceName = picked.name;
 
     if (cacheKey) {
-      randomBgmCache.set(cacheKey, actualBgmName);
+      randomAmbienceCache.set(cacheKey, actualAmbienceName);
     }
   }
 
   if (!targetUrl) {
-    console.warn(`[Siren Voice] ⚠️ BGM 未找到匹配的 URL: ${bgmName}`);
-    if (window.toastr) window.toastr.warning(`未找到背景音: ${bgmName}`);
+    console.warn(`[Siren Voice] ⚠️ Ambience 未找到匹配的 URL: ${ambienceName}`);
+    if (window.toastr) window.toastr.warning(`未找到背景音: ${ambienceName}`);
     return "not_found";
   }
 
   // 🌟 核心修改：检查“实际播放的名字”是否与当前正在播放的重合，触发暂停
-  if (activeSceneState.bgmAudio && activeSceneState.bgmName === actualBgmName) {
-    if (activeSceneState.bgmAudio.paused) {
-      await activeSceneState.bgmAudio.play();
+  if (
+    activeSceneState.ambienceAudio &&
+    activeSceneState.ambienceName === actualAmbienceName
+  ) {
+    if (activeSceneState.ambienceAudio.paused) {
+      await activeSceneState.ambienceAudio.play();
       return "playing";
     } else {
       // 🌟 拦截：如果是从剧本 timeline 自动触发的，遇到同名音乐直接放行，不要暂停
       if (forcePlay) return "playing";
 
-      activeSceneState.bgmAudio.pause();
+      activeSceneState.ambienceAudio.pause();
       return "paused";
     }
   }
 
-  console.log(`[Siren Voice] 🎵 切入 BGM: ${actualBgmName} -> ${targetUrl}`);
+  console.log(
+    `[Siren Voice] 🎵 切入 Ambience: ${actualAmbienceName} -> ${targetUrl}`,
+  );
 
-  const oldBgm = activeSceneState.bgmAudio;
+  const oldAmbience = activeSceneState.ambienceAudio;
 
   // 🌟 核心修复 1：检查缓存与兜底强制下载
   let finalSrc = targetUrl;
-  const record = await getBgmRecord(targetUrl);
+  const record = await getAmbienceRecord(targetUrl);
 
   if (record && record.audioBlob) {
     finalSrc = URL.createObjectURL(record.audioBlob);
-    console.log(`[Siren Voice] ⚡ 命中本地 BGM 缓存！`);
+    console.log(`[Siren Voice] ⚡ 命中本地 Ambience 缓存！`);
   } else {
     console.log(
-      `[Siren Voice] 📥 BGM 缓存未命中，开始兜底下载: ${actualBgmName}`,
+      `[Siren Voice] 📥 Ambience 缓存未命中，开始兜底下载: ${actualAmbienceName}`,
     );
     try {
       const response = await fetch(targetUrl);
       if (response.ok) {
         const blob = await response.blob();
-        await saveBgmRecord(targetUrl, blob);
+        await saveAmbienceRecord(targetUrl, blob);
         finalSrc = URL.createObjectURL(blob);
         console.log(`[Siren Voice] ✅ 兜底下载完成并缓存入库！`);
       } else {
-        console.warn(`[Siren Voice] ⚠️ BGM 下载失败 (HTTP ${response.status})`);
+        console.warn(
+          `[Siren Voice] ⚠️ Ambience 下载失败 (HTTP ${response.status})`,
+        );
         if (window.toastr) window.toastr.error("背景音加载失败，请检查链接");
         return "error"; // 🌟 修复：明确返回 error，阻止下游生成错误的 Audio
       }
     } catch (e) {
-      console.error(`[Siren Voice] ❌ BGM 下载报错:`, e);
+      console.error(`[Siren Voice] ❌ Ambience 下载报错:`, e);
       if (window.toastr) window.toastr.error("背景音网络请求失败");
       return "error"; // 🌟 修复：阻断播放，让界面的转圈能够停止
     }
   }
 
-  const newBgm = new Audio(finalSrc);
-  newBgm.loop = true;
-  newBgm.volume = 0;
+  const newAmbience = new Audio(finalSrc);
+  newAmbience.loop = true;
+  newAmbience.volume = 0;
 
-  activeSceneState.bgmAudio = newBgm;
-  activeSceneState.bgmName = actualBgmName; // 🌟 记住随机抽取的真实名字
+  activeSceneState.ambienceAudio = newAmbience;
+  activeSceneState.ambienceName = actualAmbienceName; // 🌟 记住随机抽取的真实名字
 
   try {
-    await newBgm.play();
-    fadeAudio(newBgm, getRealVolume("bgm"), fadeSec);
-    if (oldBgm) {
-      fadeAudio(oldBgm, 0, fadeSec).then(() => {
-        oldBgm.pause();
-        const src = oldBgm.src; // 👈 暂存 URL
-        oldBgm.removeAttribute("src");
+    await newAmbience.play();
+    fadeAudio(newAmbience, getRealVolume("ambience"), fadeSec);
+    if (oldAmbience) {
+      fadeAudio(oldAmbience, 0, fadeSec).then(() => {
+        oldAmbience.pause();
+        const src = oldAmbience.src; // 👈 暂存 URL
+        oldAmbience.removeAttribute("src");
         if (src && src.startsWith("blob:")) URL.revokeObjectURL(src); // 👈 释放内存，防止爆显存/内存
       });
     }
     return "playing";
   } catch (e) {
-    console.error("[Siren Voice] ❌ BGM 播放失败", e);
+    console.error("[Siren Voice] ❌ Ambience 播放失败", e);
     return "error";
   }
 }
@@ -1660,7 +1682,7 @@ export async function playSceneSfx(
   dir = "center",
 ) {
   const settings = getSirenSettings();
-  const sfxLibs = settings?.bgm?.sfx_libraries || {};
+  const sfxLibs = settings?.ambience?.sfx_libraries || {};
 
   let targetUrl = null;
   let actualSfxName = sfxName;
@@ -1731,7 +1753,7 @@ export async function playSceneSfx(
 
   // 5. 命中缓存或兜底下载
   let finalSrc = targetUrl;
-  const record = await getBgmRecord(targetUrl);
+  const record = await getAmbienceRecord(targetUrl);
 
   if (record && record.audioBlob) {
     finalSrc = URL.createObjectURL(record.audioBlob);
@@ -1740,7 +1762,7 @@ export async function playSceneSfx(
       const response = await fetch(targetUrl);
       if (response.ok) {
         const blob = await response.blob();
-        await saveBgmRecord(targetUrl, blob);
+        await saveAmbienceRecord(targetUrl, blob);
         finalSrc = URL.createObjectURL(blob);
       } else {
         console.warn(`[Siren Voice] ⚠️ SFX 下载失败 (HTTP ${response.status})`);
@@ -1798,7 +1820,7 @@ function playSceneSfxSync(sfxName, floorId = null, dir = "center") {
       return resolve();
 
     const settings = getSirenSettings();
-    const sfxLibs = settings?.bgm?.sfx_libraries || {};
+    const sfxLibs = settings?.ambience?.sfx_libraries || {};
     let targetUrl = null;
     let candidates = [];
 
@@ -1830,7 +1852,7 @@ function playSceneSfxSync(sfxName, floorId = null, dir = "center") {
 
     // 尝试命中本地缓存
     let finalSrc = targetUrl;
-    const record = await getBgmRecord(targetUrl);
+    const record = await getAmbienceRecord(targetUrl);
     if (record && record.audioBlob) {
       finalSrc = URL.createObjectURL(record.audioBlob);
     } else {
@@ -1838,7 +1860,7 @@ function playSceneSfxSync(sfxName, floorId = null, dir = "center") {
         const response = await fetch(targetUrl);
         if (response.ok) {
           const blob = await response.blob();
-          await saveBgmRecord(targetUrl, blob);
+          await saveAmbienceRecord(targetUrl, blob);
           finalSrc = URL.createObjectURL(blob);
         } else {
           console.warn(
@@ -1931,13 +1953,13 @@ export function getActiveSfxAudio() {
 
 /**
  * 🌟 核心功能：根据 Timeline 生成实质性内容签名
- * 逻辑：包含 BGM/SFX 的名字，TTS 的角色、情绪、描写、文本。排除所有 dir 属性和标签类型的干扰。
+ * 逻辑：包含 Ambience/SFX 的名字，TTS 的角色、情绪、描写、文本。排除所有 dir 属性和标签类型的干扰。
  */
 export function generateSignatureFromTimeline(timeline) {
   return timeline
-    .filter((n) => ["bgm", "tts", "sfx"].includes(n.type))
+    .filter((n) => ["ambience", "tts", "sfx"].includes(n.type))
     .map((n) => {
-      if (n.type === "bgm") return `bgm:${n.name}`;
+      if (n.type === "ambience") return `ambience:${n.name}`;
       if (n.type === "sfx") return `sfx:${n.name}`; // 仅对比名字，不含 dir
       if (n.type === "tts") {
         const s = n.speakObj || {};
@@ -2011,7 +2033,7 @@ export async function triggerSceneAutoPlay() {
   const settings = context?.extensionSettings?.siren_voice_settings;
 
   // 1. 检查全局场控和自动播放开关
-  if (!settings?.bgm?.enabled || !settings?.bgm?.auto_play) return;
+  if (!settings?.ambience?.enabled || !settings?.ambience?.auto_play) return;
 
   if (!window.TavernHelper) return;
   const messages = window.TavernHelper.getChatMessages(-1);
@@ -2026,7 +2048,7 @@ export async function triggerSceneAutoPlay() {
   // 3. 检查回复的完整性 (防止半截断的句子被读出来)
   const isComplete = checkReplyIntegrity(
     lastMsg.message,
-    settings.bgm.custom_end_tags,
+    settings.ambience.custom_end_tags,
   );
   if (!isComplete) {
     console.warn(
