@@ -23,6 +23,7 @@ let lyricUpdateHandler = null;
 
 let currentPlaylist = [];
 let currentMusicIndex = -1;
+let currentPlayingTrack = null;
 
 document.addEventListener("sirenVolumeChanged", (e) => {
   if (e.detail.channel === "music" && currentAudio) {
@@ -150,6 +151,24 @@ function parseLRC(lrcText) {
  * 智能配乐入口：只给名字去盲搜
  */
 export async function playTargetMusic(title, artist, source = "netease") {
+  // 🌟 新增：防重复打断检测（针对智能配乐的盲搜）
+  // 条件：存在音频实例 + 音频未自然结束 + 当前有登记的播放元数据
+  if (currentAudio && !currentAudio.ended && currentPlayingTrack) {
+    const isTitleMatch = currentPlayingTrack.title === title;
+    // 如果没有提供 artist（模糊匹配），或者当前播放的歌手包含提供的 artist，都视为一致
+    const isArtistMatch =
+      !artist ||
+      (currentPlayingTrack.artist &&
+        currentPlayingTrack.artist.includes(artist));
+
+    if (isTitleMatch && isArtistMatch) {
+      console.log(
+        `[Siren Voice] 🎵 智能配乐拦截: 检测到 [${title}] 正在播放，保持潜流...`,
+      );
+      return; // 直接 return，不打断当前播放，也不刷新 UI
+    }
+  }
+
   const keyword = artist ? `${title} ${artist}` : title;
   updatePlayerUI(title, artist || "搜索中...", null, true);
   updateLyricUI("正在打捞潜流...");
@@ -171,11 +190,32 @@ export async function playTargetMusic(title, artist, source = "netease") {
  * 🌟 新增：精准播放核心 (传入带有 ID 的对象，拒绝重复盲搜)
  */
 export async function playExactMusic(trackInfo) {
+  // 🌟 新增：防重复打断检测（针对精确 ID）
+  if (
+    currentAudio &&
+    !currentAudio.ended &&
+    currentPlayingTrack &&
+    currentPlayingTrack.id === trackInfo.id
+  ) {
+    console.log(
+      `[Siren Voice] 🎵 精确播放拦截: 检测到目标 ID [${trackInfo.id}] 正在播放，跳过打断。`,
+    );
+    return;
+  }
+
   console.log("[Siren Voice API] 锁定播放目标，准备拉取资源:", trackInfo);
 
   const artistName = Array.isArray(trackInfo.artist)
     ? trackInfo.artist.join("/")
     : trackInfo.artist;
+
+  // 🌟 新增：向系统登记当前准备播放的歌曲元数据
+  currentPlayingTrack = {
+    id: trackInfo.id,
+    title: trackInfo.name,
+    artist: artistName,
+  };
+
   updatePlayerUI(trackInfo.name, artistName, null, true);
 
   let directPicUrl =
@@ -377,9 +417,9 @@ function executePlay(url, title, artist, picUrl) {
         ? playerEl.style.getPropertyValue("--lyric-progress")
         : "未找到";
 
-      console.log(
+      /* console.log(
         `[Siren 雷达] ${fpsStatus} | 原生Time: ${realTime.toFixed(3)}s | 补帧Time: ${currentTime.toFixed(3)}s | 计算进度: ${currentProgress.toFixed(2)}% | DOM变量: ${actualCssVar}`,
-      );
+      ); */
       diagnosticCounter = 0;
     }
 

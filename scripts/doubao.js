@@ -396,6 +396,7 @@ function refreshTestCharacterSelect(voiceMap) {
 }
 
 // 🌟 核心：动态添加一行，应用类 GSV 的半透明暗箱包围结构
+// 🌟 核心：动态添加一行，应用类 GSV 的半透明暗箱包围结构
 function addCharRow(name, model, speaker) {
   const rowId = "db-row-" + Date.now() + Math.floor(Math.random() * 1000);
 
@@ -430,16 +431,101 @@ function addCharRow(name, model, speaker) {
 
   $modelSelect.val(model || "seed-tts-2.0");
 
-  // 内部函数：根据选中的模型，重新渲染右侧的音色控件 (同样统一下降到 32px)
+  // 内部函数：根据选中的模型，重新渲染右侧的音色控件
   function renderSpeakerField(currentModel, currentValue) {
     if (currentModel === "seed-tts-2.0") {
-      const options = $("#siren-db-voice-options").html();
-      $speakerContainer.html(`
-                <select class="siren-ext-select siren-db-speaker-input" style="width: 100%; height: 32px; box-sizing: border-box; margin: 0;">
-                    ${options}
-                </select>
-            `);
-      if (currentValue) $speakerContainer.find("select").val(currentValue);
+      // 1. 获取当前选中的音色名称（用于回显展示）
+      let initialName = "";
+      if (currentValue) {
+        const found = DOUBAO_VOICES_2_0.find((v) => v.id === currentValue);
+        if (found) initialName = found.name;
+      }
+
+      // 2. 预先构建所有列表项的 HTML
+      let listHtml = DOUBAO_VOICES_2_0.map(
+        (v) =>
+          `<div class="siren-db-voice-item" data-id="${v.id}" data-name="${v.name}" style="padding: 6px 10px; cursor: pointer; color: #cbd5e1; font-size: 0.9em; border-bottom: 1px solid rgba(255,255,255,0.05);">${v.name}</div>`,
+      ).join("");
+
+      // 3. 构建带搜索的下拉组件
+      const html = `
+        <div class="siren-db-searchable-select" style="position: relative; width: 100%; height: 32px;">
+            <input type="hidden" class="siren-db-speaker-input" value="${currentValue || ""}">
+            
+            <input type="text" class="siren-ext-input siren-db-speaker-search" placeholder="搜索或选择音色..." value="${initialName}" style="width: 100%; height: 32px; box-sizing: border-box; margin: 0; padding-right: 25px;">
+            <i class="fa-solid fa-chevron-down" style="position: absolute; right: 10px; top: 10px; color: #64748b; font-size: 0.8em; pointer-events: none;"></i>
+            
+            <div class="siren-db-speaker-dropdown" style="display: none; position: absolute; top: 100%; left: 0; width: 100%; max-height: 200px; overflow-y: auto; background: #1e293b; border: 1px solid #475569; border-radius: 4px; z-index: 9999; margin-top: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);">
+                ${listHtml}
+            </div>
+        </div>
+      `;
+      $speakerContainer.html(html);
+
+      // 4. 绑定组件的交互事件
+      const $search = $speakerContainer.find(".siren-db-speaker-search");
+      const $hidden = $speakerContainer.find(".siren-db-speaker-input");
+      const $dropdown = $speakerContainer.find(".siren-db-speaker-dropdown");
+      const $items = $speakerContainer.find(".siren-db-voice-item");
+
+      // 点击或聚焦时展开列表，并全选文字方便重新输入
+      $search.on("focus click", function () {
+        $dropdown.show();
+        $(this).select();
+      });
+
+      // 输入时实时过滤列表
+      $search.on("input", function () {
+        const keyword = $(this).val().toLowerCase();
+        $dropdown.show();
+        $items.each(function () {
+          const text = $(this).data("name").toLowerCase();
+          if (text.includes(keyword)) {
+            $(this).show();
+          } else {
+            $(this).hide();
+          }
+        });
+      });
+
+      // 失去焦点时隐藏下拉框，并做防呆校验
+      $search.on("blur", function () {
+        // 延迟隐藏，确保点击列表项的事件能先触发
+        setTimeout(() => {
+          $dropdown.hide();
+          // 校验：如果用户乱输且没选中，恢复成之前保存的音色名；如果清空了，则清空 ID
+          const currentId = $hidden.val();
+          const found = DOUBAO_VOICES_2_0.find((v) => v.id === currentId);
+
+          if ($search.val().trim() === "") {
+            $hidden.val("");
+          } else if (found) {
+            $search.val(found.name);
+          } else {
+            $search.val("");
+            $hidden.val("");
+          }
+        }, 150);
+      });
+
+      // 列表项的悬浮变色
+      $items.on("mouseenter", function () {
+        $(this).css("background", "rgba(59, 130, 246, 0.5)");
+      });
+      $items.on("mouseleave", function () {
+        $(this).css("background", "transparent");
+      });
+
+      // 点击选中具体的音色
+      $items.on("click", function () {
+        const id = $(this).data("id");
+        const name = $(this).data("name");
+
+        $hidden.val(id); // 更新真实待保存的 ID
+        $search.val(name); // 更新框内显示的名称
+        $dropdown.hide();
+        $items.show(); // 重置过滤状态以备下次点开
+      });
     } else {
       $speakerContainer.html(`
                 <input type="text" class="siren-ext-input siren-db-speaker-input" placeholder="输入复刻音色ID" style="width: 100%; height: 32px; box-sizing: border-box; margin: 0;">

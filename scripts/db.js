@@ -3,7 +3,7 @@ import { getSirenSettings } from "./settings.js";
 
 const DB_NAME = "SirenVoiceDB";
 const STORE_NAME = "TTS_History";
-const DB_VERSION = 2; // 👈 [修改] 将版本号改为 2，触发数据库升级
+const DB_VERSION = 3; // 👈 [修改] 将版本号改为 2，触发数据库升级
 const AMBIENCE_STORE_NAME = "AMBIENCE_Cache"; // 👈 [新增] Ambience 专属存储库名
 
 /**
