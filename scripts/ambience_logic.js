@@ -1985,6 +1985,14 @@ export async function handleMessageEditRevert(floorId) {
   console.log(
     `[Siren Debug] 🔔 触发 handleMessageEditRevert，楼层: ${floorId}`,
   );
+
+  const isActivePlaying =
+    activeSceneState.floorId === String(floorId) &&
+    (activeSceneState.isPlaying || activeSceneState.isPaused);
+  if (isActivePlaying) {
+    recoverActiveSceneDom(floorId);
+  }
+
   // 1. 清除上一次的计时器，防抖拦截 ST 密集的重绘事件
   if (revertDebounceTimers[floorId]) {
     clearTimeout(revertDebounceTimers[floorId]);
