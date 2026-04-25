@@ -1224,19 +1224,22 @@ async function startScenePlayback(floorId, timeline, btnNode) {
       // 🚀 核心脱钩：删除了 await！让音效进入后台并行，主线程立刻去渲染后面的文字或触发其他音效！
       playSceneSfxSync(node.name, floorId, node.dir);
     } else if (node.type === "tts" && node.blob) {
-      // 🚀 终极屏障：TTS 登场前，必须等待之前触发的所有 SFX 彻底播完！
-      await waitForActiveSfx(floorId);
+      // 🌟 新增：如果当前有 SFX 在播，稍微等待 400ms（模拟人类反应停顿），否则等待 50ms
+      if (activeSceneState.activeSfxPool.size > 0) {
+        await checkableSleep(400, floorId);
+      } else {
+        await checkableSleep(50, floorId);
+      }
 
       // 如果等待期间被打断了（切楼了），及时跳出循环
       if (!activeSceneState.isPlaying || activeSceneState.floorId !== floorId)
         break;
 
-      await checkableSleep(50, floorId);
       const { audio, promise, startAudio } = playSceneTtsSync(
         node.blob,
         node.speakObj,
       );
-      // 👇 修改这里：只传 node，不传 node.domElements
+
       startKaraokeAnimation(node, 0, audio, floorId, startAudio);
       await promise;
 
@@ -1516,11 +1519,37 @@ function playSceneTtsSync(blob, speakObj = null) {
 
     audio.onended = () => {
       if (activeSceneState.ttsAudio === audio) activeSceneState.ttsAudio = null;
+
+      // 恢复 Ambience 音量
+      if (activeSceneState.ambienceAudio) {
+        fadeAudio(
+          activeSceneState.ambienceAudio,
+          getRealVolume("ambience"),
+          1.0,
+        );
+      }
+      // 恢复存活的 SFX 音量
+      activeSceneState.activeSfxPool.forEach((sfx) => {
+        fadeAudio(sfx, getRealVolume("sfx"), 1.0);
+      });
+
       audio._resolve();
     };
 
     audio.onerror = () => {
       if (activeSceneState.ttsAudio === audio) activeSceneState.ttsAudio = null;
+
+      if (activeSceneState.ambienceAudio) {
+        fadeAudio(
+          activeSceneState.ambienceAudio,
+          getRealVolume("ambience"),
+          1.0,
+        );
+      }
+      activeSceneState.activeSfxPool.forEach((sfx) => {
+        fadeAudio(sfx, getRealVolume("sfx"), 1.0);
+      });
+
       audio._resolve();
     };
 
@@ -1529,7 +1558,33 @@ function playSceneTtsSync(blob, speakObj = null) {
         console.error("[Siren Voice] 播放被浏览器拦截", e);
         if (activeSceneState.ttsAudio === audio)
           activeSceneState.ttsAudio = null;
+
+        // 报错拦截时恢复音量
+        if (activeSceneState.ambienceAudio) {
+          fadeAudio(
+            activeSceneState.ambienceAudio,
+            getRealVolume("ambience"),
+            1.0,
+          );
+        }
+        activeSceneState.activeSfxPool.forEach((sfx) => {
+          fadeAudio(sfx, getRealVolume("sfx"), 1.0);
+        });
+
         audio._resolve();
+      });
+
+      // 压低 Ambience 到原本的 30%
+      if (activeSceneState.ambienceAudio) {
+        fadeAudio(
+          activeSceneState.ambienceAudio,
+          getRealVolume("ambience") * 0.3,
+          0.5,
+        );
+      }
+      // 压低所有正在播放的 SFX 到 30%
+      activeSceneState.activeSfxPool.forEach((sfx) => {
+        fadeAudio(sfx, getRealVolume("sfx") * 0.3, 0.5);
       });
     };
   });
