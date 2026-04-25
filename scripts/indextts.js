@@ -4,6 +4,7 @@ import {
   saveToCharacterCard,
 } from "./settings.js";
 import { getCharacterTtsConfig, requestIndexTTS } from "./indextts_logic.js";
+import { syncTtsWorldbookEntries } from "./utils.js";
 
 export function getIndexTtsHtml() {
   return `
