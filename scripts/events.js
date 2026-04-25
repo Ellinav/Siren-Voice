@@ -4,6 +4,10 @@ import {
   stripParentheticalAsides,
   checkReplyIntegrity,
   stripWrappingPunctuation,
+  syncTtsWorldbookEntries,
+  syncSpatialWorldbookEntries,
+  syncAmbienceWorldbookEntries,
+  syncMusicWorldbookEntry,
 } from "./utils.js";
 import { getSirenSettings, saveSirenSettings } from "./settings.js";
 import { getEchoHistory } from "./music.js";
@@ -566,9 +570,35 @@ export function initEvents() {
     }, 500);
   });
 
-  eventSource.on("chat_id_changed", () => {
-    window.dispatchEvent(new CustomEvent("siren:echo_updated"));
+  eventSource.on("chat_id_changed", async (...args) => {
+    const payload = args[0];
 
+    // 检查 payload 是否不为空且不为 undefined (代表发生实质性的聊天切换)
+    if (payload !== undefined && payload !== null && payload !== "") {
+      console.log("[Siren Voice] 📖 检测到聊天切换，准备全量同步世界书...");
+
+      const settings = getSirenSettings();
+      if (settings) {
+        // 安全读取当前的各项配置状态
+        const isTtsEnabled = settings.tts?.enabled ?? false;
+        const ttsProvider = settings.tts?.provider || "indextts";
+        const spatialMode = settings.mixer?.spatial_mode ?? 0;
+        const isAmbienceEnabled = settings.ambience?.enabled ?? false;
+        const isMusicEnabled = settings.music?.enabled ?? false;
+
+        // 使用 Promise.all 并发执行 4 个同步任务，提高效率
+        await Promise.all([
+          syncTtsWorldbookEntries(ttsProvider, isTtsEnabled),
+          syncSpatialWorldbookEntries(spatialMode),
+          syncAmbienceWorldbookEntries(isAmbienceEnabled),
+          syncMusicWorldbookEntry(isMusicEnabled),
+        ]);
+
+        console.log("[Siren Voice] ✨ 聊天切换世界书全量同步完成。");
+      }
+    }
+
+    window.dispatchEvent(new CustomEvent("siren:echo_updated"));
     // 👇 🌟 新增：向全局广播“聊天/角色已切换”事件
     window.dispatchEvent(new CustomEvent("siren:character_changed"));
 

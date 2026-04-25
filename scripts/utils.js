@@ -230,6 +230,27 @@ export function getTtsVoiceAndMoodLists(provider) {
 }
 
 /**
+ * 获取当前绑定的 Siren-Voice 世界书的实际名称（支持模糊匹配版本号前缀等）
+ * 如果未绑定或环境未就绪，返回 null
+ */
+export function getActiveSirenWorldbookName() {
+  if (
+    !window.TavernHelper ||
+    typeof window.TavernHelper.getGlobalWorldbookNames !== "function"
+  ) {
+    return null;
+  }
+  try {
+    const globalWbs = window.TavernHelper.getGlobalWorldbookNames();
+    // 返回第一个包含 "Siren-Voice" 的世界书全名
+    return globalWbs.find((name) => name.includes("Siren-Voice")) || null;
+  } catch (error) {
+    console.warn("[Siren Voice] 获取世界书名称失败:", error);
+    return null;
+  }
+}
+
+/**
  * 根据 TTS 总开关和选中的 Provider，动态同步世界书条目并注入宏数据
  * @param {string} selectedProvider - 当前选中的 provider 标识 (如 "indextts")
  * @param {boolean} isTtsEnabled - TTS 总开关 (siren-tts-enable) 是否开启
@@ -275,7 +296,7 @@ export async function syncTtsWorldbookEntries(selectedProvider, isTtsEnabled) {
 
   try {
     await window.TavernHelper.updateWorldbookWith(
-      "Siren-Voice",
+      targetWbName,
       (worldbook) => {
         worldbook.forEach((entry) => {
           if (entry.name && entry.name.startsWith("TTS-")) {
@@ -326,17 +347,20 @@ export async function syncTtsWorldbookEntries(selectedProvider, isTtsEnabled) {
  * @param {number} spatialMode - 0: 无, 1: 简单模式, 2: 沉浸模式
  */
 export async function syncSpatialWorldbookEntries(spatialMode) {
+  const targetWbName = getActiveSirenWorldbookName();
   if (
-    !window.TavernHelper ||
+    !targetWbName ||
     typeof window.TavernHelper.updateWorldbookWith !== "function"
   ) {
-    console.warn("[Siren Voice] TavernHelper 不可用，跳过空间感世界书同步。");
+    console.warn(
+      "[Siren Voice] 未找到包含 'Siren-Voice' 的世界书或环境不可用，跳过空间感世界书同步。",
+    );
     return;
   }
 
   try {
     await window.TavernHelper.updateWorldbookWith(
-      "Siren-Voice",
+      targetWbName,
       (worldbook) => {
         worldbook.forEach((entry) => {
           // 简单模式 (1) 开启 Direction-Simple
@@ -360,11 +384,14 @@ export async function syncSpatialWorldbookEntries(spatialMode) {
 }
 
 export async function syncAmbienceWorldbookEntries(isAmbienceEnabled) {
+  const targetWbName = getActiveSirenWorldbookName();
   if (
-    !window.TavernHelper ||
+    !targetWbName ||
     typeof window.TavernHelper.updateWorldbookWith !== "function"
   ) {
-    console.warn("[Siren Voice] TavernHelper 不可用，跳过世界书同步。");
+    console.warn(
+      "[Siren Voice] 未找到包含 'Siren-Voice' 的世界书或环境不可用，跳过 AMBIENCE 世界书同步。",
+    );
     return;
   }
 
@@ -410,7 +437,7 @@ export async function syncAmbienceWorldbookEntries(isAmbienceEnabled) {
 
   try {
     await window.TavernHelper.updateWorldbookWith(
-      "Siren-Voice",
+      targetWbName,
       (worldbook) => {
         worldbook.forEach((entry) => {
           // 核心逻辑：精准匹配名称为 "AMBIENCE" 或 "SFX" 的条目
@@ -462,17 +489,20 @@ export async function syncAmbienceWorldbookEntries(isAmbienceEnabled) {
  * 独立同步 Music 世界书条目状态
  */
 export async function syncMusicWorldbookEntry(isMusicEnabled) {
+  const targetWbName = getActiveSirenWorldbookName();
   if (
-    !window.TavernHelper ||
+    !targetWbName ||
     typeof window.TavernHelper.updateWorldbookWith !== "function"
   ) {
-    console.warn("[Siren Voice] TavernHelper 不可用，跳过 Music 世界书同步。");
+    console.warn(
+      "[Siren Voice] 未找到包含 'Siren-Voice' 的世界书或环境不可用，跳过 Music 世界书同步。",
+    );
     return;
   }
 
   try {
     await window.TavernHelper.updateWorldbookWith(
-      "Siren-Voice",
+      targetWbName,
       (worldbook) => {
         worldbook.forEach((entry) => {
           // 核心逻辑：精准匹配名称为 "Music" 的条目

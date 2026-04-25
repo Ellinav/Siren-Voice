@@ -8,7 +8,7 @@
   "generate_interceptor": "sirenVoicePromptInterceptor",
   "css": "style.css",
   "author": "ron",
-  "version": "2.0.2",
+  "version": "2.1.0",
   "homePage": "",
   "auto_update": false,
   "minimum_client_version": "1.11.0",

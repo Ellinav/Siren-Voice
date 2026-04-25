@@ -134,7 +134,8 @@ import { initInterceptor } from "./scripts/interceptor.js";
     let isMissing = true;
     try {
       const globalWbs = window.TavernHelper.getGlobalWorldbookNames();
-      if (globalWbs.includes("Siren-Voice")) {
+      // 只要全局世界书列表中有任何一个名字包含 "Siren-Voice"，就认为已绑定
+      if (globalWbs.some((name) => name.includes("Siren-Voice"))) {
         isMissing = false;
       }
     } catch (error) {
