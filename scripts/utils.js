@@ -294,9 +294,18 @@ export async function syncTtsWorldbookEntries(selectedProvider, isTtsEnabled) {
     ? `TTS-${providerToEntrySuffix[selectedProvider]}`
     : null;
 
+  // 👇 新增这部分：获取 targetWbName 并进行防空检查
+  const targetWbName = getActiveSirenWorldbookName();
+  if (!targetWbName) {
+    console.warn(
+      "[Siren Voice] 未找到包含 'Siren-Voice' 的世界书，跳过 TTS 世界书同步。",
+    );
+    return;
+  }
+
   try {
     await window.TavernHelper.updateWorldbookWith(
-      targetWbName,
+      targetWbName, // 👈 现在这里就不会报 undefined 的错了
       (worldbook) => {
         worldbook.forEach((entry) => {
           if (entry.name && entry.name.startsWith("TTS-")) {

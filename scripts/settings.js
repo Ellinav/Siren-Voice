@@ -770,6 +770,7 @@ export const defaultSettings = Object.freeze({
     },
     indextts: {
       api_base: "http://127.0.0.1:7880",
+      api_key: "",
       auto_play: true,
       clean_text: true,
       // 采样参数
@@ -822,7 +823,7 @@ export const defaultSettings = Object.freeze({
       access_key: "",
     },
     gptsovits: {
-      api_base: "http://127.0.0.1:9880",
+      api_base: "http://127.0.0.1:8000",
       api_key: "",
       text_split_method: "按标点符号切",
       fragment_interval: 0.3,

@@ -218,8 +218,7 @@ export function bindDoubaoEvents() {
   // 3. 事件：全局保存
   $("#siren-db-char-save")
     .off("click")
-    .on("click", async function () {
-      // 保存全局设置
+    .on("click", async function (e, isSilent = false) {
       settings.tts.doubao.app_id = $("#siren-db-appid").val().trim();
       settings.tts.doubao.access_key = $("#siren-db-ak").val().trim();
       saveSirenSettings(true);
@@ -240,18 +239,32 @@ export function bindDoubaoEvents() {
         }
       });
 
-      const success = await saveToCharacterCard("siren_voice_tts_doubao", {
-        voices: voiceMap,
-      });
+      const success = await saveToCharacterCard(
+        "siren_voice_tts_doubao",
+        {
+          voices: voiceMap,
+        },
+        true,
+      );
+
       if (success) {
-        // 保存成功后，刷新发音测试的下拉列表
+        // 如果不是全局按钮调用的，才自己弹窗
+        if (!isSilent && window.toastr) {
+          window.toastr.success("Doubao: 配置已保存，已自动切换并同步世界书！");
+        }
         refreshTestCharacterSelect(voiceMap);
 
-        // 👇 【新增代码】同步世界书宏变量
+        // 👇 修改这里：强制将全局 TTS 引擎设为豆包，并确保总开关开启
         const currentSettings = getSirenSettings();
-        if (currentSettings.tts.provider === "doubao") {
-          await syncTtsWorldbookEntries("doubao", currentSettings.tts.enabled);
-        }
+        currentSettings.tts.provider = "doubao";
+        currentSettings.tts.enabled = true;
+        saveSirenSettings(true); // 保存全局状态的更改
+
+        // 强制调用世界书同步，传入 true (isTtsEnabled) 意味着：
+        // 1. 找到并开启 `TTS-豆包` 条目
+        // 2. 关闭世界书中其他所有以 `TTS-` 开头的条目
+        // 3. 读取最新的角色卡音色信息并注入到 `TTS-豆包` 的 {{VOICE_LIST}} 中
+        await syncTtsWorldbookEntries("doubao", true);
       }
     });
 

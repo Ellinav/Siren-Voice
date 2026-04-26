@@ -564,13 +564,19 @@ function bindTtsGlobalUiEvents() {
 
       // 5. 核心逻辑：触发当前所选 Provider 的专属保存按钮！
       if (currentProvider === "indextts") {
-        $("#siren-idx-global-save").trigger("click");
+        $("#siren-idx-global-save").trigger("click", [true]);
       } else if (currentProvider === "minimax") {
-        $("#siren-mm-save-all").trigger("click");
+        $("#siren-mm-save-all").trigger("click", [true]);
       } else if (currentProvider === "doubao") {
-        $("#siren-db-char-save").trigger("click");
+        $("#siren-db-char-save").trigger("click", [true]);
       } else if (currentProvider === "gptsovits") {
-        $("#siren-gsv-save-btn").trigger("click");
+        $("#siren-gsv-save-btn").trigger("click", [true]);
+      }
+
+      if (window.toastr) {
+        window.toastr.success(
+          `全量数据更新：通用设置及 [${currentProvider}] 配置已分流保存至全局与角色卡！`,
+        );
       }
 
       const $status = $("#siren-tts-preview-status");

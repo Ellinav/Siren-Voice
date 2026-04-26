@@ -29,7 +29,7 @@ export function getIndexTtsHtml() {
         <div>
             <div style="margin-bottom: 20px;">
                 <div style="display: flex; gap: 10px; margin-bottom: 10px; align-items: center;">
-                    <h4 style="margin: 0; color: #cbd5e1; font-size: 1.1em; white-space: nowrap;"><i class="fa-solid fa-link" style="margin-right: 5px;"></i>API Base</h4>
+                    <h4 style="margin: 0; color: #cbd5e1; font-size: 1.1em; white-space: nowrap; width: 100px;"><i class="fa-solid fa-link" style="margin-right: 5px;"></i>API Base</h4>
                     <input type="text" id="siren-indextts-api" class="siren-ext-input" value="http://127.0.0.1:7880" style="flex: 1;">
                     <button id="siren-indextts-check" class="siren-ext-btn siren-ext-btn-secondary" title="健康检查"><i class="fa-solid fa-heart-pulse" style="color:#ef4444;"></i></button>
                     
@@ -37,6 +37,11 @@ export function getIndexTtsHtml() {
                         <i class="fa-solid fa-cloud-arrow-up" style="color:#38bdf8;"></i>
                     </button>
                     <input type="file" id="siren-idx-file-input" multiple accept=".wav,.mp3,.flac,.m4a,.ogg,audio/*" style="display: none;">
+                </div>
+                
+                <div style="display: flex; gap: 10px; margin-bottom: 10px; align-items: center;">
+                    <h4 style="margin: 0; color: #cbd5e1; font-size: 1.1em; white-space: nowrap; width: 100px;"><i class="fa-solid fa-key" style="margin-right: 5px;"></i>API Key</h4>
+                    <input type="password" id="siren-indextts-apikey" class="siren-ext-input" placeholder="如果不设置请留空" style="flex: 1;">
                 </div>
 
                 <div id="siren-idx-upload-staging-area" style="display: none; background: rgba(15, 23, 42, 0.6); padding: 12px; border-radius: 8px; border: 1px dashed rgba(56, 189, 248, 0.5);">
@@ -282,6 +287,7 @@ export async function loadIndexTtsData() {
 
   // 基础与高级参数回显
   $("#siren-indextts-api").val(ttsSettings.api_base || "http://127.0.0.1:7880");
+  $("#siren-indextts-apikey").val(ttsSettings.api_key || "");
   $("#siren-idx-param-dosample").prop("checked", ttsSettings.do_sample ?? true);
   $("#siren-idx-param-emorandom").prop(
     "checked",
@@ -374,8 +380,11 @@ export function bindIndexTtsEvents() {
   async function executeVoiceSearch($container, keyword) {
     const $results = $container.find(".siren-idx-search-results");
     const apiBase = $("#siren-indextts-api").val().replace(/\/+$/, "");
+    const apiKey = $("#siren-indextts-apikey").val().trim();
+    const headers = {};
+    if (apiKey) headers["Authorization"] = `Bearer ${apiKey}`;
     try {
-      const res = await fetch(`${apiBase}/api/v1/voices`);
+      const res = await fetch(`${apiBase}/api/v1/voices`, { headers });
       if (!res.ok) throw new Error("API 请求失败");
       const data = await res.json();
       const voices = data.voices || [];
@@ -559,20 +568,22 @@ export function bindIndexTtsEvents() {
     });
 
   // 点击生成按钮发请求
+  // 点击生成按钮发请求
   $("#siren-idx-test-generate")
     .off("click")
     .on("click", async function () {
       const charAudioPath = $("#siren-idx-test-char").val();
-      let text = $("#siren-idx-test-text").val().trim(); // 把 const 改成 let
-      const moodVal = $("#siren-idx-test-mood").val();
+      let text = $("#siren-idx-test-text").val().trim();
+      const moodVal = $("#siren-idx-test-mood").val(); // 获取下拉框选中的情绪值
 
       if (!charAudioPath) return window.toastr?.warning("请先选择角色音色！");
       if (!text) return window.toastr?.warning("请输入要测试的台词！");
 
-      // 👇 【防吞字补丁】：强制在开头加一个省略号，给模型缓冲时间
-      // text = "..." + text;
-
       const apiBase = $("#siren-indextts-api").val().replace(/\/+$/, "");
+
+      // === 新增：获取 API Key ===
+      const apiKey = $("#siren-indextts-apikey").val().trim();
+
       const $btn = $(this);
       const $status = $("#siren-idx-test-status");
       const $audio = $("#siren-idx-test-audio");
@@ -584,16 +595,13 @@ export function bindIndexTtsEvents() {
         $status.text("正在与局域网服务器合成...").css("color", "#0ea5e9");
         $audio.hide();
 
-        // 构建符合你 api.py 的请求体
         // 构建符合 api.py 的请求体
         const payload = {
           text: text,
           prompt_audio: charAudioPath,
           clean_text: true,
-          // 移除旧的全局查 DOM 逻辑，移到下面通过下拉选项解析
           emo_weight: parseFloat($("#siren-idx-emo-weight").val()) || 0.65,
           emo_random: $("#siren-idx-param-emorandom").is(":checked"),
-
           do_sample: $("#siren-idx-param-dosample").is(":checked"),
           max_text_tokens_per_segment:
             parseInt($("#siren-idx-param-maxtxt").val()) || 120,
@@ -606,18 +614,13 @@ export function bindIndexTtsEvents() {
           max_mel_tokens: parseInt($("#siren-idx-param-mel").val()) || 1500,
         };
 
-        const moodVal = $("#siren-idx-test-mood").val();
-
+        // 根据情绪模式细化 payload (此处已清理了重复定义的 moodVal 逻辑)
         if (moodVal === "3") {
-          // 自然语言模式
           payload.emo_control_method = 3;
           payload.emo_text = $("#siren-idx-test-emo-text").val().trim() || text;
-          // emo_random 已经取了全局变量，无需修改
         } else if (moodVal === "0") {
-          // 默认模式
           payload.emo_control_method = 0;
         } else {
-          // 预设模式 (Audio 或 Vector)
           try {
             const moodObj = JSON.parse(moodVal);
             if (moodObj.method === "audio") {
@@ -627,7 +630,7 @@ export function bindIndexTtsEvents() {
             } else if (moodObj.method === "vector") {
               payload.emo_control_method = 2;
               payload.emo_vec = JSON.parse(moodObj.data);
-              payload.emo_random = moodObj.random; // 👇 覆盖为列表里独立的随机参数
+              payload.emo_random = moodObj.random;
               payload.emo_weight = moodObj.weight;
             }
           } catch (e) {
@@ -635,14 +638,29 @@ export function bindIndexTtsEvents() {
           }
         }
 
+        console.log(
+          `🌊 [Siren Voice][IndexTTS Test] 🚀 准备发送测试请求，Payload:`,
+          JSON.parse(JSON.stringify(payload)), // 使用 JSON 序列化深拷贝，防止控制台显示的是被后续修改过的对象
+        );
+
+        // === 修改：动态构建 Headers ===
+        const headers = { "Content-Type": "application/json" };
+        if (apiKey) {
+          headers["Authorization"] = `Bearer ${apiKey}`;
+        }
+
         // 发起 Fetch
         const res = await fetch(`${apiBase}/api/v1/tts/tasks`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: headers, // 使用带有鉴权信息的 Headers
           body: JSON.stringify(payload),
         });
 
-        if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
+        if (!res.ok) {
+          // 如果后端返回 401，通常是 API Key 错误
+          if (res.status === 401) throw new Error("API Key 无效或未提供");
+          throw new Error(`HTTP Error: ${res.status}`);
+        }
 
         const blob = await res.blob();
         const audioUrl = URL.createObjectURL(blob);
@@ -652,24 +670,23 @@ export function bindIndexTtsEvents() {
         const $downloadBtn = $("#siren-idx-test-download");
         $downloadBtn.attr("href", audioUrl);
         $downloadBtn.show();
+
+        // 唤醒蓝牙音箱的静音补偿逻辑 (保持不变)
         try {
           const AudioContext = window.AudioContext || window.webkitAudioContext;
           const ctx = new AudioContext();
           const osc = ctx.createOscillator();
           const gain = ctx.createGain();
-
-          osc.frequency.value = 20; // 【修改】20Hz 次声波（人耳几乎听不到）
-          gain.gain.value = 0.01; // 【修改】极小音量（骗过蓝牙音箱的休眠检测）
-
+          osc.frequency.value = 20;
+          gain.gain.value = 0.01;
           osc.connect(gain);
           gain.connect(ctx.destination);
           osc.start();
-          osc.stop(ctx.currentTime + 0.5); // 【修改】播放 0.5 秒
+          osc.stop(ctx.currentTime + 0.5);
         } catch (e) {
           console.warn("[Siren Voice] 唤醒音频硬件失败", e);
         }
 
-        // 【修改】延迟 500 毫秒（等次声波把音箱彻底敲醒），然后再播放真正的语音
         setTimeout(() => {
           $audio[0].play().catch((e) => console.warn("播放失败", e));
         }, 500);
@@ -677,7 +694,7 @@ export function bindIndexTtsEvents() {
         $status.text("生成成功！").css("color", "#10b981");
       } catch (err) {
         console.error("测试生成失败:", err);
-        $status.text("生成失败，请检查控制台。").css("color", "#ef4444");
+        $status.text(`生成失败: ${err.message}`).css("color", "#ef4444");
       } finally {
         $btn
           .html('<i class="fa-solid fa-bolt"></i> 生成')
@@ -694,13 +711,16 @@ export function bindIndexTtsEvents() {
       e.preventDefault();
       const $btn = $(this);
       const apiBase = $("#siren-indextts-api").val().replace(/\/+$/, "");
+      const apiKey = $("#siren-indextts-apikey").val().trim();
+
+      const headers = {};
+      if (apiKey) headers["Authorization"] = `Bearer ${apiKey}`;
 
       try {
-        // 变成加载圈
         $btn.html(
           '<i class="fa-solid fa-spinner fa-spin" style="color:#06b6d4;"></i>',
         );
-        const res = await fetch(`${apiBase}/health`);
+        const res = await fetch(`${apiBase}/health`, { headers });
 
         if (res.ok) {
           if (window.toastr) window.toastr.success("IndexTTS 引擎连接成功！");
@@ -819,10 +839,14 @@ export function bindIndexTtsEvents() {
         const file = pendingFiles[i];
         const formData = new FormData();
         formData.append("file", file);
+        const apiKey = $("#siren-indextts-apikey").val().trim();
+        const headers = {};
+        if (apiKey) headers["Authorization"] = `Bearer ${apiKey}`;
 
         try {
           const res = await fetch(`${apiBase}/api/v1/upload`, {
             method: "POST",
+            headers: headers,
             body: formData,
           });
           if (res.ok) {
@@ -1028,7 +1052,7 @@ export function bindIndexTtsEvents() {
   // ==========================================
   // 统一保存核心逻辑 (自动分流保存角色卡与全局设置，解决弹窗重叠)
   // ==========================================
-  const performUnifiedSave = async (isGlobalButton = false) => {
+  const performUnifiedSave = async (isSilent = false) => {
     // === 1. 严格校验高级参数合法性 ===
     const pMaxTxt = parseInt($("#siren-idx-param-maxtxt").val());
     const pTemp = parseFloat($("#siren-idx-param-temp").val());
@@ -1095,6 +1119,7 @@ export function bindIndexTtsEvents() {
     const tts = settings.tts.indextts;
 
     tts.api_base = $("#siren-indextts-api").val().trim();
+    tts.api_key = $("#siren-indextts-apikey").val().trim();
     tts.emo_weight = parseFloat($("#siren-idx-emo-weight").val()) || 0.65;
     tts.do_sample = $("#siren-idx-param-dosample").is(":checked");
     tts.emo_random = $("#siren-idx-param-emorandom").is(":checked");
@@ -1150,48 +1175,40 @@ export function bindIndexTtsEvents() {
     tts.emotion_presets = emotionPresets;
 
     // === 4. 分流处理保存操作与弹窗 UI ===
-    if (isGlobalButton) {
-      // 【情况 A】如果是点击主面板的全局保存按钮：
-      // 我们只负责静默更新数据。不要调用 saveSirenSettings() 也不要弹任何窗。
-      // 函数结束后，全局按钮自带的原生监听器会接管，执行它自己的 saveSirenSettings()
-      // 并弹出那唯一的一个 "Siren Voice 设置已保存！"。
+    saveSirenSettings(true);
+
+    if (isSilent) {
+      // 【情况 A】如果是点击主面板的全局保存按钮 (由 tts.js 触发并传参 true)：
+      // 静默模式。不需要弹窗，也不需要独立同步世界书
     } else {
-      // 【情况 B】如果是点击咱们面板内长长的合并保存按钮：
-      // 【修改点 2】：传入 silent = true 抑制 saveSirenSettings 的内置弹窗
-      saveSirenSettings(true);
-      // 弹出唯一的一个综合专属提示
+      // 【情况 B】如果是点击咱们面板内长长的合并保存按钮 (独立保存)：
+      // 弹出 IndexTTS 专属的提示
       if (window.toastr) {
         if (isCharSaved) {
-          window.toastr.success("全局参数与角色音色已同步保存！");
+          window.toastr.success(
+            "IndexTTS: 配置已保存，已自动切换并同步世界书！",
+          );
         } else {
           window.toastr.success(
-            "全局参数已保存 (当前未选中角色，跳过音色保存)",
+            "IndexTTS: 全局参数已保存并切换 (当前未选中角色)",
           );
         }
       }
+
+      // 强制切换为 IndexTTS 并同步世界书
       const currentSettings = getSirenSettings();
-      if (currentSettings.tts.provider === "indextts") {
-        await syncTtsWorldbookEntries("indextts", currentSettings.tts.enabled);
-      }
+      currentSettings.tts.provider = "indextts";
+      currentSettings.tts.enabled = true;
+      saveSirenSettings(true);
+      await syncTtsWorldbookEntries("indextts", true);
     }
   };
 
   // 内部合并保存按钮：触发定制提示逻辑
   $("#siren-idx-global-save")
     .off("click.indexTtsSave")
-    .on("click.indexTtsSave", async function () {
-      await performUnifiedSave(false);
-    });
-
-  // 外部主全局保存按钮：借壳更新数据，弹窗交给它的原生事件处理
-  $("#siren-tts-save-global-btn")
-    .off("click.indexTtsSave")
-    .on("click.indexTtsSave", async function () {
-      const settings =
-        SillyTavern.getContext()?.extensionSettings?.siren_voice_settings;
-      if (settings?.tts?.provider !== "indextts") return;
-
-      await performUnifiedSave(true);
+    .on("click.indexTtsSave", async function (e, isSilent = false) {
+      await performUnifiedSave(isSilent);
     });
 
   const context = SillyTavern.getContext();

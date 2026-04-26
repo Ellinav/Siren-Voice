@@ -1219,14 +1219,14 @@ async function startScenePlayback(floorId, timeline, btnNode) {
     const node = timeline[i];
 
     if (node.type === "ambience") {
-      playSceneAmbience(node.name, floorId, true);
+      await playSceneAmbience(node.name, floorId, true);
     } else if (node.type === "sfx") {
       // 🚀 核心脱钩：删除了 await！让音效进入后台并行，主线程立刻去渲染后面的文字或触发其他音效！
       playSceneSfxSync(node.name, floorId, node.dir);
     } else if (node.type === "tts" && node.blob) {
-      // 🌟 新增：如果当前有 SFX 在播，稍微等待 400ms（模拟人类反应停顿），否则等待 50ms
+      // 🌟 核心修改 2：遇到 SFX 正在播放，固定延时 500ms 进行探测
       if (activeSceneState.activeSfxPool.size > 0) {
-        await checkableSleep(400, floorId);
+        await checkableSleep(500, floorId);
       } else {
         await checkableSleep(50, floorId);
       }
@@ -1517,76 +1517,50 @@ function playSceneTtsSync(blob, speakObj = null) {
       resolve();
     };
 
+    // 🌟 极简恢复函数：直接去问 mixer.js 现在的音量该是多少
+    const restoreDuckedVolumes = () => {
+      if (activeSceneState.ambienceAudio) {
+        // 直接恢复到 mixer.js 设置的音量 (比如 80% 就是 0.8)
+        fadeAudio(
+          activeSceneState.ambienceAudio,
+          getRealVolume("ambience"),
+          1.0,
+        );
+      }
+      activeSceneState.activeSfxPool.forEach((sfx) => {
+        // SFX 恢复本体的 1.0 (它的实际响度早就被你的 mixer 硬件总线限制住了)
+        fadeAudio(sfx, 1.0, 1.0);
+      });
+    };
     audio.onended = () => {
       if (activeSceneState.ttsAudio === audio) activeSceneState.ttsAudio = null;
-
-      // 恢复 Ambience 音量
-      if (activeSceneState.ambienceAudio) {
-        fadeAudio(
-          activeSceneState.ambienceAudio,
-          getRealVolume("ambience"),
-          1.0,
-        );
-      }
-      // 恢复存活的 SFX 音量
-      activeSceneState.activeSfxPool.forEach((sfx) => {
-        fadeAudio(sfx, getRealVolume("sfx"), 1.0);
-      });
-
+      restoreDuckedVolumes();
       audio._resolve();
     };
-
     audio.onerror = () => {
       if (activeSceneState.ttsAudio === audio) activeSceneState.ttsAudio = null;
-
-      if (activeSceneState.ambienceAudio) {
-        fadeAudio(
-          activeSceneState.ambienceAudio,
-          getRealVolume("ambience"),
-          1.0,
-        );
-      }
-      activeSceneState.activeSfxPool.forEach((sfx) => {
-        fadeAudio(sfx, getRealVolume("sfx"), 1.0);
-      });
-
+      restoreDuckedVolumes();
       audio._resolve();
     };
-
     startAudio = () => {
       audio.play().catch((e) => {
         console.error("[Siren Voice] 播放被浏览器拦截", e);
         if (activeSceneState.ttsAudio === audio)
           activeSceneState.ttsAudio = null;
-
-        // 报错拦截时恢复音量
-        if (activeSceneState.ambienceAudio) {
-          fadeAudio(
-            activeSceneState.ambienceAudio,
-            getRealVolume("ambience"),
-            1.0,
-          );
-        }
-        activeSceneState.activeSfxPool.forEach((sfx) => {
-          fadeAudio(sfx, getRealVolume("sfx"), 1.0);
-        });
-
+        restoreDuckedVolumes(); // 报错也要恢复
         audio._resolve();
       });
 
-      // 压低 Ambience 到原本的 30%
       if (activeSceneState.ambienceAudio) {
-        fadeAudio(
-          activeSceneState.ambienceAudio,
-          getRealVolume("ambience") * 0.3,
-          0.5,
-        );
+        const targetVol = getRealVolume("ambience") * duckRatio;
+        fadeAudio(activeSceneState.ambienceAudio, targetVol, 0.5);
       }
-      // 压低所有正在播放的 SFX 到 30%
+
       activeSceneState.activeSfxPool.forEach((sfx) => {
-        fadeAudio(sfx, getRealVolume("sfx") * 0.3, 0.5);
+        fadeAudio(sfx, duckRatio, 0.5);
       });
     };
+    const duckRatio = 0.5;
   });
 
   return { audio, promise, startAudio };
@@ -1668,6 +1642,28 @@ export async function playSceneAmbience(
 
   const oldAmbience = activeSceneState.ambienceAudio;
 
+  // ==========================================
+  // 🌟 核心修改 4：串行阻塞式转场逻辑（等待淡出 -> 彻底安静 -> 放行淡入）
+  // ==========================================
+  if (oldAmbience && activeSceneState.ambienceName !== actualAmbienceName) {
+    // 1. 强行等待旧背景音完全淡出
+    await fadeAudio(oldAmbience, 0, fadeSec);
+    oldAmbience.pause();
+    const src = oldAmbience.src;
+    oldAmbience.removeAttribute("src");
+    if (src && src.startsWith("blob:")) URL.revokeObjectURL(src);
+
+    // 2. 插入一段 0.5 秒的死寂间隙，营造真正的“黑屏转场”感
+    if (floorId) {
+      await checkableSleep(500, floorId);
+      // 防止在死寂期间玩家切楼导致的时空错乱
+      if (!activeSceneState.isPlaying || activeSceneState.floorId !== floorId)
+        return "interrupted";
+    } else {
+      await new Promise((r) => setTimeout(r, 500));
+    }
+  }
+
   // 🌟 核心修复 1：检查缓存与兜底强制下载
   let finalSrc = targetUrl;
   const record = await getAmbienceRecord(targetUrl);
@@ -1709,15 +1705,10 @@ export async function playSceneAmbience(
 
   try {
     await newAmbience.play();
-    fadeAudio(newAmbience, getRealVolume("ambience"), fadeSec);
-    if (oldAmbience) {
-      fadeAudio(oldAmbience, 0, fadeSec).then(() => {
-        oldAmbience.pause();
-        const src = oldAmbience.src; // 👈 暂存 URL
-        oldAmbience.removeAttribute("src");
-        if (src && src.startsWith("blob:")) URL.revokeObjectURL(src); // 👈 释放内存，防止爆显存/内存
-      });
-    }
+
+    // 🌟 核心修改 5：加上 await，要求新背景音完全淡入结束后，才把控制权交还给主循环
+    await fadeAudio(newAmbience, getRealVolume("ambience"), fadeSec);
+
     return "playing";
   } catch (e) {
     console.error("[Siren Voice] ❌ Ambience 播放失败", e);

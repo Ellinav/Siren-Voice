@@ -40,8 +40,6 @@ export function initMixerSettings() {
         </div>
 
         <div class="siren-mixer-sliders" style="background: rgba(15,23,42,0.6); padding: 20px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 24px;">
-            ${createSlider("master", "主音量", vol.master, "#10b981")} 
-            <hr style="border: none; border-top: 1px dashed rgba(255,255,255,0.1); margin: 20px 0;">
             ${createSlider("tts", "TTS 语音", vol.tts, "#a855f7")}     
             ${createSlider("ambience", "环境背景音", vol.ambience, "#3b82f6")}   
             ${createSlider("sfx", "特殊效果音", vol.sfx, "#f59e0b")}   

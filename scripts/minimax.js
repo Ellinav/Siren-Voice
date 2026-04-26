@@ -462,7 +462,7 @@ export function bindMinimaxEvents() {
   // 8. 角色卡保存按钮
   $("#siren-mm-save-all")
     .off("click")
-    .on("click", async function () {
+    .on("click", async function (e, isSilent = false) {
       // === 阶段一：保存全局 API 配置 ===
       const settings = getSirenSettings();
       settings.tts.minimax.region = $("#siren-mm-region").val();
@@ -493,20 +493,21 @@ export function bindMinimaxEvents() {
       // 写入当前角色卡扩展区 (新增传入 true 开启静默保存，抑制双重弹窗)
       const isSaved = await saveToCharacterCard(
         "siren_voice_tts_minimax",
-        {
-          voices: mapData,
-        },
+        { voices: mapData },
         true,
       );
 
       // 统一 UI 成功反馈
-      if (window.toastr) {
-        window.toastr.success("全局参数与角色音色配置已全部成功保存！");
+      if (!isSilent && window.toastr) {
+        window.toastr.success("MiniMax: 配置已保存，已自动切换并同步世界书！");
       }
+
+      // 强制切换为 MiniMax 并同步世界书
       const currentSettings = getSirenSettings();
-      if (currentSettings.tts.provider === "minimax") {
-        await syncTtsWorldbookEntries("minimax", currentSettings.tts.enabled);
-      }
+      currentSettings.tts.provider = "minimax";
+      currentSettings.tts.enabled = true;
+      saveSirenSettings(true);
+      await syncTtsWorldbookEntries("minimax", true);
     });
 
   window.addEventListener("siren:character_changed", () => {

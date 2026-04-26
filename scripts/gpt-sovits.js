@@ -354,9 +354,6 @@ export function bindGptSovitsEvents() {
     }
   }
 
-  // 初始化时立刻尝试拉取一次 (对应你的“初始化缓存”思路)
-  fetchCustomRefs();
-
   $("#siren-gptsovits-wrapper").on(
     "focus",
     "input[list='siren-gsv-ref-list']",
@@ -728,7 +725,7 @@ export function bindGptSovitsEvents() {
   });
 
   // --- 4. 独立保存逻辑 (核心更新) ---
-  $("#siren-gsv-save-btn").on("click", async function () {
+  $("#siren-gsv-save-btn").on("click", async function (e, isSilent = false) {
     // A. 保存全局 API 和 高级参数 (静默)
     if (!settings.tts.gptsovits) settings.tts.gptsovits = {};
     settings.tts.gptsovits.api_base = $("#siren-gsv-api").val().trim();
@@ -827,14 +824,22 @@ export function bindGptSovitsEvents() {
     };
 
     // D. 调用 utils 中封装的角色卡保存方法
-    await saveToCharacterCard("siren_voice_gptsovits", payload, false); // false = 显示成功提示
+    await saveToCharacterCard("siren_voice_gptsovits", payload, true);
+
+    // 我们自己弹出更精准的提示
+    if (!isSilent && window.toastr) {
+      window.toastr.success("GSV: 配置已保存，已自动切换并同步世界书！");
+    }
     if (typeof updateTestDropdowns === "function") {
       setTimeout(() => updateTestDropdowns(), 300);
     }
+
+    // 强制切换为 GPT-SoVITS 并同步世界书
     const currentSettings = getSirenSettings();
-    if (currentSettings.tts.provider === "gptsovits") {
-      await syncTtsWorldbookEntries("gptsovits", currentSettings.tts.enabled);
-    }
+    currentSettings.tts.provider = "gptsovits";
+    currentSettings.tts.enabled = true;
+    saveSirenSettings(true);
+    await syncTtsWorldbookEntries("gptsovits", true);
   });
 
   // ==========================================
@@ -860,6 +865,7 @@ export function bindGptSovitsEvents() {
   });
 
   refreshGptSovitsData();
+  fetchCustomRefs();
 
   $("#siren-gsv-test-generate").on("click", async function () {
     const text = $("#siren-gsv-test-text").val().trim();
