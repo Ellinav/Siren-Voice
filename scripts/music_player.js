@@ -56,6 +56,14 @@ export function initFloatingPlayer() {
                 -webkit-text-fill-color: transparent;
                 color: transparent;
             }`,
+      `#siren-music-player.siren-ghost-mode { 
+                opacity: 0.25 !important; 
+                filter: blur(0.5px); 
+            }`,
+      // 👇 新增：让进入和退出潜航模式都像潜水一样丝滑 (1.2秒平滑过渡)
+      `#siren-music-player {
+                transition: border-radius 0.3s ease, height 0.3s ease, opacity 1.2s cubic-bezier(0.25, 0.8, 0.25, 1), filter 1.2s ease, transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            }`,
     ];
     rules.forEach((rule, i) => style.sheet.insertRule(rule, i + 1));
   }
@@ -117,13 +125,54 @@ function bindPlayerEvents() {
   const dragHandle = player.querySelector(".siren-ext-player-drag-handle");
   const expandBtn = document.getElementById("siren-btn-expand");
 
+  // ================= 幽灵潜航模式 (核心逻辑) =================
+  let ghostTimer = null;
+  const GHOST_DELAY = 10000; // 10秒无操作进入潜航
+
+  function wakeUpPlayer() {
+    player.classList.remove("siren-ghost-mode");
+  }
+
+  function startGhostTimer() {
+    clearTimeout(ghostTimer);
+    ghostTimer = setTimeout(() => {
+      // 如果正在拖拽，或者面板是展开状态，则拒绝潜航
+      if (!isDragging && !player.classList.contains("expanded")) {
+        player.classList.add("siren-ghost-mode");
+      }
+    }, GHOST_DELAY);
+  }
+
+  // 桌面端：鼠标悬停时保持浮出水面，离开后开始计时
+  player.addEventListener("mouseenter", () => {
+    wakeUpPlayer();
+    clearTimeout(ghostTimer);
+  });
+  player.addEventListener("mouseleave", startGhostTimer);
+
+  // 移动端：触摸任意位置立刻唤醒，并重新计时
+  player.addEventListener(
+    "touchstart",
+    () => {
+      wakeUpPlayer();
+      startGhostTimer();
+    },
+    { passive: true },
+  );
+
+  // 初始化时立刻启动一次计时器
+  startGhostTimer();
+
   // ================= 展开/收起 =================
   expandBtn.addEventListener("click", () => {
     player.classList.toggle("expanded");
     if (player.classList.contains("expanded")) {
       expandBtn.classList.replace("fa-chevron-down", "fa-chevron-up");
+      clearTimeout(ghostTimer); // 展开歌词时，强制不潜航
+      wakeUpPlayer();
     } else {
       expandBtn.classList.replace("fa-chevron-up", "fa-chevron-down");
+      startGhostTimer(); // 收起歌词后，恢复潜航倒计时
     }
   });
 
@@ -140,7 +189,6 @@ function bindPlayerEvents() {
   let initialY;
   let baseRect = null;
 
-  // 【修复 1】增加对移动端 touch 事件的监听， passive: false 允许阻止屏幕滚动
   dragHandle.addEventListener("mousedown", dragStart);
   dragHandle.addEventListener("touchstart", dragStart, { passive: false });
   document.addEventListener("mousemove", drag);
@@ -148,7 +196,6 @@ function bindPlayerEvents() {
   document.addEventListener("mouseup", dragEnd);
   document.addEventListener("touchend", dragEnd);
 
-  // 统一获取坐标的辅助函数
   function getClientPos(e) {
     return {
       x: e.clientX ?? (e.touches && e.touches[0].clientX) ?? 0,
@@ -157,11 +204,13 @@ function bindPlayerEvents() {
   }
 
   function dragStart(e) {
+    wakeUpPlayer(); // 拖拽时强制唤醒
+    clearTimeout(ghostTimer); // 拖拽时暂停潜航倒计时
+
     const pos = getClientPos(e);
     initialX = pos.x - xOffset;
     initialY = pos.y - yOffset;
 
-    // 移动端的 target 可能会指向子元素(比如 icon)
     if (e.target === dragHandle || dragHandle.contains(e.target)) {
       isDragging = true;
       const rect = player.getBoundingClientRect();
@@ -176,10 +225,7 @@ function bindPlayerEvents() {
 
   function drag(e) {
     if (isDragging) {
-      // 移动端拖拽时阻止默认行为，防止页面跟着滚动
-      if (e.type === "touchmove") {
-        e.preventDefault();
-      }
+      if (e.type === "touchmove") e.preventDefault();
 
       const pos = getClientPos(e);
       let nextX = pos.x - initialX;
@@ -209,21 +255,41 @@ function bindPlayerEvents() {
     initialX = currentX;
     initialY = currentY;
     isDragging = false;
-    player.style.transition = "border-radius 0.3s ease, height 0.3s ease";
+
+    // 【修复】：拖拽结束时，不仅要恢复圆角动画，还要恢复我们刚刚写的潜航透明度动画
+    player.style.transition =
+      "border-radius 0.3s ease, height 0.3s ease, opacity 1.2s cubic-bezier(0.25, 0.8, 0.25, 1), filter 1.2s ease";
 
     const mSettings = getSirenSettings().music;
     mSettings.player_pos = { x: currentX, y: currentY };
     saveSirenSettings(true);
+
+    startGhostTimer(); // 拖拽结束，重新开始10秒倒计时
   }
 
   // ================= 按钮事件 =================
-  document
-    .getElementById("siren-btn-play")
-    .addEventListener("click", () => togglePlayPause());
+  // （这部分代码保持不变，绑定播放、切歌、模式切换、歌词切换等）
+  document.getElementById("siren-btn-play").addEventListener("click", () => {
+    wakeUpPlayer();
+    startGhostTimer();
+    togglePlayPause();
+  });
+
   const prevBtn = document.getElementById("siren-btn-prev");
-  if (prevBtn) prevBtn.addEventListener("click", () => playPrev());
+  if (prevBtn)
+    prevBtn.addEventListener("click", () => {
+      wakeUpPlayer();
+      startGhostTimer();
+      playPrev();
+    });
+
   const nextBtn = document.getElementById("siren-btn-next");
-  if (nextBtn) nextBtn.addEventListener("click", () => playNext());
+  if (nextBtn)
+    nextBtn.addEventListener("click", () => {
+      wakeUpPlayer();
+      startGhostTimer();
+      playNext();
+    });
 
   const modeBtnPill = document.getElementById("siren-btn-mode-pill");
   if (modeBtnPill) {
@@ -242,9 +308,10 @@ function bindPlayerEvents() {
     modeBtnPill.title = modeMap[initialMode].title;
 
     modeBtnPill.addEventListener("click", function () {
+      wakeUpPlayer();
+      startGhostTimer();
       const currentMode = getSirenSettings().music.play_mode || "sequential";
       const nextMode = modeMap[currentMode].next;
-
       const mSettings = getSirenSettings().music;
       mSettings.play_mode = nextMode;
       saveSirenSettings(true);
@@ -264,13 +331,13 @@ function bindPlayerEvents() {
   if (toggleBtn) {
     toggleBtn.addEventListener("click", (e) => {
       e.stopPropagation();
-      console.log("[Siren UI] 歌词切换按钮被点击");
+      wakeUpPlayer();
+      startGhostTimer();
       if (onLyricToggleCallback) onLyricToggleCallback();
     });
   }
 
   // ================= 边界动态修正 =================
-  // 【修复 2】将原本独立的边界修正提取为函数，并绑定到 resize 事件上
   function checkAndFixBoundaries() {
     const rect = player.getBoundingClientRect();
     let isOut = false;
@@ -300,7 +367,6 @@ function bindPlayerEvents() {
       currentX = nextX;
       currentY = nextY;
       player.style.transform = `translate(${nextX}px, ${nextY}px)`;
-      // 超出边界被拉回来时给个平滑过渡，视觉效果更好
       player.style.transition =
         "transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)";
 
@@ -312,10 +378,7 @@ function bindPlayerEvents() {
     }
   }
 
-  // 初始化时延时检查一次
   setTimeout(checkAndFixBoundaries, 150);
-
-  // 监听窗口大小变化（解决电脑切换手机模式、手机横竖屏切换时播放器消失的问题）
   window.addEventListener("resize", checkAndFixBoundaries);
 }
 
