@@ -550,29 +550,6 @@ export function updateLyricToggleUI(hasTranslation, currentMode) {
 }
 
 /**
- * 暴露给逻辑层：设置播放器世界书警告状态
- */
-export function setPlayerWarningState(isWarning) {
-  const player = document.getElementById("siren-music-player");
-  if (!player) return;
-
-  // 🌟 同样限定在真药丸内部查找封面图标
-  const coverIcon = player.querySelector(".siren-ext-player-cover i.fa-music");
-
-  if (isWarning) {
-    player.classList.add("siren-wb-warning");
-    if (coverIcon && !coverIcon.parentElement.querySelector("img")) {
-      coverIcon.style.color = "#f59e0b";
-    }
-  } else {
-    player.classList.remove("siren-wb-warning");
-    if (coverIcon && !coverIcon.parentElement.querySelector("img")) {
-      coverIcon.style.color = "#06b6d4";
-    }
-  }
-}
-
-/**
  * 暴露给外部：动态更新播放器的自定义涂装 (CSS)
  * @param {Object} forceStyles - 强制传入的最新样式对象（可选）
  */

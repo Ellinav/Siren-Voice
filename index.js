@@ -1,8 +1,5 @@
 import { initMusicSettings } from "./scripts/music.js";
-import {
-  initFloatingPlayer,
-  setPlayerWarningState,
-} from "./scripts/music_player.js";
+import { initFloatingPlayer } from "./scripts/music_player.js";
 import { initEvents } from "./scripts/events.js";
 import { initTtsSettings, applyTtsBeautifyCss } from "./scripts/tts.js";
 import { initAmbienceSettings } from "./scripts/ambience.js";
@@ -147,7 +144,8 @@ import { initInterceptor } from "./scripts/interceptor.js";
       badge.style.display = isMissing ? "inline-block" : "none";
     }
 
-    setPlayerWarningState(isMissing);
+    // 删掉下面这一行，播放器的样式就不会再被影响了
+    // setPlayerWarningState(isMissing);
   }
 
   /**
