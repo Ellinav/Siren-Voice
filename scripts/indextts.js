@@ -3,7 +3,11 @@ import {
   saveSirenSettings,
   saveToCharacterCard,
 } from "./settings.js";
-import { getCharacterTtsConfig, requestIndexTTS } from "./indextts_logic.js";
+import {
+  getCharacterTtsConfig,
+  requestIndexTTS,
+  saveCurrentCharacterTtsConfig,
+} from "./indextts_logic.js";
 import { syncTtsWorldbookEntries } from "./utils.js";
 
 export function getIndexTtsHtml() {
@@ -154,7 +158,7 @@ export function getIndexTtsHtml() {
                                 <span>情感权重</span>
                                 <span id="siren-idx-modal-weight-val" style="color: #06b6d4; font-family: monospace;">0.65</span>
                             </div>
-                            <input type="range" id="siren-idx-modal-weight-slider" class="siren-ext-progress-bar" min="0" max="1.0" step="0.05" value="0.65" style="--progress: 65%; width: 100%;">
+                            <input type="range" id="siren-idx-modal-weight-slider" class="siren-ext-progress-bar" min="0" max="1.6" step="0.05" value="0.65" style="--progress: 40.625%; width: 100%;">
                         </div>
 
                         <div style="width: 1px; height: 35px; background: rgba(255, 255, 255, 0.1);"></div>
@@ -443,10 +447,8 @@ export function bindIndexTtsEvents() {
       const $container = $(this).parent();
       const keyword = $(this).val().trim();
 
-      // 只有当输入框里已经有字的时候，点击聚焦才展开搜索；空白时不操作避免闪现
-      if (keyword) {
-        executeVoiceSearch($container, keyword);
-      }
+      // 取消 keyword 判断，即使是空白也直接执行搜索拉取全量列表
+      executeVoiceSearch($container, keyword);
     });
 
   // 3. 点击下拉列表，将选中的文本填入输入框
@@ -963,7 +965,8 @@ export function bindIndexTtsEvents() {
   $("#siren-idx-modal-weight-slider").on("input", function () {
     const val = parseFloat($(this).val());
     $("#siren-idx-modal-weight-val").text(val.toFixed(2));
-    $(this).css("--progress", `${(val / 1.0) * 100}%`);
+    // 最大值为 1.6，所以计算百分比时除以 1.6
+    $(this).css("--progress", `${(val / 1.6) * 100}%`);
   });
 
   // 点击大按钮打开弹窗
@@ -1043,8 +1046,8 @@ export function bindIndexTtsEvents() {
   // ==========================================
   // 监听角色列表和情绪列表中，所有带有删除图标(fa-trash)按钮的点击事件
   $("#siren-idx-char-list, #siren-idx-emo-list")
-    .off("click", ".fa-trash")
-    .on("click", ".fa-trash", function () {
+    .off("click", ".siren-idx-row-del")
+    .on("click", ".siren-idx-row-del", function () {
       // 找到当前点击的垃圾桶所在的整行(.siren-ext-setting-row)，将其从 DOM 中移除
       $(this).closest(".siren-ext-setting-row").remove();
     });

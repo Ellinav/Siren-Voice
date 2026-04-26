@@ -943,7 +943,7 @@ export async function saveToCharacterCard(
   silent = false,
 ) {
   const context = SillyTavern.getContext();
-  const { writeExtensionField, characterId } = context;
+  const { writeExtensionField, characterId, characters } = context;
 
   // 拦截异常状态：群聊或未选中角色
   if (characterId === undefined || characterId === null) {
@@ -955,7 +955,23 @@ export async function saveToCharacterCard(
   }
 
   try {
+    // ✨ 核心修复区开始 ✨
+    // 阻断 ST 底层的 $.extend(true) 深度合并逻辑
+    // 在调用保存接口前，强行将 ST 内存中的扩展对象完全替换为纯净的新数据
+    if (characters && characters[characterId] && characters[characterId].data) {
+      if (!characters[characterId].data.extensions) {
+        characters[characterId].data.extensions = {};
+      }
+      // 使用序列化强制切断旧对象的引用，确保被删除的键彻底消失
+      characters[characterId].data.extensions[extensionKey] = JSON.parse(
+        JSON.stringify(payload),
+      );
+    }
+    // ✨ 核心修复区结束 ✨
+
+    // 调用原生接口触发落盘（此时合并的对象已经是纯净的了）
     await writeExtensionField(characterId, extensionKey, payload);
+
     if (!silent && window.toastr)
       window.toastr.success("配置已成功写入当前角色卡！");
     console.log(`[Siren Voice] 成功写入角色卡 (${extensionKey}):`, payload);
