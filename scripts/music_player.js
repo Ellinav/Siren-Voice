@@ -117,7 +117,7 @@ function bindPlayerEvents() {
   const dragHandle = player.querySelector(".siren-ext-player-drag-handle");
   const expandBtn = document.getElementById("siren-btn-expand");
 
-  // 展开/收起
+  // ================= 展开/收起 =================
   expandBtn.addEventListener("click", () => {
     player.classList.toggle("expanded");
     if (player.classList.contains("expanded")) {
@@ -127,12 +127,11 @@ function bindPlayerEvents() {
     }
   });
 
-  // 拖拽
+  // ================= 拖拽核心 (兼容双端) =================
   const settings = getSirenSettings();
   const savedPos = settings?.music?.player_pos || { x: 0, y: 0 };
 
   let isDragging = false;
-  // 🌟 将初始偏移量与缓存数据绑定
   let xOffset = savedPos.x;
   let yOffset = savedPos.y;
   let currentX = xOffset;
@@ -141,16 +140,30 @@ function bindPlayerEvents() {
   let initialY;
   let baseRect = null;
 
+  // 【修复 1】增加对移动端 touch 事件的监听， passive: false 允许阻止屏幕滚动
   dragHandle.addEventListener("mousedown", dragStart);
+  dragHandle.addEventListener("touchstart", dragStart, { passive: false });
   document.addEventListener("mousemove", drag);
+  document.addEventListener("touchmove", drag, { passive: false });
   document.addEventListener("mouseup", dragEnd);
+  document.addEventListener("touchend", dragEnd);
+
+  // 统一获取坐标的辅助函数
+  function getClientPos(e) {
+    return {
+      x: e.clientX ?? (e.touches && e.touches[0].clientX) ?? 0,
+      y: e.clientY ?? (e.touches && e.touches[0].clientY) ?? 0,
+    };
+  }
 
   function dragStart(e) {
-    initialX = e.clientX - xOffset;
-    initialY = e.clientY - yOffset;
+    const pos = getClientPos(e);
+    initialX = pos.x - xOffset;
+    initialY = pos.y - yOffset;
+
+    // 移动端的 target 可能会指向子元素(比如 icon)
     if (e.target === dragHandle || dragHandle.contains(e.target)) {
       isDragging = true;
-      // 【新增】计算当前播放器的基础物理位置（剥离 transform 偏移），用于边界约束
       const rect = player.getBoundingClientRect();
       baseRect = {
         left: rect.left - xOffset,
@@ -163,11 +176,15 @@ function bindPlayerEvents() {
 
   function drag(e) {
     if (isDragging) {
-      e.preventDefault();
-      let nextX = e.clientX - initialX;
-      let nextY = e.clientY - initialY;
+      // 移动端拖拽时阻止默认行为，防止页面跟着滚动
+      if (e.type === "touchmove") {
+        e.preventDefault();
+      }
 
-      // 【新增】边界检测：防止拖出屏幕边缘
+      const pos = getClientPos(e);
+      let nextX = pos.x - initialX;
+      let nextY = pos.y - initialY;
+
       if (baseRect) {
         const minX = -baseRect.left;
         const maxX = window.innerWidth - baseRect.left - baseRect.width;
@@ -188,36 +205,26 @@ function bindPlayerEvents() {
   }
 
   function dragEnd(e) {
-    if (!isDragging) return; // 防误触，确保是真的在拖拽
+    if (!isDragging) return;
     initialX = currentX;
     initialY = currentY;
     isDragging = false;
     player.style.transition = "border-radius 0.3s ease, height 0.3s ease";
 
-    // 🌟 拖拽结束时，立刻将当前坐标存入 ST 的全局设置 (静默保存)
     const mSettings = getSirenSettings().music;
     mSettings.player_pos = { x: currentX, y: currentY };
-
-    // 传入 true 进行静默保存，不再频繁弹窗
     saveSirenSettings(true);
   }
 
-  // 播放/暂停
+  // ================= 按钮事件 =================
   document
     .getElementById("siren-btn-play")
-    .addEventListener("click", function () {
-      togglePlayPause();
-    });
-
-  // 【新增】上一首
+    .addEventListener("click", () => togglePlayPause());
   const prevBtn = document.getElementById("siren-btn-prev");
   if (prevBtn) prevBtn.addEventListener("click", () => playPrev());
-
-  // 【新增】下一首
   const nextBtn = document.getElementById("siren-btn-next");
   if (nextBtn) nextBtn.addEventListener("click", () => playNext());
 
-  // 【新增】小药丸的播放模式循环切换
   const modeBtnPill = document.getElementById("siren-btn-mode-pill");
   if (modeBtnPill) {
     const modeMap = {
@@ -227,14 +234,9 @@ function bindPlayerEvents() {
         next: "random",
       },
       random: { icon: "fa-shuffle", title: "随机播放", next: "single" },
-      single: {
-        icon: "fa-repeat",
-        title: "单曲循环",
-        next: "sequential",
-      },
+      single: { icon: "fa-repeat", title: "单曲循环", next: "sequential" },
     };
 
-    // 初始化图标状态
     const initialMode = getSirenSettings().music.play_mode || "sequential";
     modeBtnPill.className = `fa-solid ${modeMap[initialMode].icon} siren-ext-ctrl-btn`;
     modeBtnPill.title = modeMap[initialMode].title;
@@ -243,16 +245,13 @@ function bindPlayerEvents() {
       const currentMode = getSirenSettings().music.play_mode || "sequential";
       const nextMode = modeMap[currentMode].next;
 
-      // 1. 保存设置 (修改为静默保存)
       const mSettings = getSirenSettings().music;
       mSettings.play_mode = nextMode;
       saveSirenSettings(true);
 
-      // 2. 更新小药丸自身图标
       this.className = `fa-solid ${modeMap[nextMode].icon} siren-ext-ctrl-btn`;
       this.title = modeMap[nextMode].title;
 
-      // 3. 【核心】同步更新主面板里的那个图标（如果面板开着的话）
       const panelIcon = document.getElementById("siren-music-play-mode-icon");
       if (panelIcon) {
         panelIcon.className = `fa-solid ${modeMap[nextMode].icon}`;
@@ -260,17 +259,19 @@ function bindPlayerEvents() {
       }
     });
   }
+
   const toggleBtn = document.getElementById("siren-btn-lyric-toggle");
   if (toggleBtn) {
     toggleBtn.addEventListener("click", (e) => {
-      e.stopPropagation(); // 阻止事件冒泡，防止误触发药丸的展开/收起
+      e.stopPropagation();
       console.log("[Siren UI] 歌词切换按钮被点击");
-      if (onLyricToggleCallback) {
-        onLyricToggleCallback();
-      }
+      if (onLyricToggleCallback) onLyricToggleCallback();
     });
   }
-  setTimeout(() => {
+
+  // ================= 边界动态修正 =================
+  // 【修复 2】将原本独立的边界修正提取为函数，并绑定到 resize 事件上
+  function checkAndFixBoundaries() {
     const rect = player.getBoundingClientRect();
     let isOut = false;
     let nextX = xOffset;
@@ -299,15 +300,23 @@ function bindPlayerEvents() {
       currentX = nextX;
       currentY = nextY;
       player.style.transform = `translate(${nextX}px, ${nextY}px)`;
+      // 超出边界被拉回来时给个平滑过渡，视觉效果更好
+      player.style.transition =
+        "transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)";
 
-      // 静默覆写修正后的坐标
       const mSettings = getSirenSettings().music;
       if (mSettings) {
         mSettings.player_pos = { x: nextX, y: nextY };
         saveSirenSettings(true);
       }
     }
-  }, 150);
+  }
+
+  // 初始化时延时检查一次
+  setTimeout(checkAndFixBoundaries, 150);
+
+  // 监听窗口大小变化（解决电脑切换手机模式、手机横竖屏切换时播放器消失的问题）
+  window.addEventListener("resize", checkAndFixBoundaries);
 }
 
 /**
