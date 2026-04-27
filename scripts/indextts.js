@@ -28,24 +28,32 @@ export function getIndexTtsHtml() {
             .siren-idx-emo-weight-input[type=number] {
                 -moz-appearance: textfield;
             }
+            .siren-idx-param-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
+                gap: 12px;
+            }
         </style>
 
         <div>
             <div style="margin-bottom: 20px;">
-                <div style="display: flex; gap: 10px; margin-bottom: 10px; align-items: center;">
-                    <h4 style="margin: 0; color: #cbd5e1; font-size: 1.1em; white-space: nowrap; width: 100px;"><i class="fa-solid fa-link" style="margin-right: 5px;"></i>API Base</h4>
-                    <input type="text" id="siren-indextts-api" class="siren-ext-input" value="http://127.0.0.1:7880" style="flex: 1;">
-                    <button id="siren-indextts-check" class="siren-ext-btn siren-ext-btn-secondary" title="健康检查"><i class="fa-solid fa-heart-pulse" style="color:#ef4444;"></i></button>
-                    
-                    <button id="siren-idx-select-files-btn" class="siren-ext-btn siren-ext-btn-secondary" title="选择需要上传的音频文件">
-                        <i class="fa-solid fa-cloud-arrow-up" style="color:#38bdf8;"></i>
-                    </button>
-                    <input type="file" id="siren-idx-file-input" multiple accept=".wav,.mp3,.flac,.m4a,.ogg,audio/*" style="display: none;">
+                <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; align-items: center;">
+                    <h4 style="margin: 0; color: #cbd5e1; font-size: 1.1em; white-space: nowrap; width: 85px;"><i class="fa-solid fa-link" style="margin-right: 5px;"></i>API Base</h4>
+                    <div style="display: flex; gap: 8px; flex: 1; min-width: 200px;">
+                        <input type="text" id="siren-indextts-api" class="siren-ext-input" value="http://127.0.0.1:7880" style="flex: 1; min-width: 0;">
+                        <button id="siren-indextts-check" class="siren-ext-btn siren-ext-btn-secondary" title="健康检查" style="flex-shrink: 0;"><i class="fa-solid fa-heart-pulse" style="color:#ef4444;"></i></button>
+                        <button id="siren-idx-select-files-btn" class="siren-ext-btn siren-ext-btn-secondary" title="选择需要上传的音频文件" style="flex-shrink: 0;">
+                            <i class="fa-solid fa-cloud-arrow-up" style="color:#38bdf8;"></i>
+                        </button>
+                        <input type="file" id="siren-idx-file-input" multiple accept=".wav,.mp3,.flac,.m4a,.ogg,audio/*" style="display: none;">
+                    </div>
                 </div>
                 
-                <div style="display: flex; gap: 10px; margin-bottom: 10px; align-items: center;">
-                    <h4 style="margin: 0; color: #cbd5e1; font-size: 1.1em; white-space: nowrap; width: 100px;"><i class="fa-solid fa-key" style="margin-right: 5px;"></i>API Key</h4>
-                    <input type="password" id="siren-indextts-apikey" class="siren-ext-input" placeholder="如果不设置请留空" style="flex: 1;">
+                <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; align-items: center;">
+                    <h4 style="margin: 0; color: #cbd5e1; font-size: 1.1em; white-space: nowrap; width: 85px;"><i class="fa-solid fa-key" style="margin-right: 5px;"></i>API Key</h4>
+                    <div style="display: flex; flex: 1; min-width: 200px;">
+                        <input type="password" id="siren-indextts-apikey" class="siren-ext-input" placeholder="如果不设置请留空" style="flex: 1; min-width: 0;">
+                    </div>
                 </div>
 
                 <div id="siren-idx-upload-staging-area" style="display: none; background: rgba(15, 23, 42, 0.6); padding: 12px; border-radius: 8px; border: 1px dashed rgba(56, 189, 248, 0.5);">
@@ -104,38 +112,38 @@ export function getIndexTtsHtml() {
                     </label>
                 </div>
 
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div class="siren-idx-param-grid">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <label style="font-size: 0.85em; color: #cbd5e1;" title="20-600">分句最大 Token</label>
-                        <input type="text" id="siren-idx-param-maxtxt" value="120" class="siren-ext-input" style="width: 70px; text-align: center;">
+                        <label style="font-size: 0.85em; color: #cbd5e1; white-space: nowrap; margin-right: 5px;" title="20-600">分句最大Token</label>
+                        <input type="text" id="siren-idx-param-maxtxt" value="120" class="siren-ext-input" style="width: 60px; text-align: center; flex-shrink: 0;">
                     </div>
                     <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <label style="font-size: 0.85em; color: #cbd5e1;" title="0.1-2">温度 (Temp)</label>
-                        <input type="text" id="siren-idx-param-temp" value="0.8" class="siren-ext-input" style="width: 70px; text-align: center;">
+                        <label style="font-size: 0.85em; color: #cbd5e1; white-space: nowrap; margin-right: 5px;" title="0.1-2">温度 (Temp)</label>
+                        <input type="text" id="siren-idx-param-temp" value="0.8" class="siren-ext-input" style="width: 60px; text-align: center; flex-shrink: 0;">
                     </div>
                     <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <label style="font-size: 0.85em; color: #cbd5e1;" title="0-1">Top P</label>
-                        <input type="text" id="siren-idx-param-topp" value="0.8" class="siren-ext-input" style="width: 70px; text-align: center;">
+                        <label style="font-size: 0.85em; color: #cbd5e1; white-space: nowrap; margin-right: 5px;" title="0-1">Top P</label>
+                        <input type="text" id="siren-idx-param-topp" value="0.8" class="siren-ext-input" style="width: 60px; text-align: center; flex-shrink: 0;">
                     </div>
                     <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <label style="font-size: 0.85em; color: #cbd5e1;" title="0-100">Top K</label>
-                        <input type="text" id="siren-idx-param-topk" value="30" class="siren-ext-input" style="width: 70px; text-align: center;">
+                        <label style="font-size: 0.85em; color: #cbd5e1; white-space: nowrap; margin-right: 5px;" title="0-100">Top K</label>
+                        <input type="text" id="siren-idx-param-topk" value="30" class="siren-ext-input" style="width: 60px; text-align: center; flex-shrink: 0;">
                     </div>
                     <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <label style="font-size: 0.85em; color: #cbd5e1;" title="1-10">Num Beams</label>
-                        <input type="text" id="siren-idx-param-beams" value="3" class="siren-ext-input" style="width: 70px; text-align: center;">
+                        <label style="font-size: 0.85em; color: #cbd5e1; white-space: nowrap; margin-right: 5px;" title="1-10">Num Beams</label>
+                        <input type="text" id="siren-idx-param-beams" value="3" class="siren-ext-input" style="width: 60px; text-align: center; flex-shrink: 0;">
                     </div>
                     <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <label style="font-size: 0.85em; color: #cbd5e1;" title=">=1.0">重复惩罚</label>
-                        <input type="text" id="siren-idx-param-rep" value="10.0" class="siren-ext-input" style="width: 70px; text-align: center;">
+                        <label style="font-size: 0.85em; color: #cbd5e1; white-space: nowrap; margin-right: 5px;" title=">=1.0">重复惩罚</label>
+                        <input type="text" id="siren-idx-param-rep" value="10.0" class="siren-ext-input" style="width: 60px; text-align: center; flex-shrink: 0;">
                     </div>
                     <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <label style="font-size: 0.85em; color: #cbd5e1;" title="-10 ~ 10">长度惩罚</label>
-                        <input type="text" id="siren-idx-param-len" value="0.0" class="siren-ext-input" style="width: 70px; text-align: center;">
+                        <label style="font-size: 0.85em; color: #cbd5e1; white-space: nowrap; margin-right: 5px;" title="-10 ~ 10">长度惩罚</label>
+                        <input type="text" id="siren-idx-param-len" value="0.0" class="siren-ext-input" style="width: 60px; text-align: center; flex-shrink: 0;">
                     </div>
                     <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <label style="font-size: 0.85em; color: #cbd5e1;" title="50-1815">max_mel_tokens</label>
-                        <input type="text" id="siren-idx-param-mel" value="1500" class="siren-ext-input" style="width: 70px; text-align: center;">
+                        <label style="font-size: 0.85em; color: #cbd5e1; white-space: nowrap; margin-right: 5px;" title="50-1815">max_mel_tokens</label>
+                        <input type="text" id="siren-idx-param-mel" value="1500" class="siren-ext-input" style="width: 60px; text-align: center; flex-shrink: 0;">
                     </div>
                 </div>
             </div>
@@ -188,13 +196,14 @@ export function getIndexTtsHtml() {
 
             <h4 style="color: #10b981; margin-bottom: 10px; font-size: 1.1em;"><i class="fa-solid fa-vial" style="margin-right: 5px;"></i> IndexTTS 发音测试</h4>
             <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 6px; padding: 10px;">
-                <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-                    <select id="siren-idx-test-char" class="siren-ext-select" style="flex: 1;">
+                <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 10px;">
+                    <select id="siren-idx-test-char" class="siren-ext-select" style="flex: 1; min-width: 160px;">
                         <option value="">(选择角色音色)</option>
                     </select>
-                    <select id="siren-idx-test-mood" class="siren-ext-select" style="flex: 1;">
+                    <select id="siren-idx-test-mood" class="siren-ext-select" style="flex: 1; min-width: 160px;">
                         <option value="0">使用参考音频情绪 (默认)</option>
-                        <option value="3">自然语言描述 (Text)</option> </select>
+                        <option value="3">自然语言描述 (Text)</option> 
+                    </select>
                 </div>
 
                 <div id="siren-idx-test-emo-text-wrapper" style="display: none; margin-bottom: 10px;">
@@ -239,23 +248,23 @@ const charRowHtml = `
 
 // 情绪行模板
 const emoRowHtml = `
-<div class="siren-ext-setting-row" style="display: flex; gap: 8px; border: none; padding: 0; margin-bottom: 8px; align-items: center;">
-  
-    <div style="display: flex; gap: 8px; flex: 2; min-width: 0;">
-        <input type="text" class="siren-ext-input siren-idx-align-fix" placeholder="情绪名" style="flex: 1.5; min-width: 0;">
-        <select class="siren-ext-select siren-idx-emo-method-select siren-idx-align-fix" style="flex: 1.5; min-width: 0;">
+<div class="siren-ext-setting-row" style="display: flex; flex-direction: column; gap: 8px; border: 1px solid rgba(51, 65, 85, 0.4); border-radius: 6px; padding: 10px; margin-bottom: 10px;">
+    <div style="display: flex; gap: 8px; align-items: center;">
+        <input type="text" class="siren-ext-input siren-idx-align-fix" placeholder="情绪名" style="flex: 1; min-width: 0;">
+        <select class="siren-ext-select siren-idx-emo-method-select siren-idx-align-fix" style="flex: 1; min-width: 0;">
             <option value="audio" selected>参考音频</option>
             <option value="vector">情绪向量</option>
         </select>
+        <button class="siren-ext-btn siren-ext-btn-secondary siren-idx-row-del siren-idx-align-fix" style="color: #ef4444; flex-shrink: 0; padding: 0 10px;"><i class="fa-solid fa-trash"></i></button>
     </div>
   
-    <div class="siren-idx-audio-mode-ui" style="position: relative; flex: 3; display: flex; gap: 4px; min-width: 0;">
-        <input type="text" class="siren-ext-input siren-idx-audio-input siren-idx-align-fix" placeholder="关键字搜索" style="flex: 2; min-width: 0;">
-        <input type="number" class="siren-ext-input siren-idx-emo-weight-input siren-idx-align-fix" placeholder="情绪权重" min="0" max="1.6" step="0.05" style="width: 95px; flex-shrink: 0; text-align: center;" title="独立情绪权重 (0-1.6)">
+    <div class="siren-idx-audio-mode-ui" style="position: relative; display: flex; gap: 8px; min-width: 0;">
+        <input type="text" class="siren-ext-input siren-idx-audio-input siren-idx-align-fix" placeholder="关键字搜索" style="flex: 1; min-width: 0;">
+        <input type="number" class="siren-ext-input siren-idx-emo-weight-input siren-idx-align-fix" placeholder="权重" min="0" max="1.6" step="0.05" style="width: 70px; flex-shrink: 0; text-align: center;" title="独立情绪权重 (0-1.6)">
         <div class="siren-idx-search-results" style="display: none; position: absolute; top: calc(100% + 4px); left: 0; width: 100%; max-height: 150px; overflow-y: auto; background: #1e293b; border: 1px solid #06b6d4; border-radius: 6px; z-index: 100;"></div>
     </div>
     
-    <div class="siren-idx-vector-mode-ui" style="flex: 3; display: none; gap: 8px; min-width: 0; align-items: center;">
+    <div class="siren-idx-vector-mode-ui" style="display: none; gap: 8px; min-width: 0; align-items: center;">
         <button class="siren-ext-btn siren-idx-vec-open-btn siren-idx-align-fix" style="flex: 1; background: rgba(168, 85, 247, 0.1); border: 1px solid #a855f7; color: #d8b4fe; justify-content: center; min-width: 0;">
             <i class="fa-solid fa-sliders"></i> 调整 8 维向量
         </button>
@@ -263,7 +272,6 @@ const emoRowHtml = `
         <input type="hidden" class="siren-idx-vec-weight-hidden" value="">
         <input type="hidden" class="siren-idx-vec-random-hidden" value="false">
     </div>
-    <button class="siren-ext-btn siren-ext-btn-secondary siren-idx-row-del siren-idx-align-fix" style="color: #ef4444; flex-shrink: 0;"><i class="fa-solid fa-trash"></i></button>
 </div>
 `;
 
