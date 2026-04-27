@@ -242,20 +242,22 @@ export function initAmbienceSettings() {
                 </div>
 
                 <div style="background: rgba(15, 23, 42, 0.6); padding: 12px; border-radius: 8px; border: 1px solid #334155;">
-                    <div style="display: flex; gap: 12px; margin-bottom: 15px; align-items: center;">
-                        <span style="color: #e2e8f0; font-weight: bold; font-size: 14px; white-space: nowrap;">Ambience 库</span>
-                        <select id="siren-ambience-list-select" style="flex: 1; background: #1e293b; color: white; border: 1px solid #475569; border-radius: 4px; padding: 6px; outline: none;"></select>
-                        <div style="display: flex; gap: 8px;">
-                            <button class="siren-icon-btn" id="siren-ambience-btn-import-list" title="导入背景库"><i class="fa-solid fa-file-import"></i></button>
-                            <button class="siren-icon-btn" id="siren-ambience-btn-export-list" title="导出当前背景库"><i class="fa-solid fa-file-export"></i></button>
-                            <button class="siren-icon-btn" id="siren-ambience-btn-new-list" title="新增背景库"><i class="fa-solid fa-plus"></i></button>
-                            <button class="siren-icon-btn" id="siren-ambience-btn-del-list" title="删除当前背景库"><i class="fa-solid fa-trash"></i></button>
+                    <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px;">
+                        <div style="display: flex; gap: 12px; align-items: center;">
+                            <span style="color: #e2e8f0; font-weight: bold; font-size: 14px; white-space: nowrap;">Ambience 库</span>
+                            <select id="siren-ambience-list-select" style="flex: 1; background: #1e293b; color: white; border: 1px solid #475569; border-radius: 4px; padding: 6px; outline: none;"></select>
+                        </div>
+                        <div style="display: flex; justify-content: space-around; align-items: center; background: rgba(0,0,0,0.2); padding: 5px; border-radius: 4px;">
+                            <button class="siren-icon-btn" style="flex: 1; border: none; background: transparent;" id="siren-ambience-btn-import-list" title="导入背景库"><i class="fa-solid fa-file-import"></i></button>
+                            <button class="siren-icon-btn" style="flex: 1; border: none; background: transparent;" id="siren-ambience-btn-export-list" title="导出当前背景库"><i class="fa-solid fa-file-export"></i></button>
+                            <button class="siren-icon-btn" style="flex: 1; border: none; background: transparent;" id="siren-ambience-btn-new-list" title="新增背景库"><i class="fa-solid fa-plus"></i></button>
+                            <button class="siren-icon-btn" style="flex: 1; border: none; background: transparent; color: #ef4444;" id="siren-ambience-btn-del-list" title="删除当前背景库"><i class="fa-solid fa-trash"></i></button>
                             <input type="file" id="siren-ambience-file-import-list" accept=".json" style="display: none;">
                         </div>
                     </div>
-                
+
                     <div id="siren-ambience-items-container" style="display: flex; flex-direction: column; gap: 8px; max-height: 250px; overflow-y: auto; padding-right: 4px; margin-bottom: 12px;"></div>
-                
+
                     <button id="siren-ambience-btn-add-row" style="width: 100%; padding: 8px; background: rgba(59, 130, 246, 0.1); border: 1px dashed #3b82f6; color: #3b82f6; border-radius: 4px; cursor: pointer; transition: all 0.2s;">
                         <i class="fa-solid fa-plus"></i> 新增 Ambience
                     </button>
@@ -266,20 +268,22 @@ export function initAmbienceSettings() {
                 </div>
 
                 <div style="background: rgba(15, 23, 42, 0.6); padding: 12px; border-radius: 8px; border: 1px solid #334155;">
-                    <div style="display: flex; gap: 12px; margin-bottom: 15px; align-items: center;">
-                        <span style="color: #e2e8f0; font-weight: bold; font-size: 14px; white-space: nowrap;">SFX 库</span>
-                        <select id="siren-sfx-list-select" style="flex: 1; background: #1e293b; color: white; border: 1px solid #475569; border-radius: 4px; padding: 6px; outline: none;"></select>
-                        <div style="display: flex; gap: 8px;">
-                            <button class="siren-icon-btn" id="siren-sfx-btn-import-list" title="导入效果音库"><i class="fa-solid fa-file-import"></i></button>
-                            <button class="siren-icon-btn" id="siren-sfx-btn-export-list" title="导出当前效果音库"><i class="fa-solid fa-file-export"></i></button>
-                            <button class="siren-icon-btn" id="siren-sfx-btn-new-list" title="新增效果音库"><i class="fa-solid fa-plus"></i></button>
-                            <button class="siren-icon-btn" id="siren-sfx-btn-del-list" title="删除当前库"><i class="fa-solid fa-trash"></i></button>
+                    <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px;">
+                        <div style="display: flex; gap: 12px; align-items: center;">
+                            <span style="color: #e2e8f0; font-weight: bold; font-size: 14px; white-space: nowrap;">SFX 库</span>
+                            <select id="siren-sfx-list-select" style="flex: 1; background: #1e293b; color: white; border: 1px solid #475569; border-radius: 4px; padding: 6px; outline: none;"></select>
+                        </div>
+                        <div style="display: flex; justify-content: space-around; align-items: center; background: rgba(0,0,0,0.2); padding: 5px; border-radius: 4px;">
+                            <button class="siren-icon-btn" style="flex: 1; border: none; background: transparent;" id="siren-sfx-btn-import-list" title="导入效果音库"><i class="fa-solid fa-file-import"></i></button>
+                            <button class="siren-icon-btn" style="flex: 1; border: none; background: transparent;" id="siren-sfx-btn-export-list" title="导出当前效果音库"><i class="fa-solid fa-file-export"></i></button>
+                            <button class="siren-icon-btn" style="flex: 1; border: none; background: transparent;" id="siren-sfx-btn-new-list" title="新增效果音库"><i class="fa-solid fa-plus"></i></button>
+                            <button class="siren-icon-btn" style="flex: 1; border: none; background: transparent; color: #ef4444;" id="siren-sfx-btn-del-list" title="删除当前库"><i class="fa-solid fa-trash"></i></button>
                             <input type="file" id="siren-sfx-file-import-list" accept=".json" style="display: none;">
                         </div>
                     </div>
-                
+
                     <div id="siren-sfx-items-container" style="display: flex; flex-direction: column; gap: 8px; max-height: 250px; overflow-y: auto; padding-right: 4px; margin-bottom: 12px;"></div>
-                
+
                     <button id="siren-sfx-btn-add-row" style="width: 100%; padding: 8px; background: rgba(245, 158, 11, 0.1); border: 1px dashed #fbbf24; color: #fbbf24; border-radius: 4px; cursor: pointer; transition: all 0.2s;">
                         <i class="fa-solid fa-plus"></i> 新增 SFX
                     </button>
@@ -388,12 +392,16 @@ function renderAmbienceRows() {
     localAmbienceState.libraries[localAmbienceState.current_list] || [];
   currentLib.forEach((item, index) => {
     const row = document.createElement("div");
-    row.style.cssText = "display: flex; gap: 8px; align-items: center;";
+    // 改为列向布局，加个微弱的背景色区分不同的条目
+    row.style.cssText =
+      "display: flex; flex-direction: column; gap: 6px; padding: 10px; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.05); border-radius: 6px; margin-bottom: 4px;";
     row.innerHTML = `
-            <input type="text" class="siren-ambience-input-name" data-idx="${index}" placeholder="名称" value="${item.name}" style="width: 30%; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; padding: 6px; outline: none;">
-            <input type="text" class="siren-ambience-input-url" data-idx="${index}" placeholder="URL" value="${item.url}" style="flex: 1; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; padding: 6px; outline: none;">
-            <button class="siren-ambience-btn-del-row" data-idx="${index}" title="删除" style="background: transparent; color: #ef4444; border: 1px solid #ef4444; border-radius: 4px; width: 30px; height: 30px; cursor: pointer;"><i class="fa-solid fa-xmark"></i></button>
-        `;
+        <div style="display: flex; gap: 8px; align-items: center;">
+            <input type="text" class="siren-ambience-input-name" data-idx="${index}" placeholder="音频名" value="${item.name}" style="flex: 1; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; padding: 6px; outline: none;">
+            <button class="siren-ambience-btn-del-row" data-idx="${index}" title="删除" style="background: transparent; border: none; color: #ef4444; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; cursor: pointer;"><i class="fa-solid fa-trash"></i></button>
+        </div>
+        <input type="text" class="siren-ambience-input-url" data-idx="${index}" placeholder="链接 URL" value="${item.url}" style="width: 100%; box-sizing: border-box; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; padding: 6px; outline: none;">
+    `;
     container.appendChild(row);
   });
 }
@@ -408,12 +416,16 @@ function renderSfxRows() {
 
   currentLib.forEach((item, index) => {
     const row = document.createElement("div");
-    row.style.cssText = "display: flex; gap: 8px; align-items: center;";
+    // 改为列向布局
+    row.style.cssText =
+      "display: flex; flex-direction: column; gap: 6px; padding: 10px; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.05); border-radius: 6px; margin-bottom: 4px;";
     row.innerHTML = `
-            <input type="text" class="siren-sfx-input-name" data-idx="${index}" placeholder="名称" value="${item.name}" style="width: 30%; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; padding: 6px; outline: none;">
-            <input type="text" class="siren-sfx-input-url" data-idx="${index}" placeholder="URL" value="${item.url}" style="flex: 1; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; padding: 6px; outline: none;">
-            <button class="siren-sfx-btn-del-row" data-idx="${index}" title="删除" style="background: transparent; color: #ef4444; border: 1px solid #ef4444; border-radius: 4px; width: 30px; height: 30px; cursor: pointer;"><i class="fa-solid fa-xmark"></i></button>
-        `;
+        <div style="display: flex; gap: 8px; align-items: center;">
+            <input type="text" class="siren-sfx-input-name" data-idx="${index}" placeholder="音频名" value="${item.name}" style="flex: 1; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; padding: 6px; outline: none;">
+            <button class="siren-sfx-btn-del-row" data-idx="${index}" title="删除" style="background: transparent; border: none; color: #ef4444; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; cursor: pointer;"><i class="fa-solid fa-trash"></i></button>
+        </div>
+        <input type="text" class="siren-sfx-input-url" data-idx="${index}" placeholder="链接 URL" value="${item.url}" style="width: 100%; box-sizing: border-box; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; padding: 6px; outline: none;">
+    `;
     container.appendChild(row);
   });
 }

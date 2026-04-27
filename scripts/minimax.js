@@ -24,45 +24,48 @@ function getDefaultMinimaxAdvData() {
 export function getMinimaxHtml() {
   return `
     <div id="siren-minimax-wrapper">
-        <h4 style="color: #06b6d4; font-size: 1.1em; margin-bottom: 10px; border-bottom: 1px solid rgba(6, 182, 212, 0.3); padding-bottom: 5px;">
-            <i class="fa-solid fa-server" style="margin-right: 5px;"></i> MiniMax API 配置
-        </h4>
-        <div class="siren-ext-setting-row siren-ext-flex-between">
-            <div class="siren-ext-setting-label"><label>API 来源</label></div>
-            <select id="siren-mm-region" class="siren-ext-select" style="width: 280px;">
-                <option value="cn">国内版 (api.minimaxi.com)</option>
-                <option value="global">国际版 (api.minimax.io)</option>
-            </select>
-        </div>
-        
-        <div class="siren-ext-setting-row siren-ext-flex-between">
-            <div class="siren-ext-setting-label"><label>API Key</label></div>
-            <input type="password" id="siren-mm-apikey" class="siren-ext-input" style="width: 280px;" placeholder="输入 MiniMax API Key">
-        </div>
-        
-        <div class="siren-ext-setting-row siren-ext-flex-between">
-            <div class="siren-ext-setting-label"><label>合成模型</label></div>
-            <select id="siren-mm-model" class="siren-ext-select" style="width: 280px;">
-                <option value="speech-2.8-hd">speech-2.8-hd</option>
-                <option value="speech-2.8-turbo">speech-2.8-turbo</option>
-                <option value="speech-2.6-hd">speech-2.6-hd</option>
-                <option value="speech-2.6-turbo">speech-2.6-turbo</option>
-                <option value="speech-02-hd">speech-02-hd</option>
-                <option value="speech-02-turbo">speech-02-turbo</option>
-                <option value="speech-01-hd">speech-01-hd</option>
-                <option value="speech-01-turbo">speech-01-turbo</option>
-            </select>
-        </div>
-        
-        <div class="siren-ext-setting-row siren-ext-flex-between">
-            <div class="siren-ext-setting-label">
-                <label>文本智能规范化</label>
-                <small style="display:block;">优化数字、日期的朗读，但会略微增加延迟</small>
+        <div style="background: rgba(15, 23, 42, 0.4); border: 1px solid #334155; border-radius: 6px; padding: 15px; display: flex; flex-direction: column; gap: 12px;">
+            <h4 style="color: #06b6d4; font-size: 1.1em; margin: 0;">
+                <i class="fa-solid fa-server" style="margin-right: 5px;"></i> MiniMax API 配置
+            </h4>
+
+            <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px;">
+                <div class="siren-ext-setting-label" style="white-space: nowrap; font-size: 0.95em; color: #cbd5e1;">API 来源</div>
+                <select id="siren-mm-region" class="siren-ext-select" style="flex: 1; min-width: 200px;">
+                    <option value="cn">国内版 (api.minimaxi.com)</option>
+                    <option value="global">国际版 (api.minimax.io)</option>
+                </select>
             </div>
-            <label class="siren-ext-switch">
-                <input type="checkbox" id="siren-mm-norm">
-                <span class="siren-ext-slider"></span>
-            </label>
+    
+            <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px;">
+                <div class="siren-ext-setting-label" style="white-space: nowrap; font-size: 0.95em; color: #cbd5e1;">API Key</div>
+                <input type="password" id="siren-mm-apikey" class="siren-ext-input" style="flex: 1; min-width: 200px;" placeholder="输入 MiniMax API Key">
+            </div>
+    
+            <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px;">
+                <div class="siren-ext-setting-label" style="white-space: nowrap; font-size: 0.95em; color: #cbd5e1;">合成模型</div>
+                <select id="siren-mm-model" class="siren-ext-select" style="flex: 1; min-width: 200px;">
+                    <option value="speech-2.8-hd">speech-2.8-hd</option>
+                    <option value="speech-2.8-turbo">speech-2.8-turbo</option>
+                    <option value="speech-2.6-hd">speech-2.6-hd</option>
+                    <option value="speech-2.6-turbo">speech-2.6-turbo</option>
+                    <option value="speech-02-hd">speech-02-hd</option>
+                    <option value="speech-02-turbo">speech-02-turbo</option>
+                    <option value="speech-01-hd">speech-01-hd</option>
+                    <option value="speech-01-turbo">speech-01-turbo</option>
+                </select>
+            </div>
+    
+            <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 10px;">
+                <div class="siren-ext-setting-label">
+                    <label style="color:#cbd5e1; font-size: 0.95em;">文本智能规范化</label>
+                    <small style="display:block; color:#64748b; font-size: 0.85em; margin-top: 2px;">优化数字、日期的朗读，但会略微增加延迟</small>
+                </div>
+                <label class="siren-ext-switch" style="flex-shrink: 0;">
+                    <input type="checkbox" id="siren-mm-norm">
+                    <span class="siren-ext-slider"></span>
+                </label>
+            </div>
         </div>
 
         <h4 style="color: #a78bfa; font-size: 1.1em; margin-bottom: 10px; margin-top: 20px; border-bottom: 1px solid rgba(168, 85, 247, 0.3); padding-bottom: 5px; display: flex; justify-content: space-between; align-items: center;">
@@ -93,42 +96,42 @@ export function getMinimaxHtml() {
         <h4 style="color: #f59e0b; margin-bottom: 10px; font-size: 1.1em; margin-top: 25px;"><i class="fa-solid fa-microphone-lines" style="margin-right: 5px;"></i> 音色克隆 </h4>
         <div style="background: rgba(0,0,0,0.2); border: 1px solid #334155; border-radius: 6px; padding: 15px; display: flex; flex-direction: column; gap: 10px;">
             
-            <div class="siren-ext-flex-between">
-                <div style="flex: 1; margin-right: 10px;">
-                    <label style="color:#cbd5e1; font-size:0.9em;">复刻音频 (需 10s-5m)</label>
-                    <div style="display: flex; gap: 5px; margin-top: 5px;">
-                        <input type="file" id="siren-mm-clone-file" accept=".mp3,.m4a,.wav" style="display: none;">
-                        <button id="siren-mm-btn-choose-clone" class="siren-ext-btn siren-ext-btn-secondary" style="white-space: nowrap;"><i class="fa-solid fa-folder-open"></i> 选择文件</button>
-                        <button id="siren-mm-btn-up-clone" class="siren-ext-btn siren-ext-btn-primary" style="white-space: nowrap;"><i class="fa-solid fa-cloud-arrow-up"></i> 上传</button>
-                        <input type="text" id="siren-mm-clone-id" class="siren-ext-input" readonly placeholder="上传后自动填入 File ID" style="width: 100%; background: rgba(0,0,0,0.3);">
-                    </div>
-                    <div id="siren-mm-clone-filename" style="font-size: 0.8em; color: #64748b; margin-top: 4px;">未选择文件</div>
-                </div>
-            </div>
+<div class="siren-ext-flex-between">
+    <div style="flex: 1;">
+        <label style="color:#cbd5e1; font-size:0.9em;">复刻音频 (需 10s-5m)</label>
+        <div style="display: flex; flex-wrap: wrap; gap: 5px; margin-top: 5px;">
+            <input type="file" id="siren-mm-clone-file" accept=".mp3,.m4a,.wav" style="display: none;">
+            <button id="siren-mm-btn-choose-clone" class="siren-ext-btn siren-ext-btn-secondary" style="flex: 1; min-width: 110px; white-space: nowrap;"><i class="fa-solid fa-folder-open"></i> 选择文件</button>
+            <button id="siren-mm-btn-up-clone" class="siren-ext-btn siren-ext-btn-primary" style="flex: 1; min-width: 110px; white-space: nowrap;"><i class="fa-solid fa-cloud-arrow-up"></i> 上传</button>
+            <input type="text" id="siren-mm-clone-id" class="siren-ext-input" readonly placeholder="上传后自动填入 File ID" style="width: 100%; margin-top: 5px; background: rgba(0,0,0,0.3);">
+        </div>
+        <div id="siren-mm-clone-filename" style="font-size: 0.8em; color: #64748b; margin-top: 4px;">未选择文件</div>
+    </div>
+</div>
 
-            <div class="siren-ext-flex-between">
-                <div style="flex: 1; margin-right: 10px;">
-                    <label style="color:#cbd5e1; font-size:0.9em;">示例音频 (可选，需 &lt; 8s)</label>
-                    <div style="display: flex; gap: 5px; margin-top: 5px;">
-                        <input type="file" id="siren-mm-prompt-file" accept=".mp3,.m4a,.wav" style="display: none;">
-                        <button id="siren-mm-btn-choose-prompt" class="siren-ext-btn siren-ext-btn-secondary" style="white-space: nowrap;"><i class="fa-solid fa-folder-open"></i> 选择文件</button>
-                        <button id="siren-mm-btn-up-prompt" class="siren-ext-btn siren-ext-btn-primary" style="white-space: nowrap;"><i class="fa-solid fa-cloud-arrow-up"></i> 上传</button>
-                        <input type="text" id="siren-mm-prompt-id" class="siren-ext-input" readonly placeholder="上传后自动填入 File ID" style="width: 100%; background: rgba(0,0,0,0.3);">
-                    </div>
-                    <div id="siren-mm-prompt-filename" style="font-size: 0.8em; color: #64748b; margin-top: 4px;">未选择文件</div>
-                </div>
-            </div>
+<div class="siren-ext-flex-between">
+    <div style="flex: 1;">
+        <label style="color:#cbd5e1; font-size:0.9em;">示例音频 (可选，需 &lt; 8s)</label>
+        <div style="display: flex; flex-wrap: wrap; gap: 5px; margin-top: 5px;">
+            <input type="file" id="siren-mm-prompt-file" accept=".mp3,.m4a,.wav" style="display: none;">
+            <button id="siren-mm-btn-choose-prompt" class="siren-ext-btn siren-ext-btn-secondary" style="flex: 1; min-width: 110px; white-space: nowrap;"><i class="fa-solid fa-folder-open"></i> 选择文件</button>
+            <button id="siren-mm-btn-up-prompt" class="siren-ext-btn siren-ext-btn-primary" style="flex: 1; min-width: 110px; white-space: nowrap;"><i class="fa-solid fa-cloud-arrow-up"></i> 上传</button>
+            <input type="text" id="siren-mm-prompt-id" class="siren-ext-input" readonly placeholder="上传后自动填入 File ID" style="width: 100%; margin-top: 5px; background: rgba(0,0,0,0.3);">
+        </div>
+        <div id="siren-mm-prompt-filename" style="font-size: 0.8em; color: #64748b; margin-top: 4px;">未选择文件</div>
+    </div>
+</div>
 
-            <div style="display: flex; gap: 15px;">
-                <div style="flex: 2;">
-                    <label style="color:#cbd5e1; font-size:0.9em; display:block; margin-bottom:5px;">示例音频文本</label>
-                    <input type="text" id="siren-mm-prompt-text" class="siren-ext-input" placeholder="如上传示例音频，则必须填入对应文本（带标点）" style="width: 100%;">
-                </div>
-                <div style="flex: 1;">
-                    <label style="color:#f59e0b; font-size:0.9em; display:block; margin-bottom:5px;">Voice ID <span style="color:#ef4444;">*</span></label>
-                    <input type="text" id="siren-mm-clone-vid" class="siren-ext-input" placeholder="允许数字、字母、-、_" style="width: 100%; border-color: rgba(245, 158, 11, 0.5);">
-                </div>
-            </div>
+<div style="display: flex; flex-direction: column; gap: 15px;">
+    <div>
+        <label style="color:#cbd5e1; font-size:0.9em; display:block; margin-bottom:5px;">示例音频文本</label>
+        <input type="text" id="siren-mm-prompt-text" class="siren-ext-input" placeholder="如上传示例音频，则必须填入对应文本（带标点）" style="width: 100%;">
+    </div>
+    <div>
+        <label style="color:#f59e0b; font-size:0.9em; display:block; margin-bottom:5px;">Voice ID <span style="color:#ef4444;">*</span></label>
+        <input type="text" id="siren-mm-clone-vid" class="siren-ext-input" placeholder="允许数字、字母、-、_" style="width: 100%; border-color: rgba(245, 158, 11, 0.5);">
+    </div>
+</div>
 
             <div style="display: flex; flex-direction: column; gap: 5px;">
                 <label style="color:#cbd5e1; font-size:0.9em;">试听文本 <span style="color:#ef4444;">*</span></label>
@@ -169,23 +172,23 @@ export function getMinimaxHtml() {
                 <span style="margin-left: 18px;"><b>生动 (fluent)</b>、<b>低语 (whisper)</b> 仅对 <span style="color: #cbd5e1;">speech-2.6-turbo / hd</span> 模型生效。</span>
             </div>
 
-            <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-                <select id="siren-mm-test-char" class="siren-ext-select" style="flex: 1;">
-                    <option value="">(点击选择已配置的角色)</option>
-                </select>
-                <select id="siren-mm-test-mood" class="siren-ext-select" style="flex: 1;">
-                    <option value="">自动匹配情绪</option>
-                    <option value="happy">高兴（happy）</option>
-                    <option value="sad">悲伤（sad）</option>
-                    <option value="angry">愤怒（angry）</option>
-                    <option value="fearful">害怕（fearful）</option>
-                    <option value="disgusted">厌恶（disgusted）</option>
-                    <option value="surprised">惊讶（surprised）</option>
-                    <option value="calm">冷静（clam）</option>
-                    <option value="fluent">生动（fluent）</option>
-                    <option value="whisper">低语（whisper）</option>
-                </select>
-            </div>
+<div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 10px;">
+    <select id="siren-mm-test-char" class="siren-ext-select" style="flex: 1; min-width: 160px;">
+        <option value="">(点击选择已配置的角色)</option>
+    </select>
+    <select id="siren-mm-test-mood" class="siren-ext-select" style="flex: 1; min-width: 160px;">
+        <option value="">自动匹配情绪</option>
+        <option value="happy">高兴（happy）</option>
+        <option value="sad">悲伤（sad）</option>
+        <option value="angry">愤怒（angry）</option>
+        <option value="fearful">害怕（fearful）</option>
+        <option value="disgusted">厌恶（disgusted）</option>
+        <option value="surprised">惊讶（surprised）</option>
+        <option value="calm">冷静（clam）</option>
+        <option value="fluent">生动（fluent）</option>
+        <option value="whisper">低语（whisper）</option>
+    </select>
+</div>
 
             <textarea id="siren-mm-test-text" class="siren-ext-textarea" rows="2" placeholder="输入一句台词测试效果，支持穿插语气词。例如：今天真的很开心！(laughs) 我们走吧。"></textarea>
             
@@ -308,7 +311,6 @@ function createMinimaxCharRow(charName = "", voiceId = "", advData = null) {
   if (!advData) advData = getDefaultMinimaxAdvData();
   const dataStr = encodeURIComponent(JSON.stringify(advData));
 
-  // 👇 核心修改：把 <select> 换回 <input>，并绑定 list="siren-mm-voice-datalist"
   return `
         <div class="siren-ext-setting-row siren-mm-char-item" style="display:flex; flex-wrap:wrap; gap:6px; align-items:center; padding: 8px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 6px;">
             <input type="text" class="siren-ext-input mm-char-name" placeholder="角色名" value="${charName}" style="flex: 1 1 100%; width: 100%; box-sizing: border-box; height: 32px;">
@@ -316,8 +318,8 @@ function createMinimaxCharRow(charName = "", voiceId = "", advData = null) {
             <div style="display: flex; gap: 6px; width: 100%; align-items: center;">
                 <input type="text" list="siren-mm-voice-datalist" class="siren-ext-input mm-voice-id" placeholder="双击选择或粘贴ID" value="${voiceId}" style="flex: 1; min-width: 0; height: 32px; box-sizing: border-box;">
                 
-                <button class="siren-ext-btn mm-btn-adv" style="border: 1px solid #06b6d4; color: #06b6d4; background: rgba(6,182,212,0.1); width: 32px; height: 32px; padding: 0; flex-shrink: 0; display: flex; align-items: center; justify-content: center;" title="高级声音配置"><i class="fa-solid fa-sliders"></i></button>
-                <button class="siren-ext-btn mm-btn-del" style="color: #ef4444; background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); width: 32px; height: 32px; padding: 0; flex-shrink: 0; display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-trash"></i></button>
+                <button class="siren-ext-btn mm-btn-adv" style="background: none; border: none; color: #06b6d4; width: 30px; height: 32px; padding: 0 5px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;" title="高级声音配置"><i class="fa-solid fa-sliders"></i></button>
+                <button class="siren-ext-btn mm-btn-del" style="background: none; border: none; color: #ef4444; width: 30px; height: 32px; padding: 0 5px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;" title="删除"><i class="fa-solid fa-trash"></i></button>
             </div>
             <input type="hidden" class="mm-adv-data" value="${dataStr}">
         </div>

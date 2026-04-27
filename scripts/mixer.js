@@ -40,10 +40,10 @@ export function initMixerSettings() {
         </div>
 
         <div class="siren-mixer-sliders" style="background: rgba(15,23,42,0.6); padding: 20px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 24px;">
-            ${createSlider("tts", "TTS 语音", vol.tts, "#a855f7")}     
-            ${createSlider("ambience", "环境背景音", vol.ambience, "#3b82f6")}   
-            ${createSlider("sfx", "特殊效果音", vol.sfx, "#f59e0b")}   
-            ${createSlider("music", "潮汐音乐台", vol.music, "#00f5d4")} 
+            ${createSlider("tts", "TTS", vol.tts, "#a855f7")}     
+            ${createSlider("ambience", "Ambience", vol.ambience, "#3b82f6")}   
+            ${createSlider("sfx", "SFX", vol.sfx, "#f59e0b")}   
+            ${createSlider("music", "Music", vol.music, "#00f5d4")} 
         </div>
 
         <h3 style="color: #e2e8f0; margin-top: 32px; margin-bottom: 16px; font-size: 1.1rem;">空间感</h3>

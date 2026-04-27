@@ -74,9 +74,9 @@ export function getGptSovitsHtml() {
                     <i class="fa-solid fa-sliders" style="margin-right: 5px;"></i>全局高级参数 (默认与降级兜底)
                 </h4>
                 
-                <div style="display: flex; gap: 15px; align-items: flex-end; margin-bottom: 15px;">
-    <div style="flex: 1.5;">
-        <div class="siren-ext-setting-label" style="font-size: 0.85em; margin-bottom: 4px;">文本切分策略</div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+    <div style="grid-column: 1 / -1; display: flex; flex-direction: column; gap: 6px;">
+        <span style="font-size: 0.85em; color: #cbd5e1;">文本切分策略</span>
         <select id="siren-gsv-global-split" class="siren-ext-select" style="${rowInputStyle} width: 100%;">
             <option value="按标点符号切">按标点符号切 (推荐)</option>
             <option value="凑四句一切">凑四句一切</option>
@@ -86,43 +86,49 @@ export function getGptSovitsHtml() {
             <option value="不切">不切</option>
         </select>
     </div>
-    <div style="flex: 1;">
-        <div style="display:flex; justify-content:space-between; font-size: 0.85em; color: #94a3b8; margin-bottom: 4px;">
+
+    <div style="display: flex; flex-direction: column; gap: 6px;">
+        <div style="display:flex; justify-content:space-between; font-size: 0.85em; color: #94a3b8;">
             <span>句间停顿</span><span id="siren-gsv-interval-val" style="color: #facc15;">0.3s</span>
         </div>
         <input type="range" id="siren-gsv-global-interval" class="siren-ext-slider-input" min="0.1" max="0.5" step="0.05" value="0.3" style="--theme-color: #facc15;">
     </div>
-    <div style="flex: 1; padding-bottom: 8px;">
-        <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+
+    <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 14px;">
+        <span style="font-size: 0.85em; color: #cbd5e1;">并行推理</span>
+        <label class="siren-ext-switch" style="flex-shrink: 0;">
             <input type="checkbox" id="siren-gsv-global-parallel" checked>
-            <span style="font-size: 0.85em; color: #cbd5e1;">并行推理</span>
+            <span class="siren-ext-slider"></span>
         </label>
     </div>
-</div>
 
-<div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; padding-top: 15px; border-top: 1px dashed rgba(51, 65, 85, 0.6);">
-    <div>
+    <div style="display: flex; flex-direction: column; gap: 6px;">
         <div style="display:flex; justify-content:space-between; font-size:0.8em; color:#94a3b8;"><span>语速</span><span id="siren-gsv-global-speed-val" style="color:#facc15;">1.0</span></div>
         <input type="range" id="siren-gsv-global-speed" class="siren-ext-slider-input" min="0.6" max="1.65" step="0.05" value="1.0" style="--theme-color: #facc15;">
     </div>
-    <div>
+
+    <div style="display: flex; flex-direction: column; gap: 6px;">
         <div style="display:flex; justify-content:space-between; font-size:0.8em; color:#94a3b8;"><span>温度</span><span id="siren-gsv-global-temp-val" style="color:#facc15;">1.0</span></div>
         <input type="range" id="siren-gsv-global-temp" class="siren-ext-slider-input" min="0" max="1" step="0.05" value="1.0" style="--theme-color: #facc15;">
     </div>
-    <div>
+
+    <div style="display: flex; flex-direction: column; gap: 6px;">
         <div style="display:flex; justify-content:space-between; font-size:0.8em; color:#94a3b8;"><span>Top P</span><span id="siren-gsv-global-topp-val" style="color:#facc15;">1.0</span></div>
         <input type="range" id="siren-gsv-global-topp" class="siren-ext-slider-input" min="0" max="1" step="0.05" value="1.0" style="--theme-color: #facc15;">
     </div>
-    <div>
+
+    <div style="display: flex; flex-direction: column; gap: 6px;">
         <div style="display:flex; justify-content:space-between; font-size:0.8em; color:#94a3b8;"><span>Top K</span><span id="siren-gsv-global-topk-val" style="color:#facc15;">15</span></div>
         <input type="range" id="siren-gsv-global-topk" class="siren-ext-slider-input" min="1" max="100" step="1" value="15" style="--theme-color: #facc15;">
     </div>
-    <div>
+
+    <div style="display: flex; flex-direction: column; gap: 6px;">
         <div style="display:flex; justify-content:space-between; font-size:0.8em; color:#94a3b8;"><span>重复惩罚</span><span id="siren-gsv-global-rep-val" style="color:#facc15;">1.35</span></div>
         <input type="range" id="siren-gsv-global-rep" class="siren-ext-slider-input" min="1" max="2" step="0.05" value="1.35" style="--theme-color: #facc15;">
     </div>
-    <div>
-        <div style="font-size:0.8em; color:#94a3b8; margin-bottom:5px;">种子</div>
+
+    <div style="display: flex; flex-direction: column; gap: 6px;">
+        <div style="font-size:0.8em; color:#94a3b8;">种子</div>
         <input type="number" id="siren-gsv-global-seed" class="siren-ext-input siren-no-spin" value="-1" style="${rowInputStyle} width: 100%;">
     </div>
 </div>
@@ -170,11 +176,11 @@ export function getGptSovitsHtml() {
                 </h4>
                 <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 6px; padding: 15px;">
                     
-                    <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-                        <select id="siren-gsv-test-char" class="siren-ext-select" style="${rowInputStyle} flex: 1;">
+                    <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 10px;">
+                        <select id="siren-gsv-test-char" class="siren-ext-select" style="${rowInputStyle} flex: 1; min-width: 160px;">
                             <option value="">(请先保存配置后选择角色)</option>
                         </select>
-                        <select id="siren-gsv-test-mood" class="siren-ext-select" style="${rowInputStyle} flex: 1;">
+                        <select id="siren-gsv-test-mood" class="siren-ext-select" style="${rowInputStyle} flex: 1; min-width: 160px;">
                             <option value="">(使用默认角色情绪)</option>
                         </select>
                     </div>
@@ -1048,8 +1054,8 @@ function createCharRow(data = {}) {
                     <option value="${data.sovitsModel || ""}">${formatModelNameForDisplay(data.sovitsModel) || "SoVITS模型..."}</option>
                 </select>
                 <div style="display: flex; gap: 8px; margin-left: auto;">
-                    <button class="siren-ext-btn siren-ext-btn-secondary siren-gsv-adv-btn" style="height: 32px; padding: 0 10px; color: #f59e0b; flex-shrink: 0;" title="高级设置"><i class="fa-solid fa-sliders"></i></button>
-                    <button class="siren-ext-btn siren-ext-btn-secondary siren-gsv-del-btn" style="height: 32px; color: #ef4444; padding: 0 10px; flex-shrink: 0;"><i class="fa-solid fa-trash"></i></button>
+                    <button class="siren-ext-btn siren-gsv-adv-btn" style="background:none; border:none; padding:0 5px; color:#f59e0b; width:30px; flex-shrink:0;" title="高级设置"><i class="fa-solid fa-sliders"></i></button>
+                    <button class="siren-ext-btn siren-gsv-del-btn" style="background:none; border:none; padding:0 5px; color:#ef4444; width:30px; flex-shrink:0;" title="删除"><i class="fa-solid fa-trash"></i></button>
                 </div>
             </div>
             
@@ -1099,7 +1105,7 @@ function createEmoRow(data = {}) {
                     <option value="">选择角色</option>
                 </select>
                 <input type="text" class="siren-ext-input siren-gsv-emo-name" placeholder="情绪名" value="${data.emotion || ""}" style="${rowInputStyle} flex: 1; min-width: 100px;">
-                <button class="siren-ext-btn siren-ext-btn-secondary siren-gsv-del-btn" style="height: 32px; color: #ef4444; padding: 0 10px; flex-shrink: 0;"><i class="fa-solid fa-trash"></i></button>
+                <button class="siren-ext-btn siren-gsv-del-btn" style="background:none; border:none; color: #ef4444; padding: 0 5px; width: 30px; flex-shrink: 0;" title="删除"><i class="fa-solid fa-trash"></i></button>
             </div>
             
             <div style="width: 100%;">

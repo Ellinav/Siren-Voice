@@ -170,11 +170,11 @@ export function getDoubaoHtml() {
                     <b>合成 2.0</b> 支持自然语言情绪提示；<b>复刻 2.0</b> 支持 CoT 标签控制。
                 </div>
 
-                <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-                    <select id="siren-db-test-char" class="siren-ext-select" style="height: 32px; box-sizing: border-box; padding: 0 8px; flex: 1;">
+                <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 10px;">
+                    <select id="siren-db-test-char" class="siren-ext-select" style="height: 32px; box-sizing: border-box; padding: 0 8px; flex: 1; min-width: 160px;">
                         <option value="">(请先配置并保存上方角色)</option>
                     </select>
-                    <input type="text" id="siren-db-test-emotion" class="siren-ext-input" style="height: 32px; box-sizing: border-box; padding: 0 8px; flex: 1;" placeholder="情绪提示词 (如: 用开心的语气)">
+                    <input type="text" id="siren-db-test-emotion" class="siren-ext-input" style="height: 32px; box-sizing: border-box; padding: 0 8px; flex: 1; min-width: 160px;" placeholder="情绪提示词 (如: 用开心的语气)">
                 </div>
 
                 <textarea id="siren-db-test-text" class="siren-ext-textarea" rows="2" placeholder="输入一句台词测试效果。复刻2.0可直接在此输入 <cot text=哭腔> 等标签。" style="margin-bottom: 10px;"></textarea>
@@ -431,7 +431,7 @@ function addCharRow(name, model, speaker) {
                 <div class="siren-db-speaker-container" style="flex: 1; min-width: 0; display: flex; align-items: center; height: 32px;">
                     </div>
                 
-                <button class="siren-ext-btn siren-ext-btn-secondary siren-db-btn-del" style="width: 32px; height: 32px; padding: 0; box-sizing: border-box; margin: 0; color: #ef4444; flex-shrink: 0; display: flex; align-items: center; justify-content: center;" title="删除">
+                <button class="siren-ext-btn siren-db-btn-del" style="background:none; border:none; width: 30px; height: 32px; padding: 0 5px; box-sizing: border-box; margin: 0; color: #ef4444; flex-shrink: 0; display: flex; align-items: center; justify-content: center;" title="删除">
                     <i class="fa-solid fa-trash"></i>
                 </button>
             </div>

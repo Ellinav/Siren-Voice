@@ -112,11 +112,19 @@ export function initTtsSettings() {
                             </select>
                         </div>
     
-                        <div style="display: flex; gap: 8px; align-items: center; justify-content: space-between;">
-                            <button id="siren-tts-beautify-import" class="siren-ext-btn siren-ext-btn-secondary" style="flex: 1; padding: 6px 0;" title="导入"><i class="fa-solid fa-file-import"></i> 导入</button>
-                            <button id="siren-tts-beautify-export" class="siren-ext-btn siren-ext-btn-secondary" style="flex: 1; padding: 6px 0;" title="导出"><i class="fa-solid fa-file-export"></i> 导出</button>
-                            <button id="siren-tts-beautify-add" class="siren-ext-btn siren-ext-btn-secondary" style="flex: 1; padding: 6px 0;" title="添加"><i class="fa-solid fa-plus"></i> 添加</button>
-                            <button id="siren-tts-beautify-del" class="siren-ext-btn siren-ext-btn-secondary" style="flex: 1; padding: 6px 0; color: #ef4444;" title="删除"><i class="fa-solid fa-trash"></i> 删除</button>
+                        <div style="display: flex; gap: 15px; align-items: center; justify-content: space-around; padding: 5px 10px; background: rgba(0,0,0,0.1); border-radius: 4px;">
+                            <button id="siren-tts-beautify-import" class="siren-ext-btn" style="background:none; border:none; padding:8px; width:auto; min-width:0; color:#cbd5e1;" title="导入">
+                                <i class="fa-solid fa-file-import" style="font-size: 1.2em;"></i>
+                            </button>
+                            <button id="siren-tts-beautify-export" class="siren-ext-btn" style="background:none; border:none; padding:8px; width:auto; min-width:0; color:#cbd5e1;" title="导出">
+                                <i class="fa-solid fa-file-export" style="font-size: 1.2em;"></i>
+                            </button>
+                            <button id="siren-tts-beautify-add" class="siren-ext-btn" style="background:none; border:none; padding:8px; width:auto; min-width:0; color:#cbd5e1;" title="添加">
+                                <i class="fa-solid fa-plus" style="font-size: 1.2em;"></i>
+                            </button>
+                            <button id="siren-tts-beautify-del" class="siren-ext-btn" style="background:none; border:none; padding:8px; width:auto; min-width:0; color:#ef4444;" title="删除">
+                                <i class="fa-solid fa-trash" style="font-size: 1.2em;"></i>
+                            </button>
                             <input type="file" id="siren-tts-beautify-file-import" accept=".json" style="display: none;">
                         </div>
                     </div>
@@ -153,7 +161,7 @@ export function initTtsSettings() {
 
                 <div class="siren-ext-setting-row siren-ext-flex-between">
                     <div class="siren-ext-setting-label">
-                        <label style="color: #a855f7; font-size: 1.1em; font-weight: bold;"><i class="fa-solid fa-microchip" style="margin-right: 5px;"></i>当前 TTS Provider</label>
+                        <label style="color: #a855f7; font-size: 1.1em; font-weight: bold;"><i class="fa-solid fa-microchip" style="margin-right: 5px;"></i>当前 TTS</label>
                     </div>
                     <select id="siren-tts-provider" class="siren-ext-select" style="max-width: 200px;">
                         <option value="indextts">Index-TTS 2</option>
