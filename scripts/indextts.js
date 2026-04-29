@@ -29,10 +29,56 @@ export function getIndexTtsHtml() {
                 -moz-appearance: textfield;
             }
             .siren-idx-param-grid {
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
-                gap: 12px;
-            }
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* 📱 手机端默认一行2个 */
+    gap: 15px;
+}
+@media screen and (min-width: 768px) {
+    .siren-idx-param-grid {
+        grid-template-columns: repeat(3, 1fr); /* 💻 平板或小屏一行3个 */
+    }
+}
+@media screen and (min-width: 1024px) {
+    .siren-idx-param-grid {
+        grid-template-columns: repeat(4, 1fr); /* 🖥️ 大屏电脑一行4个 */
+    }
+}
+
+/* 高级参数独立卡片美化 */
+.siren-idx-param-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 8px;
+    background: rgba(30, 41, 59, 0.4);
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid rgba(51, 65, 85, 0.5);
+    transition: all 0.2s;
+}
+.siren-idx-param-card:hover {
+    border-color: rgba(6, 182, 212, 0.4);
+    background: rgba(30, 41, 59, 0.6);
+}
+
+/* 隐藏参数数字框的自带上下箭头，并美化 */
+.siren-idx-param-num::-webkit-outer-spin-button,
+.siren-idx-param-num::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+.siren-idx-param-num {
+    -moz-appearance: textfield;
+    width: 48px;
+    text-align: center;
+    padding: 2px 4px;
+    font-family: monospace;
+    font-size: 0.9em;
+    color: #06b6d4 !important;
+    background: rgba(15, 23, 42, 0.6) !important;
+    border: 1px solid #334155 !important;
+    border-radius: 4px;
+} 
         </style>
 
         <div>
@@ -109,54 +155,86 @@ export function getIndexTtsHtml() {
             <h4 style="margin: 0 0 10px 0; color: #94a3b8; font-size: 1.1em;"><i class="fa-solid fa-wrench" style="margin-right: 5px;"></i>高级参数</h4>
 
             <div class="siren-idx-param-grid">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <label style="font-size: 0.85em; color: #cbd5e1; white-space: nowrap;">采样</label>
-                    <label class="siren-ext-switch" style="flex-shrink: 0;">
-                        <input type="checkbox" id="siren-idx-param-dosample" checked>
-                        <span class="siren-ext-slider"></span>
-                    </label>
-                </div>
-                <div style="display: flex; justify-content: space-between; align-items: center;" title="作用于自然语言情绪控制">
-                    <label style="font-size: 0.85em; color: #cbd5e1; white-space: nowrap;">情绪随机</label>
-                    <label class="siren-ext-switch" style="flex-shrink: 0;">
-                        <input type="checkbox" id="siren-idx-param-emorandom">
-                        <span class="siren-ext-slider"></span>
-                    </label>
-                </div>
-        
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <label style="font-size: 0.85em; color: #cbd5e1; white-space: nowrap; margin-right: 5px;" title="20-600">分句最大Token</label>
-                    <input type="text" id="siren-idx-param-maxtxt" value="120" class="siren-ext-input" style="width: 60px; text-align: center; flex-shrink: 0;">
-                </div>
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <label style="font-size: 0.85em; color: #cbd5e1; white-space: nowrap; margin-right: 5px;" title="0.1-2">温度 (Temp)</label>
-                    <input type="text" id="siren-idx-param-temp" value="0.8" class="siren-ext-input" style="width: 60px; text-align: center; flex-shrink: 0;">
-                </div>
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <label style="font-size: 0.85em; color: #cbd5e1; white-space: nowrap; margin-right: 5px;" title="0-1">Top P</label>
-                    <input type="text" id="siren-idx-param-topp" value="0.8" class="siren-ext-input" style="width: 60px; text-align: center; flex-shrink: 0;">
-                </div>
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <label style="font-size: 0.85em; color: #cbd5e1; white-space: nowrap; margin-right: 5px;" title="0-100">Top K</label>
-                    <input type="text" id="siren-idx-param-topk" value="30" class="siren-ext-input" style="width: 60px; text-align: center; flex-shrink: 0;">
-                </div>
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <label style="font-size: 0.85em; color: #cbd5e1; white-space: nowrap; margin-right: 5px;" title="1-10">Num Beams</label>
-                    <input type="text" id="siren-idx-param-beams" value="3" class="siren-ext-input" style="width: 60px; text-align: center; flex-shrink: 0;">
-                </div>
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <label style="font-size: 0.85em; color: #cbd5e1; white-space: nowrap; margin-right: 5px;" title=">=1.0">重复惩罚</label>
-                    <input type="text" id="siren-idx-param-rep" value="10.0" class="siren-ext-input" style="width: 60px; text-align: center; flex-shrink: 0;">
-                </div>
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <label style="font-size: 0.85em; color: #cbd5e1; white-space: nowrap; margin-right: 5px;" title="-10 ~ 10">长度惩罚</label>
-                    <input type="text" id="siren-idx-param-len" value="0.0" class="siren-ext-input" style="width: 60px; text-align: center; flex-shrink: 0;">
-                </div>
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <label style="font-size: 0.85em; color: #cbd5e1; white-space: nowrap; margin-right: 5px;" title="50-1815">max_mel_tokens</label>
-                    <input type="text" id="siren-idx-param-mel" value="1500" class="siren-ext-input" style="width: 60px; text-align: center; flex-shrink: 0;">
-                </div>
-            </div>
+    <div class="siren-idx-param-card" style="flex-direction: row; justify-content: space-between; align-items: center;">
+        <label style="font-size: 0.85em; color: #cbd5e1; white-space: nowrap;">采样模式</label>
+        <label class="siren-ext-switch" style="flex-shrink: 0;">
+            <input type="checkbox" id="siren-idx-param-dosample" checked>
+            <span class="siren-ext-slider"></span>
+        </label>
+    </div>
+    
+    <div class="siren-idx-param-card" style="flex-direction: row; justify-content: space-between; align-items: center;" title="作用于自然语言情绪控制">
+        <label style="font-size: 0.85em; color: #cbd5e1; white-space: nowrap;">情绪随机</label>
+        <label class="siren-ext-switch" style="flex-shrink: 0;">
+            <input type="checkbox" id="siren-idx-param-emorandom">
+            <span class="siren-ext-slider"></span>
+        </label>
+    </div>
+
+    <div class="siren-idx-param-card">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <label style="font-size: 0.85em; color: #94a3b8;" title="20-600">分句 Token</label>
+            <input type="number" id="siren-idx-param-maxtxt-num" class="siren-idx-param-num" value="120" step="10" min="20" max="600">
+        </div>
+        <input type="range" id="siren-idx-param-maxtxt" class="siren-ext-slider-input" min="20" max="600" step="10" value="120" style="--theme-color: #06b6d4;">
+    </div>
+
+    <div class="siren-idx-param-card">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <label style="font-size: 0.85em; color: #94a3b8;" title="0.1-2">温度 (Temp)</label>
+            <input type="number" id="siren-idx-param-temp-num" class="siren-idx-param-num" value="0.8" step="0.05" min="0.1" max="2.0">
+        </div>
+        <input type="range" id="siren-idx-param-temp" class="siren-ext-slider-input" min="0.1" max="2.0" step="0.05" value="0.8" style="--theme-color: #06b6d4;">
+    </div>
+
+    <div class="siren-idx-param-card">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <label style="font-size: 0.85em; color: #94a3b8;" title="0-1">Top P</label>
+            <input type="number" id="siren-idx-param-topp-num" class="siren-idx-param-num" value="0.8" step="0.05" min="0.0" max="1.0">
+        </div>
+        <input type="range" id="siren-idx-param-topp" class="siren-ext-slider-input" min="0" max="1" step="0.05" value="0.8" style="--theme-color: #06b6d4;">
+    </div>
+
+    <div class="siren-idx-param-card">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <label style="font-size: 0.85em; color: #94a3b8;" title="0-100">Top K</label>
+            <input type="number" id="siren-idx-param-topk-num" class="siren-idx-param-num" value="30" step="1" min="0" max="100">
+        </div>
+        <input type="range" id="siren-idx-param-topk" class="siren-ext-slider-input" min="0" max="100" step="1" value="30" style="--theme-color: #06b6d4;">
+    </div>
+
+    <div class="siren-idx-param-card">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <label style="font-size: 0.85em; color: #94a3b8;" title="1-10">Num Beams</label>
+            <input type="number" id="siren-idx-param-beams-num" class="siren-idx-param-num" value="3" step="1" min="1" max="10">
+        </div>
+        <input type="range" id="siren-idx-param-beams" class="siren-ext-slider-input" min="1" max="10" step="1" value="3" style="--theme-color: #06b6d4;">
+    </div>
+
+    <div class="siren-idx-param-card">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <label style="font-size: 0.85em; color: #94a3b8;" title=">=1.0">重复惩罚</label>
+            <input type="number" id="siren-idx-param-rep-num" class="siren-idx-param-num" value="10.0" step="0.1" min="1.0" max="20.0">
+        </div>
+        <input type="range" id="siren-idx-param-rep" class="siren-ext-slider-input" min="1" max="20" step="0.1" value="10" style="--theme-color: #06b6d4;">
+    </div>
+
+    <div class="siren-idx-param-card">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <label style="font-size: 0.85em; color: #94a3b8;" title="-10 ~ 10">长度惩罚</label>
+            <input type="number" id="siren-idx-param-len-num" class="siren-idx-param-num" value="0.0" step="0.1" min="-10" max="10">
+        </div>
+        <input type="range" id="siren-idx-param-len" class="siren-ext-slider-input" min="-10" max="10" step="0.1" value="0" style="--theme-color: #06b6d4;">
+    </div>
+
+    <div class="siren-idx-param-card">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <label style="font-size: 0.85em; color: #94a3b8;" title="50-1815">Mel Token</label>
+            <input type="number" id="siren-idx-param-mel-num" class="siren-idx-param-num" value="1500" step="50" min="50" max="1815">
+        </div>
+        <input type="range" id="siren-idx-param-mel" class="siren-ext-slider-input" min="50" max="1815" step="50" value="1500" style="--theme-color: #06b6d4;">
+    </div>
+</div>
         </div>
             <button id="siren-idx-global-save" class="siren-ext-btn siren-ext-btn-primary" style="width: 100%; padding: 12px 0; justify-content: center; font-size: 1.05em; margin-top: 15px; background: linear-gradient(135deg, #0ea5e9, #10b981); border: none;">
                 <i class="fa-solid fa-layer-group"></i> 保存全部配置
@@ -321,16 +399,30 @@ export async function loadIndexTtsData() {
     "checked",
     ttsSettings.emo_random || false,
   );
-  $("#siren-idx-param-maxtxt").val(
-    ttsSettings.max_text_tokens_per_segment ?? 120,
-  );
-  $("#siren-idx-param-temp").val(ttsSettings.temperature ?? 0.8);
-  $("#siren-idx-param-topp").val(ttsSettings.top_p ?? 0.8);
-  $("#siren-idx-param-topk").val(ttsSettings.top_k ?? 30);
-  $("#siren-idx-param-beams").val(ttsSettings.num_beams ?? 3);
-  $("#siren-idx-param-rep").val(ttsSettings.repetition_penalty ?? 10.0);
-  $("#siren-idx-param-len").val(ttsSettings.length_penalty ?? 0.0);
-  $("#siren-idx-param-mel").val(ttsSettings.max_mel_tokens ?? 1500);
+  $("#siren-idx-param-maxtxt")
+    .val(ttsSettings.max_text_tokens_per_segment ?? 120)
+    .trigger("input");
+  $("#siren-idx-param-temp")
+    .val(ttsSettings.temperature ?? 0.8)
+    .trigger("input");
+  $("#siren-idx-param-topp")
+    .val(ttsSettings.top_p ?? 0.8)
+    .trigger("input");
+  $("#siren-idx-param-topk")
+    .val(ttsSettings.top_k ?? 30)
+    .trigger("input");
+  $("#siren-idx-param-beams")
+    .val(ttsSettings.num_beams ?? 3)
+    .trigger("input");
+  $("#siren-idx-param-rep")
+    .val(ttsSettings.repetition_penalty ?? 10.0)
+    .trigger("input");
+  $("#siren-idx-param-len")
+    .val(ttsSettings.length_penalty ?? 0.0)
+    .trigger("input");
+  $("#siren-idx-param-mel")
+    .val(ttsSettings.max_mel_tokens ?? 1500)
+    .trigger("input");
   $("#siren-idx-emo-weight")
     .val(ttsSettings.emo_weight ?? 0.65)
     .trigger("input");
@@ -400,6 +492,56 @@ export function bindIndexTtsEvents() {
       // 最大值为 1.6，所以进度百分比为 val / 1.6
       $(this).css("--progress", `${(val / 1.6) * 100}%`);
     });
+
+  // === 高级参数：范围滑块与数字框的双向绑定同步 ===
+  const paramSliders = [
+    { id: "maxtxt", min: 20, max: 600 },
+    { id: "temp", min: 0.1, max: 2 },
+    { id: "topp", min: 0, max: 1 },
+    { id: "topk", min: 0, max: 100 },
+    { id: "beams", min: 1, max: 10 },
+    { id: "rep", min: 1, max: 20 },
+    { id: "len", min: -10, max: 10 },
+    { id: "mel", min: 50, max: 1815 },
+  ];
+
+  paramSliders.forEach((param) => {
+    const $range = $(`#siren-idx-param-${param.id}`);
+    const $num = $(`#siren-idx-param-${param.id}-num`);
+
+    // 更新你的自研滑块所需的 CSS Variable (驱动霓虹发光进度条)
+    const updateProgress = (val) => {
+      const percent = ((val - param.min) / (param.max - param.min)) * 100;
+      $range.css("--val", `${percent}%`);
+    };
+
+    // 拖动滑块时 -> 更新数字框
+    $range.off("input.sirenSlider").on("input.sirenSlider", function () {
+      const val = parseFloat($(this).val());
+      $num.val(val);
+      updateProgress(val);
+    });
+
+    // 在数字框里打字时 -> 更新滑块
+    $num.off("input.sirenNum").on("input.sirenNum", function () {
+      let val = parseFloat($(this).val());
+      if (isNaN(val)) return; // 如果在输入过程中暂时为空，不报错
+      // 限制数值不越界
+      if (val < param.min) val = param.min;
+      if (val > param.max) val = param.max;
+
+      $range.val(val);
+      updateProgress(val);
+    });
+
+    // 失焦时如果输入为空或非法，重置为滑块的值
+    $num.on("blur", function () {
+      let val = parseFloat($(this).val());
+      if (isNaN(val)) {
+        $(this).val($range.val());
+      }
+    });
+  });
 
   // 2. 搜索音频核心逻辑 (支持点击放大镜，以及输入框边打字边搜索)
   let searchTimeout = null;

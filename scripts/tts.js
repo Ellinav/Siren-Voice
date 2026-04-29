@@ -166,7 +166,7 @@ export function initTtsSettings() {
                     <select id="siren-tts-provider" class="siren-ext-select" style="max-width: 200px;">
                         <option value="indextts">Index-TTS 2</option>
                         <option value="gptsovits">GPT-SoVITS</option>
-                        <option value="doubao">豆包 Doubao</option>
+                        <option value="doubao">豆包（火山引擎）</option>
                         <option value="minimax">MiniMax</option>
                     </select>
                 </div>

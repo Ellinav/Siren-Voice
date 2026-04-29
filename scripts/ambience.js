@@ -65,6 +65,74 @@ export function initAmbienceSettings() {
             .siren-toggle-slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; }
             .siren-toggle-switch input:checked + .siren-toggle-slider { background-color: #10b981; }
             .siren-toggle-switch input:checked + .siren-toggle-slider:before { transform: translateX(22px); }
+            /* =========================================================
+               防御性隔离补丁 (直接在 tab 内提权，干掉全局美化)
+               ========================================================= */
+            
+            /* 1. 修复所有 input、select、textarea 被污染的问题 */
+            .siren-ext-settings-container input:not([type="checkbox"]):not([type="file"]):not([type="range"]),
+            .siren-ext-settings-container select,
+            .siren-ext-settings-container textarea {
+                background-image: none !important; /* 去除全局强加的线性渐变/背景图 */
+                box-shadow: none !important;       /* 去除果冻阴影 */
+                transform: none !important;        /* 去除位移漂移 */
+                appearance: none !important;
+                -webkit-appearance: none !important;
+            }
+
+            /* 针对 Select 消除果冻动画、篡改背景和夸张 padding */
+            .siren-ext-settings-container select {
+                padding: 4px 8px !important;
+            }
+            .siren-ext-settings-container select:hover,
+            .siren-ext-settings-container select:focus {
+                transform: none !important;
+                animation: none !important;
+                box-shadow: 0 0 8px rgba(6, 182, 212, 0.3) !important;
+                background-color: #1e293b !important;
+            }
+            .siren-ext-settings-container select option {
+                background: #0f172a !important;
+                color: #e2e8f0 !important;
+            }
+
+            /* 消除文本框聚焦时的上浮和奇怪描边 */
+            .siren-ext-settings-container input:focus,
+            .siren-ext-settings-container textarea:focus {
+                transform: none !important;
+                box-shadow: 0 0 8px rgba(6, 182, 212, 0.3) !important;
+                border-color: #38bdf8 !important;
+            }
+
+            /* 2. 修复预览面板 (siren-ext-chat-msg-mock) 异常拉高的问题 */
+            /* 强制抹除全局美化对 .mes_text 强加的 9.2rem 上下边距！ */
+            .siren-ext-chat-msg-mock .mes_text {
+                padding: 0 !important;
+                margin: 0 !important;
+                max-width: 100% !important;
+                line-height: 1.6 !important;
+                box-shadow: none !important;
+            }
+            
+            /* 清除可能挂载在 .mes_text 上的伪类气泡装饰图片 (如飘散的樱花/底纹等) */
+            .siren-ext-chat-msg-mock .mes_text::before,
+            .siren-ext-chat-msg-mock .mes_text::after {
+                display: none !important;
+                background-image: none !important;
+            }
+            /* 3. 优化特定输入框的尺寸与字体阅读体验 */
+            #siren-b-icon-input,
+            #siren-s-icon-input,
+            .siren-ext-settings-container .siren-ambience-input-name,
+            .siren-ext-settings-container .siren-ambience-input-url,
+            .siren-ext-settings-container .siren-sfx-input-name,
+            .siren-ext-settings-container .siren-sfx-input-url {
+                height: 34px !important;         /* 增加固定高度，撑起输入框 */
+                font-size: 14px !important;      /* 增大字体，阅读更清晰 */
+                padding: 4px 12px !important;    /* 增加左右内边距，让文字不要太贴边 */
+                line-height: 1.5 !important;     /* 优化光标和文字的垂直居中 */
+                box-sizing: border-box !important;
+            }
         </style>
         
         <div class="siren-ext-settings-container">

@@ -160,7 +160,7 @@ export function getDoubaoHtml() {
 
         <div style="margin-top: 10px; border-top: 1px dashed #475569; padding-top: 20px;">
             <h4 style="color: #3b82f6; margin-bottom: 10px; font-size: 1.1em;">
-                <i class="fa-solid fa-vial" style="margin-right: 5px;"></i> 豆包 (Doubao) 发音测试
+                <i class="fa-solid fa-vial" style="margin-right: 5px;"></i> 豆包发音测试
             </h4>
             
             <div style="background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 6px; padding: 15px;">
