@@ -1,5 +1,6 @@
 import { requestIndexTtsGeneration } from "./indextts_logic.js";
 import { generateMinimaxAudioBlob } from "./minimax_logic.js";
+import { generateElevenLabsAudioBlob } from "./elevenlabs_logic.js";
 import { generateDoubaoProductionAudioBlob } from "./doubao_logic.js";
 import { generateGptSovitsAudio } from "./gptsovits_logic.js";
 import { generateVoxCpmAudioBlob } from "./voxcpm_logic.js";
@@ -44,6 +45,29 @@ function getMinimaxCharConfig(charName, ttsSettings) {
   // 将全局的 API Key、模型，和角色独有的音色参数合并
   return {
     region: ttsSettings.region || "cn", // 👈 关键修复：把 region 透传给底层逻辑！
+    api_key: ttsSettings.api_key,
+    model: ttsSettings.model,
+    text_norm: ttsSettings.text_norm,
+    ...charConfig,
+  };
+}
+
+function getElevenLabsCharConfig(charName, ttsSettings) {
+  const context = SillyTavern.getContext();
+  const charId = context.characterId;
+  const charData =
+    context.characters[charId]?.data?.extensions?.siren_voice_tts_elevenlabs
+      ?.voices || {};
+  const charConfig = charData[charName];
+
+  if (!charConfig || !charConfig.voice_id) {
+    if (window.toastr)
+      window.toastr.warning(`未配置 [${charName}] 的 ElevenLabs 音色映射！`);
+    return null;
+  }
+
+  return {
+    region: ttsSettings.region || "global",
     api_key: ttsSettings.api_key,
     model: ttsSettings.model,
     text_norm: ttsSettings.text_norm,
@@ -314,6 +338,24 @@ export async function fetchTtsBlobProvider(
         );
         break;
 
+      case "elevenlabs":
+        const preloadElConfig = getElevenLabsCharConfig(
+          speakObj.char,
+          ttsSettings,
+        );
+        if (!preloadElConfig) return null;
+
+        const preloadElText = apiPayloadText
+          .replace(/\[([^\]]+)\]/g, "($1)")
+          .replace(/ã€([^ã€‘]+)ã€‘/g, "($1)");
+
+        blob = await generateElevenLabsAudioBlob(
+          preloadElText,
+          speakObj.mood,
+          preloadElConfig,
+        );
+        break;
+
       case "doubao":
         const dbConfig = getDoubaoCharConfig(speakObj.char, ttsSettings);
         if (!dbConfig) return null;
@@ -407,6 +449,7 @@ export async function preloadTtsForTimeline(
         break;
 
       case "minimax":
+      case "elevenlabs":
         const promises = timeline.map(async (node) => {
           if (node.type === "tts") {
             node.blob = await fetchTtsBlobProvider(

@@ -211,6 +211,11 @@ export function getTtsVoiceAndMoodLists(provider) {
       // 无情绪设置
       break;
 
+    case "elevenlabs":
+      const elVoiceMap = charExts.siren_voice_tts_elevenlabs?.voices || {};
+      voices = Object.keys(elVoiceMap);
+      break;
+
     case "doubao":
       // 音色：位于角色卡 siren_voice_tts_doubao
       const dbVoiceMap = charExts.siren_voice_tts_doubao?.voices || {};
@@ -270,6 +275,7 @@ export async function syncTtsWorldbookEntries(selectedProvider, isTtsEnabled) {
     gptsovits: "GPT-SoVITS",
     doubao: "豆包",
     minimax: "minimax",
+    elevenlabs: "ElevenLabs",
     voxcpm: "VoxCPM", // <--- 🌟 新增这一行：将 voxcpm 映射到世界书条目 TTS-VoxCPM
   };
   const targetEntryName = isTtsEnabled

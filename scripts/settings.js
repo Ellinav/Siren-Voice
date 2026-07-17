@@ -768,6 +768,12 @@ export const defaultSettings = Object.freeze({
       model: "speech-2.8-hd",
       text_norm: false,
     },
+    elevenlabs: {
+      region: "global",
+      api_key: "",
+      model: "eleven_multilingual_v2",
+      text_norm: false,
+    },
     indextts: {
       api_base: "http://127.0.0.1:7880",
       api_key: "",

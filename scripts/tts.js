@@ -1,5 +1,6 @@
 import { getIndexTtsHtml, bindIndexTtsEvents } from "./indextts.js";
 import { getMinimaxHtml, bindMinimaxEvents } from "./minimax.js";
+import { getElevenLabsHtml, bindElevenLabsEvents } from "./elevenlabs.js";
 import { getDoubaoHtml, bindDoubaoEvents } from "./doubao.js";
 import { getGptSovitsHtml, bindGptSovitsEvents } from "./gpt-sovits.js";
 import { getVoxCpmHtml, bindVoxCpmEvents } from "./voxcpm.js";
@@ -171,6 +172,7 @@ export function initTtsSettings() {
                         <option value="voxcpm">VoxCPM 2</option>
                         <option value="doubao">豆包（火山引擎）</option>
                         <option value="minimax">MiniMax</option>
+                        <option value="elevenlabs">ElevenLabs</option>
                     </select>
                 </div>
 
@@ -605,6 +607,8 @@ function bindTtsGlobalUiEvents() {
           $("#siren-idx-global-save").trigger("click", [true]);
         } else if (currentProvider === "minimax") {
           $("#siren-mm-save-all").trigger("click", [true]);
+        } else if (currentProvider === "elevenlabs") {
+          $("#siren-el-save-all").trigger("click", [true]);
         } else if (currentProvider === "doubao") {
           $("#siren-db-char-save").trigger("click", [true]);
         } else if (currentProvider === "gptsovits") {
@@ -643,6 +647,9 @@ function renderProviderSettings() {
   } else if (provider === "minimax") {
     container.html(getMinimaxHtml());
     bindMinimaxEvents();
+  } else if (provider === "elevenlabs") {
+    container.html(getElevenLabsHtml());
+    bindElevenLabsEvents();
   } else if (provider === "doubao") {
     container.html(getDoubaoHtml());
     bindDoubaoEvents();
@@ -694,6 +701,10 @@ export async function updateTtsGlobalMacros(provider) {
       const voices = charExt.siren_voice_tts_minimax?.voices || {};
       currentVoice = Object.keys(voices).join(", ");
       currentMood = ""; // 不需要提取 mood
+    } else if (provider === "elevenlabs") {
+      const voices = charExt.siren_voice_tts_elevenlabs?.voices || {};
+      currentVoice = Object.keys(voices).join(", ");
+      currentMood = "";
     } else if (provider === "gptsovits") {
       const charactersList = charExt.siren_voice_gptsovits?.characters || [];
       currentVoice = charactersList
